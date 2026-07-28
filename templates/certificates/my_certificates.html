@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/activities.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="activity-container-premium fade-in slide-up" style="max-width: 1200px;">
+    <div class="activity-header text-center">
+        <h1 class="activity-title">My Certificates</h1>
+        <p>View and download the certificates you've earned.</p>
+    </div>
+    
+    <div class="certificate-grid">
+        {% for certificate in certificates %}
+        <div class="certificate-card">
+            <div class="certificate-img">🏆</div>
+            <div class="certificate-details">
+                <h3 style="margin-bottom: 0.5rem;">{{ certificate.course.title }}</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Issued: {{ certificate.issued_at.strftime('%B %d, %Y') }}</p>
+                <a href="{{ url_for('certificate.view_certificate', cert_id=certificate.id) }}" class="btn btn-primary" style="width: 100%;">View Certificate</a>
+            </div>
+        </div>
+        {% else %}
+        <div style="grid-column: 1 / -1;" class="empty-state">
+            <p>You haven't earned any certificates yet. Complete courses to earn them!</p>
+            <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary" style="margin-top: 1rem;">Browse Courses</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

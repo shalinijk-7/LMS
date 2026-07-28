@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/activities.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="activity-container-premium fade-in slide-up">
+    <div class="activity-header">
+        <h1 class="activity-title">Assignments for {{ course.title }}</h1>
+        <p>Complete your tasks to ensure a comprehensive understanding.</p>
+    </div>
+    
+    {% if assignments %}
+        {% for assignment in assignments %}
+        <div class="assignment-card">
+            <h3>{{ assignment.title }}</h3>
+            <p style="margin-top: 0.5rem;">{{ assignment.description[:100] }}...</p>
+            <div class="assignment-meta">
+                <span>Due Date: {{ assignment.due_date.strftime('%Y-%m-%d') if assignment.due_date else 'No due date' }}</span>
+            </div>
+            <a href="{{ url_for('assignment.view_assignment', assignment_id=assignment.id) }}" class="btn btn-primary" style="margin-top: 1rem;">View Details</a>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <p>No assignments available for this course yet.</p>
+        </div>
+    {% endif %}
+    
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline" style="margin-top: 2rem;">Back to Dashboard</a>
+</div>
+{% endblock %}

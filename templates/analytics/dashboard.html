@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout fade-in">
+    <div class="dashboard-content" style="margin-left: 0;">
+        <div class="dashboard-header">
+            <div class="welcome-text">
+                <h2>Analytics Overview</h2>
+                <p>Track platform engagement and revenue.</p>
+            </div>
+        </div>
+        
+        <div class="stats-grid slide-up">
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-info">
+                    <h3>Analytics</h3>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="background: var(--bg-card); padding: 4rem; text-align: center; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-top: 2rem;" class="slide-up">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">📊</div>
+            <h3>Detailed Analytics Dashboard</h3>
+            <p style="color: var(--text-muted); max-width: 500px; margin: 1rem auto;">This feature is currently under development. Soon you'll be able to track user engagement, course completion rates, and revenue metrics with interactive charts.</p>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary mt-4">Return to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

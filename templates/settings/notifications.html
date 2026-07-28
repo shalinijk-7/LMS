@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container-premium fade-in slide-up" style="margin-top: 80px; max-width: 800px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2>Your Notifications</h2>
+        <a href="#" class="btn btn-outline btn-sm">Mark all as read</a>
+    </div>
+    
+    <div class="notifications-list">
+        {% for notif in notifications %}
+        <div class="notification-item {% if not notif.is_read %}unread{% endif %}">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="font-size: 1.5rem;">{% if not notif.is_read %}🔔{% else %}✓{% endif %}</div>
+                <div>
+                    <p style="margin: 0; font-weight: {% if not notif.is_read %}600{% else %}400{% endif %};">{{ notif.message }}</p>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ notif.created_at.strftime('%B %d, %Y - %H:%M') }}</span>
+                </div>
+            </div>
+            {% if not notif.is_read %}
+            <a href="{{ url_for('notifications.mark_read', notif_id=notif.id) }}" class="btn btn-primary btn-sm">Mark Read</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="empty-state text-center" style="padding: 4rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+            <p>You're all caught up! No new notifications.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/activities.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="fade-in slide-up" style="padding: 4rem 5%;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <a href="{{ url_for('certificate.my_certificates') }}" class="btn btn-outline">&larr; Back to My Certificates</a>
+        <button class="btn btn-primary pulse-hover" style="margin-left: 1rem;" onclick="window.print()">Download PDF</button>
+    </div>
+    
+    <div class="certificate-render">
+        <div class="cert-title">Certificate of Completion</div>
+        <p style="font-size: 1.25rem; margin-top: 2rem;">This is to certify that</p>
+        <div class="cert-recipient">{{ certificate.student.first_name }} {{ certificate.student.last_name }}</div>
+        <p style="font-size: 1.25rem;">has successfully completed the course</p>
+        <div class="cert-course">{{ certificate.course.title }}</div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 4rem; padding: 0 2rem;">
+            <div style="text-align: center;">
+                <p style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 0.5rem; width: 200px;">Date of Issue</p>
+                <p>{{ certificate.issued_at.strftime('%B %d, %Y') }}</p>
+            </div>
+            <div style="text-align: center;">
+                <p style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 0.5rem; width: 200px;">AuraLearn Instructor</p>
+                <p>{{ certificate.course.instructor.first_name }} {{ certificate.course.instructor.last_name }}</p>
+            </div>
+        </div>
+        
+        <!-- Decoration -->
+        <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); font-size: 3rem;">
+            🏵️
+        </div>
+    </div>
+</div>
+{% endblock %}

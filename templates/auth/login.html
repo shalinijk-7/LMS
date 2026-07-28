@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Login - LearnSphere AI{% endblock %}
+
+{% block content %}
+<div class="container-premium d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card glass-card p-4 p-md-5" style="max-width: 450px; width: 100%;">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="color: var(--primary);">Welcome Back</h2>
+            <p class="text-muted">Login to continue your learning journey.</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <div class="mb-3">
+                <label for="email" class="form-label fw-medium">Email Address</label>
+                <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="name@example.com" required>
+            </div>
+            
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <label for="password" class="form-label fw-medium">Password</label>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none small">Forgot Password?</a>
+                </div>
+                <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            
+            <div class="mb-4 form-check">
+                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                <label class="form-check-label" for="remember">Remember me</label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">Log In</button>
+            
+            <div class="d-flex align-items-center my-4">
+                <hr class="flex-grow-1">
+                <span class="mx-3 text-muted small fw-medium">OR</span>
+                <hr class="flex-grow-1">
+            </div>
+            
+            <a href="{{ url_for('auth.google_login') }}" class="btn btn-outline-dark btn-lg w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" width="20" height="20">
+                Continue with Google
+            </a>
+        </form>
+        
+        <div class="text-center mt-3">
+            <p class="mb-0 text-muted">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-decoration-none fw-medium">Sign up</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

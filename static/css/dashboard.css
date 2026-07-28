@@ -1,0 +1,220 @@
+/* Dashboard Layout Revamp */
+.dashboard-body {
+    background: #fafbfe;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.dashboard-wrapper {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Sidebar */
+.dash-sidebar {
+    width: 260px;
+    background: #f8f9fc;
+    border-right: 1px solid #edf1f5;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+}
+
+.dash-sidebar-header {
+    margin-bottom: 2.5rem;
+}
+
+.dash-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.dash-menu li {
+    margin-bottom: 0.5rem;
+}
+
+.dash-menu a {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1.2rem;
+    color: #4b5563;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 2rem;
+    transition: all 0.2s ease;
+}
+
+.dash-menu a i {
+    font-size: 1.1rem;
+}
+
+.dash-menu a:hover {
+    color: var(--primary);
+    background: rgba(168, 85, 247, 0.05);
+}
+
+.dash-menu a.active {
+    color: var(--primary);
+    background: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.dash-menu-bottom {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #edf1f5;
+}
+.dash-menu-bottom a {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1.2rem;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Main Content Area */
+.dash-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 3rem 4rem;
+}
+
+.dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Stat Cards */
+.dash-stat-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    border: 1px solid #f1f3f6;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.dash-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+}
+
+.icon-container {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+/* Search Box */
+.search-box {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 2rem;
+    padding: 0.3rem 1.2rem;
+    width: 300px;
+}
+.search-box i {
+    font-size: 1rem;
+}
+.search-box input {
+    font-size: 0.9rem;
+    color: #475569;
+}
+.search-box input:focus {
+    box-shadow: none;
+}
+
+/* Course Cards */
+.dash-course-card {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    border: 1px solid #f1f3f6;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.dash-course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+/* Recent Activity */
+.dash-activity-card {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    border: 1px solid #f1f3f6;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f1f3f6;
+}
+.activity-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.activity-badge {
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 1.25rem;
+    border: 2px dashed #cbd5e1;
+}
+
+@media (max-width: 992px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+    }
+    .dash-sidebar {
+        width: 100%;
+        height: auto;
+        padding: 1rem;
+        position: sticky;
+        top: 0;
+    }
+    .dash-main {
+        padding: 2rem 1.5rem;
+    }
+    .dash-menu {
+        display: none; /* In a real app, this would be a toggled mobile menu */
+    }
+}

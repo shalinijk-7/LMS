@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/activities.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="activity-container-premium fade-in slide-up">
+    <div class="activity-header">
+        <h1 class="activity-title">{{ quiz.title }}</h1>
+        <p>Answer all questions carefully before submitting.</p>
+    </div>
+    
+    <form method="POST" action="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}">
+        {% for question in quiz.questions %}
+        <div class="quiz-question">
+            <h4>{{ loop.index }}. {{ question.question_text }}</h4>
+            <div class="quiz-options">
+                <label>
+                    <input type="radio" name="question_{{ question.id }}" value="A" required>
+                    {{ question.option_a }}
+                </label>
+                <label>
+                    <input type="radio" name="question_{{ question.id }}" value="B" required>
+                    {{ question.option_b }}
+                </label>
+                <label>
+                    <input type="radio" name="question_{{ question.id }}" value="C" required>
+                    {{ question.option_c }}
+                </label>
+                <label>
+                    <input type="radio" name="question_{{ question.id }}" value="D" required>
+                    {{ question.option_d }}
+                </label>
+            </div>
+        </div>
+        {% else %}
+        <p>This quiz doesn't have any questions yet.</p>
+        {% endfor %}
+        
+        {% if quiz.questions %}
+        <button type="submit" class="btn btn-primary btn-lg pulse-hover" style="width: 100%;">Submit Quiz</button>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

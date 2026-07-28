@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <aside class="dashboard-sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('dashboard.index') }}" class="active">Overview</a></li>
+            <li><a href="{{ url_for('courses.create_course') }}">Create Course</a></li>
+            <li><a href="#">My Students</a></li>
+            <li><a href="#">Earnings</a></li>
+            <li><a href="#">Settings</a></li>
+        </ul>
+    </aside>
+    
+    <div class="dashboard-content fade-in">
+        <div class="dashboard-header">
+            <div class="welcome-text">
+                <h2>Instructor Dashboard</h2>
+                <p>Manage your courses and track student progress.</p>
+            </div>
+            <a href="{{ url_for('courses.create_course') }}" class="btn btn-primary">+ New Course</a>
+        </div>
+        
+        <div class="stats-grid slide-up">
+            <div class="stat-card">
+                <div class="stat-icon">📹</div>
+                <div class="stat-info">
+                    <h3>{{ courses|length }}</h3>
+                    <p>Total Courses</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <h3>0</h3>
+                    <p>Total Students</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-info">
+                    <h3>$0</h3>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section-title slide-up">
+            <h3>My Courses</h3>
+        </div>
+        
+        <div class="course-grid slide-up">
+            {% for course in courses %}
+            <div class="course-card">
+                <div class="course-img"></div>
+                <div class="course-content">
+                    <h3>{{ course.title }}</h3>
+                    <p>{{ course.description[:100] }}...</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                        <span style="font-weight: 600;">${{ "%.2f"|format(course.price) }}</span>
+                        <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-outline">View</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>You haven't created any courses yet.</p>
+                <a href="{{ url_for('courses.create_course') }}" class="btn btn-outline" style="margin-top: 1rem;">Create First Course</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

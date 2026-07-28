@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/activities.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="activity-container-premium fade-in slide-up">
+    <div class="activity-header">
+        <h1 class="activity-title">{{ assignment.title }}</h1>
+        <p>Due Date: <strong>{{ assignment.due_date.strftime('%B %d, %Y') if assignment.due_date else 'None' }}</strong></p>
+    </div>
+    
+    <div style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+        {{ assignment.description }}
+    </div>
+    
+    <div style="background: var(--bg-main); padding: 2rem; border-radius: var(--radius-lg); border: 1px dashed var(--border);">
+        <h3 style="margin-bottom: 1rem;">Submit your work</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">Upload your completed assignment file here (PDF, DOCX, ZIP).</p>
+        
+        <form action="#" method="POST" enctype="multipart/form-data">
+            <input type="file" name="submission_file" required style="margin-bottom: 1rem; display: block;">
+            <button type="submit" class="btn btn-primary pulse-hover">Upload Submission</button>
+        </form>
+    </div>
+    
+    <a href="{{ url_for('assignment.list_assignments', course_id=assignment.course_id) }}" class="btn btn-outline" style="margin-top: 2rem;">Back to Assignments</a>
+</div>
+{% endblock %}

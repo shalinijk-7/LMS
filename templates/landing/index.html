@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}LearnSphere AI - Premium Learning Management System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 100%); min-height: 90vh; display: flex; align-items: center;">
+    <div class="container-fluid px-4 px-lg-5 position-relative z-index-2 w-100 py-5">
+        <div class="row align-items-center justify-content-between gy-5">
+            
+            <!-- Left Column: 45% -->
+            <div class="col-lg-5 text-center text-lg-start pe-lg-5 d-flex flex-column gap-4" data-aos="fade-right" data-aos-delay="100">
+                <div class="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill bg-white shadow-sm align-self-center align-self-lg-start" style="color: var(--primary); font-weight: 600;">
+                    <i class="bi bi-stars text-warning"></i> AI-Powered Learning Platform
+                </div>
+                
+                <h1 class="display-premium text-dark mb-2">
+                    Learn Smarter. <br>
+                    <span style="color: var(--primary);">Teach Better.</span> <br>
+                    Track Progress.
+                </h1>
+                
+                <p class="text-premium-muted mb-3 pe-lg-3">
+                    Join thousands of students and instructors in a world-class educational ecosystem designed for the modern learner. Master new skills with interactive courses and AI guidance.
+                </p>
+                
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start mb-3">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary shadow-sm">Start Learning Now</a>
+                    <a href="#featured" class="btn btn-outline-primary">Explore Courses</a>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-4 text-muted small fw-medium mt-2">
+                    <div class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success fs-5"></i> 10k+ Students</div>
+                    <div class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success fs-5"></i> Expert Instructors</div>
+                </div>
+            </div>
+            
+            <!-- Right Column: 55% -->
+            <div class="col-lg-7 position-relative text-end d-flex justify-content-end" data-aos="fade-left" data-aos-delay="200">
+                
+                <!-- Image Wrapper - Reduced width, bounded -->
+                <div class="position-relative ms-auto" style="width: 80%; max-width: 700px;">
+                    
+                    <!-- Decorative Background Blobs (Behind Image) -->
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 h-100 rounded-circle" style="background: var(--primary); opacity: 0.05; transform: scale(1.1); z-index: 1;"></div>
+                    <div class="position-absolute top-50 start-50 translate-middle w-75 h-75 rounded-circle" style="background: var(--accent); opacity: 0.05; transform: scale(1.3) translate(5%, -5%); z-index: 1;"></div>
+                    
+                    <!-- Main Dashboard Image -->
+                    <div class="card-premium border-0 position-relative" style="z-index: 3;">
+                        <div class="bg-light px-4 py-3 border-bottom d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-danger" style="width: 12px; height: 12px;"></div>
+                            <div class="rounded-circle bg-warning" style="width: 12px; height: 12px;"></div>
+                            <div class="rounded-circle bg-success" style="width: 12px; height: 12px;"></div>
+                        </div>
+                        <!-- Using Unsplash as robust placeholder since local mockup might be missing -->
+                        <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1200" class="img-fluid" alt="Dashboard Preview" style="width: 100%; display: block;">
+                    </div>
+                    
+                    <!-- Floating Card 1 (Anchored INSIDE wrapper) -->
+                    <div class="card-premium-glass p-3 position-absolute" style="top: 15%; right: -5%; z-index: 4; animation: float 6s ease-in-out infinite;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
+                                <i class="bi bi-graph-up-arrow fs-5"></i>
+                            </div>
+                            <div class="text-start">
+                                <h6 class="mb-0 fw-bold text-dark">98% Success</h6>
+                                <small class="text-muted fw-medium">Completion rate</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Floating Card 2 (Anchored INSIDE wrapper) -->
+                    <div class="card-premium-glass p-3 position-absolute" style="bottom: 15%; left: -10%; z-index: 4; animation: float 8s ease-in-out infinite reverse;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
+                                <i class="bi bi-award fs-5"></i>
+                            </div>
+                            <div class="text-start">
+                                <h6 class="mb-0 fw-bold text-dark">Certified</h6>
+                                <small class="text-muted fw-medium">Global recognition</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+<!-- Search Section -->
+<section class="py-5 bg-white border-bottom" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <form class="card p-2 shadow-sm border-0 rounded-pill">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-0 text-muted ps-4"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-0 shadow-none px-3" placeholder="What do you want to learn today?">
+                        <button class="btn btn-primary rounded-pill px-4" type="button">Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="py-5 my-5" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Top Categories</h2>
+            <p class="text-muted">Explore courses by popular domains</p>
+        </div>
+        <div class="row gy-4">
+            {% set categories = [
+                {'icon': 'bi-code-slash', 'name': 'Development', 'color': 'primary'},
+                {'icon': 'bi-palette', 'name': 'Design', 'color': 'danger'},
+                {'icon': 'bi-briefcase', 'name': 'Business', 'color': 'success'},
+                {'icon': 'bi-megaphone', 'name': 'Marketing', 'color': 'warning'},
+                {'icon': 'bi-cpu', 'name': 'IT & Software', 'color': 'info'},
+                {'icon': 'bi-camera-video', 'name': 'Photography', 'color': 'secondary'}
+            ] %}
+            
+            <div class="row gy-4 justify-content-center mx-auto" style="max-width: 1400px;">
+            {% for cat in categories %}
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="#" class="card h-100 text-center text-decoration-none text-white card-hover" style="background: var(--gradient-primary); border: none;">
+                    <div class="card-body py-4">
+                        <div class="text-white mb-3">
+                            <i class="bi {{ cat.icon }} fs-1"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0">{{ cat.name }}</h6>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Courses Section -->
+<section id="featured" class="py-5 bg-light" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5 py-4">
+        <div class="d-flex justify-content-between align-items-end mb-5">
+            <div>
+                <h2 class="fw-bold">Featured Courses</h2>
+                <p class="text-muted mb-0">Learn from industry experts</p>
+            </div>
+            <a href="#" class="btn btn-outline-primary d-none d-md-inline-block">View All Courses</a>
+        </div>
+        
+        <div class="row gy-4 justify-content-center mx-auto" style="max-width: 1400px;">
+            <!-- Dummy Course 1 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover">
+                    <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=600" class="card-img-top" alt="Course" style="height: 200px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-primary-subtle text-primary rounded-pill">Development</span>
+                            <span class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i> 4.8</span>
+                        </div>
+                        <h5 class="card-title fw-bold mb-3">Complete Python Bootcamp: Go from zero to hero</h5>
+                        <p class="card-text text-muted small mb-4">Learn Python like a Professional! Start from the basics and go all the way to creating your own applications and games.</p>
+                        <hr class="text-muted">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100" class="rounded-circle" width="32" height="32" alt="Instructor">
+                                <span class="small fw-medium">Dr. Angela Yu</span>
+                            </div>
+                            <span class="fw-bold text-primary fs-5">$49.99</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Dummy Course 2 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover">
+                    <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&q=80&w=600" class="card-img-top" alt="Course" style="height: 200px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-danger-subtle text-danger rounded-pill">Design</span>
+                            <span class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i> 4.9</span>
+                        </div>
+                        <h5 class="card-title fw-bold mb-3">UI/UX Design Masterclass: Learn by Doing</h5>
+                        <p class="card-text text-muted small mb-4">Master Figma, UI design principles, and user research to build stunning and functional digital products.</p>
+                        <hr class="text-muted">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100" class="rounded-circle" width="32" height="32" alt="Instructor">
+                                <span class="small fw-medium">Sarah Johnson</span>
+                            </div>
+                            <span class="fw-bold text-primary fs-5">$59.99</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Dummy Course 3 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover">
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600" class="card-img-top" alt="Course" style="height: 200px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-success-subtle text-success rounded-pill">Business</span>
+                            <span class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i> 4.7</span>
+                        </div>
+                        <h5 class="card-title fw-bold mb-3">Digital Marketing Agency: Start your own</h5>
+                        <p class="card-text text-muted small mb-4">Learn how to start and scale a profitable digital marketing agency from scratch without any prior experience.</p>
+                        <hr class="text-muted">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100" class="rounded-circle" width="32" height="32" alt="Instructor">
+                                <span class="small fw-medium">Michael Chen</span>
+                            </div>
+                            <span class="fw-bold text-primary fs-5">$39.99</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-5 d-md-none">
+            <a href="#" class="btn btn-outline-primary w-100">View All Courses</a>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section id="features" class="py-5 my-5" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5">
+        <div class="row align-items-center justify-content-between gy-5">
+            <div class="col-lg-5 pe-lg-5">
+                <h2 class="fw-bold mb-4">Why Learn with <span style="color: var(--primary);">LearnSphere AI?</span></h2>
+                <p class="text-muted mb-4 lead">We provide a comprehensive ecosystem designed to help you achieve your goals faster and more effectively.</p>
+                
+                <div class="d-flex gap-3 mb-4">
+                    <div class="text-primary fs-3"><i class="bi bi-laptop"></i></div>
+                    <div>
+                        <h5 class="fw-bold">Interactive Learning</h5>
+                        <p class="text-muted">Learn by doing with interactive coding environments and quizzes integrated directly into your lessons.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-3 mb-4">
+                    <div class="text-success fs-3"><i class="bi bi-award"></i></div>
+                    <div>
+                        <h5 class="fw-bold">Verifiable Certificates</h5>
+                        <p class="text-muted">Earn certificates with unique QR codes to prove your skills to employers globally.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-3">
+                    <div class="text-warning fs-3"><i class="bi bi-people"></i></div>
+                    <div>
+                        <h5 class="fw-bold">Active Community</h5>
+                        <p class="text-muted">Join course-specific discussion forums to get help from instructors and peers instantly.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-end">
+                <div class="position-relative d-inline-block">
+                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=1000" class="img-fluid rounded-4 shadow-lg w-100" style="max-height: 600px; object-fit: cover;" alt="Students learning">
+                    <div class="position-absolute top-0 start-0 translate-middle p-4 bg-white rounded-circle shadow-lg" style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                        <h3 class="fw-bold text-primary mb-0">100+</h3>
+                        <small class="text-muted fw-medium" style="font-size: 0.8rem;">Courses</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 text-dark text-center position-relative overflow-hidden bg-white" data-aos="zoom-in">
+    <div class="container-fluid px-4 px-lg-5 position-relative py-5 z-index-2">
+        <h2 class="display-5 fw-bold mb-4">Ready to start your learning journey?</h2>
+        <p class="lead mb-5 text-muted mx-auto" style="max-width: 600px;">Join thousands of learners around the world who are already building their futures on LearnSphere AI.</p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5 py-3 fw-bold rounded-pill shadow-sm">Get Started for Free</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+{% endblock %}

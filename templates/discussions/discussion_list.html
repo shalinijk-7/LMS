@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container-premium fade-in slide-up" style="margin-top: 80px;">
+    <h2>Discussions: {{ course.title }}</h2>
+    
+    <div style="background: var(--bg-card); padding: 2rem; border-radius: var(--radius-lg); margin: 2rem 0; border: 1px solid var(--border);">
+        <h3 style="margin-bottom: 1rem;">Start a new discussion</h3>
+        <form method="POST">
+            <input type="text" name="title" class="form-control" placeholder="Discussion Topic" style="margin-bottom: 1rem;" required>
+            <textarea name="content" class="form-control" placeholder="What's on your mind?" style="min-height: 100px; margin-bottom: 1rem;" required></textarea>
+            <button type="submit" class="btn btn-primary">Post Discussion</button>
+        </form>
+    </div>
+    
+    <div class="discussion-board">
+        {% for discussion in discussions %}
+        <div class="discussion-post">
+            <div class="discussion-meta">
+                <div class="author-avatar"></div>
+                <div>
+                    <h4 style="margin: 0;">{{ discussion.title }}</h4>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">By {{ discussion.user.first_name }} on {{ discussion.created_at.strftime('%B %d') }}</span>
+                </div>
+            </div>
+            <p style="margin-top: 1rem;">{{ discussion.content[:150] }}...</p>
+            <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <a href="{{ url_for('discussion.view_discussion', discussion_id=discussion.id) }}" class="btn btn-outline btn-sm">View Replies ({{ discussion.replies|length }})</a>
+            </div>
+        </div>
+        {% else %}
+        <p>No discussions yet. Be the first to start one!</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

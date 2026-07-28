@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container-premium fade-in slide-up" style="margin-top: 80px; max-width: 1000px;">
+    <a href="{{ url_for('discussion.list_discussions', course_id=discussion.course_id) }}" class="btn btn-outline btn-sm mb-4">&larr; Back to Discussions</a>
+    
+    <div class="discussion-post" style="border-left: 4px solid var(--primary);">
+        <div class="discussion-meta">
+            <div class="author-avatar"></div>
+            <div>
+                <h2 style="margin: 0;">{{ discussion.title }}</h2>
+                <span style="font-size: 0.9rem; color: var(--text-muted);">Posted by {{ discussion.user.first_name }} on {{ discussion.created_at.strftime('%B %d, %Y') }}</span>
+            </div>
+        </div>
+        <p style="margin-top: 1.5rem; font-size: 1.1rem; line-height: 1.8;">{{ discussion.content }}</p>
+    </div>
+    
+    <h3 style="margin: 3rem 0 1.5rem;">Replies ({{ discussion.replies|length }})</h3>
+    
+    <div class="replies-list">
+        {% for reply in discussion.replies %}
+        <div class="discussion-post" style="margin-left: 3rem; background: var(--bg-main);">
+            <div class="discussion-meta">
+                <div class="author-avatar" style="width: 30px; height: 30px;"></div>
+                <div>
+                    <strong style="margin: 0;">{{ reply.user.first_name }} {{ reply.user.last_name }}</strong>
+                    <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 1rem;">{{ reply.created_at.strftime('%B %d, %H:%M') }}</span>
+                </div>
+            </div>
+            <p style="margin-top: 1rem;">{{ reply.content }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div style="background: var(--bg-card); padding: 2rem; border-radius: var(--radius-lg); margin-top: 3rem; border: 1px solid var(--border);">
+        <h4 style="margin-bottom: 1rem;">Leave a Reply</h4>
+        <form method="POST">
+            <textarea name="content" class="form-control" placeholder="Write your reply here..." style="min-height: 120px; margin-bottom: 1rem;" required></textarea>
+            <button type="submit" class="btn btn-primary">Post Reply</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

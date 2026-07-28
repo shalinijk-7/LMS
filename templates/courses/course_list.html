@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/courses.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header fade-in">
+    <h1 class="page-title">Explore Courses</h1>
+    <p>Discover new skills with our expert-led courses.</p>
+</div>
+
+<!-- Layout with Sidebar -->
+<div class="container-premium mt-4 mb-5">
+    <div class="row">
+        <!-- Filter Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <button class="btn btn-outline-primary w-100 d-lg-none mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#filterSidebar" aria-expanded="false" aria-controls="filterSidebar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16" style="margin-right: 5px;">
+                  <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z"/>
+                </svg> Filters
+            </button>
+            <div class="collapse d-lg-block filter-sidebar-content" id="filterSidebar">
+                <div class="card-premium p-4">
+                    <h5 class="mb-3">Categories</h5>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="" id="cat1">
+                        <label class="form-check-label" for="cat1">Web Development</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="" id="cat2">
+                        <label class="form-check-label" for="cat2">Data Science</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="" id="cat3">
+                        <label class="form-check-label" for="cat3">Design</label>
+                    </div>
+                    <hr>
+                    <h5 class="mb-3">Price</h5>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="priceFilter" id="priceAll" checked>
+                        <label class="form-check-label" for="priceAll">All</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="priceFilter" id="priceFree">
+                        <label class="form-check-label" for="priceFree">Free</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="priceFilter" id="pricePaid">
+                        <label class="form-check-label" for="pricePaid">Paid</label>
+                    </div>
+                    <button class="btn btn-primary w-100 mt-4">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Courses Grid -->
+        <div class="col-lg-9">
+<div class="courses-container-premium">
+    <div class="course-list-grid slide-up">
+        {% for course in courses %}
+        <div class="course-card hover-lift">
+            <!-- Course Thumbnail -->
+            <div class="course-thumbnail">
+                {% if course.thumbnail %}
+                    <img src="{{ url_for('static', filename='uploads/' + course.thumbnail) }}" alt="{{ course.title }}">
+                {% else %}
+                    {% set imgs = ['course_python.jpg', 'course_datascience.jpg', 'course_webdev.jpg', 'course_design.jpg'] %}
+                    <img src="{{ url_for('static', filename='images/' + imgs[loop.index0 % 4]) }}" alt="{{ course.title }}">
+                {% endif %}
+                <div class="course-badge">{{ "$%.2f"|format(course.price) }}</div>
+            </div>
+            <!-- Course Info -->
+            <div class="course-content">
+                <div class="instructor-row">
+                    <div class="instructor-avatar">{{ course.instructor.first_name[0] }}</div>
+                    <span>{{ course.instructor.first_name }} {{ course.instructor.last_name }}</span>
+                </div>
+                <h3 class="course-title">{{ course.title }}</h3>
+                <p class="course-desc">{{ course.description[:110] }}...</p>
+                <div class="course-footer">
+                    <div class="course-meta-tags">
+                        <span class="tag">📚 Self-paced</span>
+                        <span class="tag">🏆 Certificate</span>
+                    </div>
+                    <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-primary course-btn">View Course →</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 5rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">📚</div>
+            <h3>No courses available yet.</h3>
+            <p style="color: var(--text-muted);">Please check back later!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

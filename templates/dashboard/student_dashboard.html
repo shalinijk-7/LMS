@@ -1,0 +1,108 @@
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Study Workspace</h2>
+        <p class="text-muted mb-0">Welcome back to your learning library, {{ current_user.first_name }}!</p>
+    </div>
+    <div>
+        <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">
+            <i class="bi bi-plus-lg me-1"></i> Enroll in Course
+        </a>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #6366f1; background: #e0e7ff;">
+                <i class="bi bi-file-earmark-text-fill"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ enrollments|length }}</h3>
+                <span class="text-muted small fw-medium">Enrolled Courses</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #8b5cf6; background: #ede9fe;">
+                <i class="bi bi-highlighter"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">0</h3>
+                <span class="text-muted small fw-medium">Completed Courses</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #ec4899; background: #fce7f3;">
+                <i class="bi bi-award-fill"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">0</h3>
+                <span class="text-muted small fw-medium">Certificates Earned</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Document Library equivalent (My Learning) -->
+<div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-in" data-aos-delay="200">
+    <h4 class="fw-bold mb-0">My Learning Library</h4>
+    <div class="search-box">
+        <i class="bi bi-search text-muted"></i>
+        <input type="text" placeholder="Search courses instantly..." class="form-control border-0 shadow-none bg-transparent">
+    </div>
+</div>
+
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="300">
+    {% for enrollment in enrollments %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="dash-course-card">
+            <div class="mb-3">
+                <i class="bi bi-camera-video-fill text-danger fs-1"></i>
+            </div>
+            <h6 class="fw-bold mb-3 text-truncate">{{ enrollment.course.title }}</h6>
+            <div class="d-flex justify-content-between text-muted small fw-medium mb-4">
+                <span>{{ enrollment.progress_percentage }}% done</span>
+                <span>Self-paced</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="#" class="btn btn-primary rounded-pill w-100 fw-bold py-2"><i class="bi bi-book-half me-1"></i> Open Workspace</a>
+                <button class="btn btn-light rounded-circle text-danger border"><i class="bi bi-trash3"></i></button>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="empty-state">
+            <p>You haven't enrolled in any courses yet.</p>
+            <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4 py-2">Browse Courses</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Recent Activity -->
+<h4 class="fw-bold mb-4" data-aos="fade-right" data-aos-delay="400">Recent Learning Activity</h4>
+<div class="dash-activity-card mb-5" data-aos="fade-up" data-aos-delay="500">
+    <div class="activity-item">
+        <div class="activity-badge">LOGIN</div>
+        <div>
+            <p class="mb-0 fw-medium">Logged into the application</p>
+            <small class="text-muted">Just now</small>
+        </div>
+    </div>
+    <div class="activity-item">
+        <div class="activity-badge text-primary" style="background: var(--primary-light);">VIEW</div>
+        <div>
+            <p class="mb-0 fw-medium">Viewed dashboard</p>
+            <small class="text-muted">2 minutes ago</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

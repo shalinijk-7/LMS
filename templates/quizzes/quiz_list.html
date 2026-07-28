@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/activities.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="activity-container-premium fade-in slide-up">
+    <div class="activity-header">
+        <h1 class="activity-title">Quizzes for {{ course.title }}</h1>
+        <p>Test your knowledge and track your progress.</p>
+    </div>
+    
+    {% if quizzes %}
+        {% for quiz in quizzes %}
+        <div class="assignment-card">
+            <h3>{{ quiz.title }}</h3>
+            <div class="assignment-meta">
+                <span>Created: {{ quiz.created_at.strftime('%Y-%m-%d') }}</span>
+                <span>Questions: {{ quiz.questions|length }}</span>
+            </div>
+            <a href="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" class="btn btn-primary" style="margin-top: 1rem;">Take Quiz</a>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <p>No quizzes available for this course yet.</p>
+        </div>
+    {% endif %}
+    
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline" style="margin-top: 2rem;">Back to Dashboard</a>
+</div>
+{% endblock %}
