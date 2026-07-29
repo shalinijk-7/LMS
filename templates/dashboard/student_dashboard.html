@@ -4,7 +4,7 @@
 <div class="dash-header mb-5" data-aos="fade-down">
     <div>
         <h2 class="fw-bold mb-1">Study Workspace</h2>
-        <p class="text-muted mb-0">Welcome back to your learning library, {{ current_user.first_name }}!</p>
+        <p class="text-muted mb-0">Welcome back to your learning library, {{ current_user.name.split(' ')[0] }}!</p>
     </div>
     <div>
         <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">
@@ -67,9 +67,12 @@
                 <i class="bi bi-camera-video-fill text-danger fs-1"></i>
             </div>
             <h6 class="fw-bold mb-3 text-truncate">{{ enrollment.course.title }}</h6>
-            <div class="d-flex justify-content-between text-muted small fw-medium mb-4">
-                <span>{{ enrollment.progress_percentage }}% done</span>
+            <div class="d-flex justify-content-between text-muted small fw-medium mb-2">
+                <span>{{ enrollment.progress_percent }}% Completed</span>
                 <span>Self-paced</span>
+            </div>
+            <div class="progress mb-4 rounded-pill" style="height: 6px;">
+                <div class="progress-bar bg-primary rounded-pill" role="progressbar" style="width: {{ enrollment.progress_percent }}%;" aria-valuenow="{{ enrollment.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
             <div class="d-flex gap-2">
                 <a href="#" class="btn btn-primary rounded-pill w-100 fw-bold py-2"><i class="bi bi-book-half me-1"></i> Open Workspace</a>
@@ -79,9 +82,13 @@
     </div>
     {% else %}
     <div class="col-12">
-        <div class="empty-state">
-            <p>You haven't enrolled in any courses yet.</p>
-            <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4 py-2">Browse Courses</a>
+        <div class="empty-state text-center py-5 bg-white rounded-4 border shadow-sm" style="border-color: #eaeaea !important; border-style: solid !important;">
+            <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 80px; height: 80px;">
+                <i class="bi bi-journal-x fs-1"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Your learning library is empty</h5>
+            <p class="text-muted mx-auto mb-4" style="max-width: 400px;">It looks like you haven't enrolled in any courses yet. Discover our collection of expert-led courses and start building your skills today.</p>
+            <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">Explore Courses</a>
         </div>
     </div>
     {% endfor %}

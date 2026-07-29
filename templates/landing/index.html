@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}LearnSphere AI - Premium Learning Management System{% endblock %}
+{% block title %}AuraLearn - Premium Learning Management System{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -39,7 +39,7 @@
             <div class="col-lg-7 position-relative text-end d-flex justify-content-end" data-aos="fade-left" data-aos-delay="200">
                 
                 <!-- Image Wrapper - Reduced width, bounded -->
-                <div class="position-relative ms-auto" style="width: 80%; max-width: 700px;">
+                <div class="position-relative ms-auto" style="width: 65%; max-width: 550px;">
                     
                     <!-- Decorative Background Blobs (Behind Image) -->
                     <div class="position-absolute top-50 start-50 translate-middle w-100 h-100 rounded-circle" style="background: var(--primary); opacity: 0.05; transform: scale(1.1); z-index: 1;"></div>
@@ -89,6 +89,89 @@
     </div>
 </section>
 
+<!-- Trusted By Section -->
+<section class="py-5 bg-light position-relative">
+    <style>
+        .logo-card-glow {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 90px;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+        .logo-card-glow::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6, #d946ef);
+            z-index: -1;
+            border-radius: 18px;
+            filter: blur(10px);
+            opacity: 0.7;
+            transition: filter 0.3s ease;
+        }
+        .logo-card-glow::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: white;
+            z-index: -1;
+            border-radius: 16px;
+            border: 1px solid rgba(236, 72, 153, 0.1);
+        }
+        .logo-card-glow:hover {
+            transform: translateY(-5px);
+        }
+        .logo-card-glow:hover::before {
+            filter: blur(14px);
+        }
+        .logo-card-glow img {
+            max-height: 35px;
+            max-width: 100%;
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
+        }
+        .logo-card-glow:hover img {
+            opacity: 1;
+        }
+    </style>
+    <div class="container-fluid px-4 px-lg-5">
+        <h6 class="text-center text-muted fw-bold mb-4" style="letter-spacing: 2px; font-size: 0.8rem; text-transform: uppercase;">Trusted by Industry Leaders</h6>
+        <div class="row align-items-center justify-content-center text-center g-4">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="logo-card-glow">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google">
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="logo-card-glow">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg" alt="Microsoft">
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="logo-card-glow">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon">
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="logo-card-glow">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta">
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="logo-card-glow">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Search Section -->
 <section class="py-5 bg-white border-bottom" data-aos="fade-up">
     <div class="container-fluid px-4 px-lg-5">
@@ -107,35 +190,60 @@
 </section>
 
 <!-- Categories Section -->
-<section class="py-5 my-5" data-aos="fade-up">
+<section class="py-5 my-5 bg-light" data-aos="fade-up">
     <div class="container-fluid px-4 px-lg-5">
         <div class="text-center mb-5">
-            <h2 class="fw-bold">Top Categories</h2>
-            <p class="text-muted">Explore courses by popular domains</p>
+            <h6 class="text-primary fw-bold text-uppercase tracking-wide mb-2" style="letter-spacing: 1px; font-size: 0.85rem;">POPULAR CATEGORIES</h6>
+            <h2 class="fw-bold display-6 mb-3">Discover Courses You'll Love</h2>
+            <p class="text-muted">Explore the most popular topics and start building valuable skills.</p>
         </div>
-        <div class="row gy-4">
-            {% set categories = [
-                {'icon': 'bi-code-slash', 'name': 'Development', 'color': 'primary'},
-                {'icon': 'bi-palette', 'name': 'Design', 'color': 'danger'},
-                {'icon': 'bi-briefcase', 'name': 'Business', 'color': 'success'},
-                {'icon': 'bi-megaphone', 'name': 'Marketing', 'color': 'warning'},
-                {'icon': 'bi-cpu', 'name': 'IT & Software', 'color': 'info'},
-                {'icon': 'bi-camera-video', 'name': 'Photography', 'color': 'secondary'}
-            ] %}
-            
-            <div class="row gy-4 justify-content-center mx-auto" style="max-width: 1400px;">
-            {% for cat in categories %}
-            <div class="col-6 col-md-4 col-lg-2">
-                <a href="#" class="card h-100 text-center text-decoration-none text-white card-hover" style="background: var(--gradient-primary); border: none;">
-                    <div class="card-body py-4">
-                        <div class="text-white mb-3">
-                            <i class="bi {{ cat.icon }} fs-1"></i>
-                        </div>
-                        <h6 class="fw-bold mb-0">{{ cat.name }}</h6>
+        <div class="row gy-4 justify-content-center mx-auto" style="max-width: 1600px;">
+            <!-- Category 1: Programming -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-5 card-hover bg-white text-start">
+                    <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary" style="width: 56px; height: 56px;">
+                        <i class="bi bi-code-slash fs-3"></i>
                     </div>
-                </a>
+                    <h5 class="fw-bold mb-3">Programming</h5>
+                    <p class="text-muted small mb-4 flex-grow-1">Python, Java, C++, JavaScript and more.</p>
+                    <a href="#" class="text-primary fw-bold text-decoration-none d-inline-flex align-items-center gap-1">Explore <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
-            {% endfor %}
+            
+            <!-- Category 2: Data Science -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-5 card-hover bg-white text-start">
+                    <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-3 bg-info-subtle text-info" style="width: 56px; height: 56px;">
+                        <i class="bi bi-bar-chart-fill fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Data Science</h5>
+                    <p class="text-muted small mb-4 flex-grow-1">Machine Learning, AI, Analytics and Visualization.</p>
+                    <a href="#" class="text-primary fw-bold text-decoration-none d-inline-flex align-items-center gap-1">Explore <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+            
+            <!-- Category 3: UI / UX Design -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-5 card-hover bg-white text-start">
+                    <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-3 bg-success-subtle text-success" style="width: 56px; height: 56px;">
+                        <i class="bi bi-palette-fill fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">UI / UX Design</h5>
+                    <p class="text-muted small mb-4 flex-grow-1">Design interfaces, prototypes and user experiences.</p>
+                    <a href="#" class="text-primary fw-bold text-decoration-none d-inline-flex align-items-center gap-1">Explore <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+            
+            <!-- Category 4: Business -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-5 card-hover bg-white text-start">
+                    <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-3 bg-warning-subtle text-warning" style="width: 56px; height: 56px;">
+                        <i class="bi bi-briefcase-fill fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Business</h5>
+                    <p class="text-muted small mb-4 flex-grow-1">Marketing, Finance, Entrepreneurship and Leadership.</p>
+                    <a href="#" class="text-primary fw-bold text-decoration-none d-inline-flex align-items-center gap-1">Explore <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
         </div>
     </div>
@@ -152,11 +260,11 @@
             <a href="#" class="btn btn-outline-primary d-none d-md-inline-block">View All Courses</a>
         </div>
         
-        <div class="row gy-4 justify-content-center mx-auto" style="max-width: 1400px;">
+        <div class="row gy-4 justify-content-center mx-auto" style="max-width: 1600px;">
             <!-- Dummy Course 1 -->
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover">
-                    <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=600" class="card-img-top" alt="Course" style="height: 200px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=600" class="card-img-top" alt="Course" style="height: 250px; object-fit: cover;">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="badge bg-primary-subtle text-primary rounded-pill">Development</span>
@@ -178,7 +286,7 @@
             <!-- Dummy Course 2 -->
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover">
-                    <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&q=80&w=600" class="card-img-top" alt="Course" style="height: 200px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&q=80&w=600" class="card-img-top" alt="Course" style="height: 250px; object-fit: cover;">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="badge bg-danger-subtle text-danger rounded-pill">Design</span>
@@ -200,7 +308,7 @@
             <!-- Dummy Course 3 -->
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover">
-                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600" class="card-img-top" alt="Course" style="height: 200px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600" class="card-img-top" alt="Course" style="height: 250px; object-fit: cover;">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="badge bg-success-subtle text-success rounded-pill">Business</span>
@@ -227,12 +335,108 @@
     </div>
 </section>
 
+<!-- How It Works Section -->
+<section class="py-5 my-5 bg-white" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5">
+        <div class="text-center mb-5">
+            <h6 class="text-primary fw-bold text-uppercase tracking-wide mb-2" style="letter-spacing: 1px; font-size: 0.85rem;">PROCESS</h6>
+            <h2 class="fw-bold display-6 mb-3">How It Works</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">Start your learning journey in three simple steps.</p>
+        </div>
+        
+        <div class="row gy-5 justify-content-center mx-auto position-relative" style="max-width: 1200px;">
+            <!-- Connector Line (visible on lg screens) -->
+            <div class="d-none d-lg-block position-absolute top-50 start-50 translate-middle w-75" style="height: 2px; background: repeating-linear-gradient(90deg, var(--border), var(--border) 10px, transparent 10px, transparent 20px); z-index: 0; margin-top: -30px;"></div>
+            
+            <div class="col-md-4 text-center position-relative z-index-1">
+                <div class="bg-white rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px; border: 3px solid var(--primary-light);">
+                    <i class="bi bi-search fs-2 text-primary"></i>
+                </div>
+                <h5 class="fw-bold">1. Find a Course</h5>
+                <p class="text-muted small">Browse through hundreds of expertly crafted courses in various domains.</p>
+            </div>
+            
+            <div class="col-md-4 text-center position-relative z-index-1">
+                <div class="bg-white rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px; border: 3px solid var(--primary-light);">
+                    <i class="bi bi-play-circle-fill fs-2 text-primary"></i>
+                </div>
+                <h5 class="fw-bold">2. Learn Interactively</h5>
+                <p class="text-muted small">Engage with video content, quizzes, and hands-on coding exercises.</p>
+            </div>
+            
+            <div class="col-md-4 text-center position-relative z-index-1">
+                <div class="bg-white rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px; border: 3px solid var(--primary-light);">
+                    <i class="bi bi-patch-check-fill fs-2 text-primary"></i>
+                </div>
+                <h5 class="fw-bold">3. Get Certified</h5>
+                <p class="text-muted small">Complete the course and earn a verifiable certificate to showcase your skills.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Meet The Experts Section -->
+<section class="py-5" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5 py-4">
+        <div class="text-center mb-5">
+            <h6 class="text-primary fw-bold text-uppercase tracking-wide mb-2" style="letter-spacing: 1px; font-size: 0.85rem;">OUR INSTRUCTORS</h6>
+            <h2 class="fw-bold display-6 mb-3">Meet The Experts</h2>
+        </div>
+        
+        <div class="row gy-4 justify-content-center mx-auto" style="max-width: 1600px;">
+            <!-- Instructor 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover text-center bg-white">
+                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800" class="card-img-top" alt="Instructor" style="height: 350px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-1">John Anderson</h5>
+                        <p class="text-muted small mb-0">Senior Python Developer</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instructor 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover text-center bg-white">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800" class="card-img-top" alt="Instructor" style="height: 350px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-1">Lisa Brown</h5>
+                        <p class="text-muted small mb-0">UI / UX Designer</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instructor 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover text-center bg-white">
+                    <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=800" class="card-img-top" alt="Instructor" style="height: 350px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-1">Michael Davis</h5>
+                        <p class="text-muted small mb-0">Data Scientist</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructor 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover text-center bg-white">
+                    <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=800" class="card-img-top" alt="Instructor" style="height: 350px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-1">Emily Chen</h5>
+                        <p class="text-muted small mb-0">Frontend Architect</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Why Choose Us -->
 <section id="features" class="py-5 my-5" data-aos="fade-up">
     <div class="container-fluid px-4 px-lg-5">
         <div class="row align-items-center justify-content-between gy-5">
             <div class="col-lg-5 pe-lg-5">
-                <h2 class="fw-bold mb-4">Why Learn with <span style="color: var(--primary);">LearnSphere AI?</span></h2>
+                <h2 class="fw-bold mb-4">Why Learn with <span style="color: var(--primary);">AuraLearn?</span></h2>
                 <p class="text-muted mb-4 lead">We provide a comprehensive ecosystem designed to help you achieve your goals faster and more effectively.</p>
                 
                 <div class="d-flex gap-3 mb-4">
@@ -259,9 +463,9 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 text-end">
-                <div class="position-relative d-inline-block">
-                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=1000" class="img-fluid rounded-4 shadow-lg w-100" style="max-height: 600px; object-fit: cover;" alt="Students learning">
+            <div class="col-lg-6 text-center text-lg-end">
+                <div class="position-relative d-inline-block" style="width: 85%;">
+                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=1000" class="img-fluid rounded-4 shadow-lg w-100" style="max-height: 480px; object-fit: cover;" alt="Students learning">
                     <div class="position-absolute top-0 start-0 translate-middle p-4 bg-white rounded-circle shadow-lg" style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
                         <h3 class="fw-bold text-primary mb-0">100+</h3>
                         <small class="text-muted fw-medium" style="font-size: 0.8rem;">Courses</small>
@@ -272,11 +476,215 @@
     </div>
 </section>
 
+<!-- Statistics Section -->
+<section class="py-5 my-5 bg-white" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5">
+        <div class="row gy-4 text-center justify-content-center mx-auto" style="max-width: 1400px;">
+            <!-- Stat 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover bg-primary-subtle text-primary">
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <h2 class="display-5 fw-bold mb-2">50K+</h2>
+                        <p class="text-uppercase tracking-wide small fw-bold mb-0" style="letter-spacing: 1px;">Active Students</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Stat 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover bg-info-subtle text-info">
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <h2 class="display-5 fw-bold mb-2">200+</h2>
+                        <p class="text-uppercase tracking-wide small fw-bold mb-0" style="letter-spacing: 1px;">Expert Courses</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Stat 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover bg-success-subtle text-success">
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <h2 class="display-5 fw-bold mb-2">150+</h2>
+                        <p class="text-uppercase tracking-wide small fw-bold mb-0" style="letter-spacing: 1px;">Instructors</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Stat 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover bg-warning-subtle" style="color: #b58105;">
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <h2 class="display-5 fw-bold mb-2">4.8</h2>
+                        <p class="text-uppercase tracking-wide small fw-bold mb-0" style="letter-spacing: 1px;">Average Rating</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5 my-5 bg-light" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5 py-4">
+        <div class="text-center mb-5">
+            <h6 class="text-primary fw-bold text-uppercase tracking-wide mb-2" style="letter-spacing: 1px; font-size: 0.85rem;">TESTIMONIALS</h6>
+            <h2 class="fw-bold display-6 mb-3">Loved By Students Around The World</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">Thousands of learners trust AuraLearn to improve their skills and achieve their career goals.</p>
+        </div>
+        
+        <div class="row gy-4 justify-content-center mx-auto" style="max-width: 1600px;">
+            <!-- Testimonial 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 rounded-4 p-4 bg-white card-hover">
+                    <div class="text-warning mb-3">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="text-muted flex-grow-1 mb-4">"AuraLearn completely transformed the way I learn. The courses are practical, engaging and easy to follow."</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150" class="rounded-circle" alt="Sarah Johnson" style="width: 48px; height: 48px; object-fit: cover;">
+                        <div>
+                            <h6 class="fw-bold mb-0">Sarah Johnson</h6>
+                            <small class="text-muted">Software Engineer</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 rounded-4 p-4 bg-white card-hover">
+                    <div class="text-warning mb-3">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="text-muted flex-grow-1 mb-4">"The hands-on projects helped me land my first internship. Highly recommended."</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" class="rounded-circle" alt="David Lee" style="width: 48px; height: 48px; object-fit: cover;">
+                        <div>
+                            <h6 class="fw-bold mb-0">David Lee</h6>
+                            <small class="text-muted">Data Analyst</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 rounded-4 p-4 bg-white card-hover">
+                    <div class="text-warning mb-3">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="text-muted flex-grow-1 mb-4">"Beautiful platform, excellent instructors and a fantastic learning experience."</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="https://images.unsplash.com/photo-1531123897727-8f129e1bf98c?auto=format&fit=crop&q=80&w=150" class="rounded-circle" alt="Emily Carter" style="width: 48px; height: 48px; object-fit: cover;">
+                        <div>
+                            <h6 class="fw-bold mb-0">Emily Carter</h6>
+                            <small class="text-muted">UI Designer</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 rounded-4 p-4 bg-white card-hover">
+                    <div class="text-warning mb-3">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="text-muted flex-grow-1 mb-4">"The community is amazing and the support from mentors is top-notch. I love it here!"</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" class="rounded-circle" alt="Marcus Johnson" style="width: 48px; height: 48px; object-fit: cover;">
+                        <div>
+                            <h6 class="fw-bold mb-0">Marcus Johnson</h6>
+                            <small class="text-muted">Marketing Specialist</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="py-5 my-5 bg-light" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5">
+        <div class="text-center mb-5">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white shadow-sm mb-3" style="color: #4f46e5; font-weight: 600; font-size: 0.85rem;">
+                <i class="bi bi-tag-fill" style="color: #4f46e5;"></i> Simple Pricing
+            </div>
+            <h2 class="display-6 fw-bold">Choose your learning path</h2>
+            <p class="text-muted mx-auto lead" style="max-width: 600px;">Invest in your future with our flexible plans. No hidden fees, cancel anytime.</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <!-- Basic Plan -->
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 p-xl-5 card-hover" style="background-color: #faf5ff;">
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-1">Basic</h4>
+                        <p class="text-muted small">Perfect to get started</p>
+                    </div>
+                    <div class="mb-4">
+                        <span class="display-4 fw-bold text-dark">$0</span>
+                        <span class="text-muted">/month</span>
+                    </div>
+                    <ul class="list-unstyled mb-4 flex-grow-1">
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> <span>Access to free courses</span></li>
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> <span>Basic community access</span></li>
+                        <li class="mb-3 d-flex align-items-center gap-2 text-muted"><i class="bi bi-dash-circle"></i> <span>No certificates</span></li>
+                        <li class="mb-3 d-flex align-items-center gap-2 text-muted"><i class="bi bi-dash-circle"></i> <span>No mentor support</span></li>
+                    </ul>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary w-100 py-3 fw-bold rounded-pill" style="border-color: #4f46e5; color: #4f46e5;">Get Started Free</a>
+                </div>
+            </div>
+
+            <!-- Pro Plan (Highlighted) -->
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 p-xl-5 text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #a78bfa, #c084fc); transform: scale(1.02); z-index: 2;">
+                    <div class="position-absolute top-0 end-0 bg-warning text-dark fw-bold px-3 py-1" style="border-bottom-left-radius: 12px; font-size: 0.8rem;">MOST POPULAR</div>
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-1 text-white">Pro Learner</h4>
+                        <p class="text-white-50 small">For serious professionals</p>
+                    </div>
+                    <div class="mb-4">
+                        <span class="display-4 fw-bold text-white">$19</span>
+                        <span class="text-white-50">/month</span>
+                    </div>
+                    <ul class="list-unstyled mb-4 flex-grow-1">
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> <span>Access to all premium courses</span></li>
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> <span>Verified certificates</span></li>
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> <span>Downloadable resources</span></li>
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> <span>Priority mentor support</span></li>
+                    </ul>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-warning text-dark w-100 py-3 fw-bold rounded-pill shadow-sm">Upgrade to Pro</a>
+                </div>
+            </div>
+
+            <!-- Teams Plan -->
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 p-xl-5 card-hover" style="background-color: #f0f9ff;">
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-1">Teams</h4>
+                        <p class="text-muted small">For organizations</p>
+                    </div>
+                    <div class="mb-4">
+                        <span class="display-4 fw-bold text-dark">$49</span>
+                        <span class="text-muted">/user/mo</span>
+                    </div>
+                    <ul class="list-unstyled mb-4 flex-grow-1">
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> <span>Everything in Pro</span></li>
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> <span>Team analytics dashboard</span></li>
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> <span>Custom learning paths</span></li>
+                        <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> <span>Dedicated account manager</span></li>
+                    </ul>
+                    <a href="#" class="btn btn-outline-dark w-100 py-3 fw-bold rounded-pill">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Call to Action -->
 <section class="py-5 text-dark text-center position-relative overflow-hidden bg-white" data-aos="zoom-in">
     <div class="container-fluid px-4 px-lg-5 position-relative py-5 z-index-2">
         <h2 class="display-5 fw-bold mb-4">Ready to start your learning journey?</h2>
-        <p class="lead mb-5 text-muted mx-auto" style="max-width: 600px;">Join thousands of learners around the world who are already building their futures on LearnSphere AI.</p>
+        <p class="lead mb-5 text-muted mx-auto" style="max-width: 600px;">Join thousands of learners around the world who are already building their futures on AuraLearn.</p>
         <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5 py-3 fw-bold rounded-pill shadow-sm">Get Started for Free</a>
     </div>
 </section>

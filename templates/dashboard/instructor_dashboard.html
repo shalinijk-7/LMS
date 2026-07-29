@@ -1,77 +1,113 @@
-{% extends 'base.html' %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-{% endblock %}
+{% extends 'dashboard_base.html' %}
 
 {% block content %}
-<div class="dashboard-layout">
-    <aside class="dashboard-sidebar">
-        <ul class="sidebar-menu">
-            <li><a href="{{ url_for('dashboard.index') }}" class="active">Overview</a></li>
-            <li><a href="{{ url_for('courses.create_course') }}">Create Course</a></li>
-            <li><a href="#">My Students</a></li>
-            <li><a href="#">Earnings</a></li>
-            <li><a href="#">Settings</a></li>
-        </ul>
-    </aside>
-    
-    <div class="dashboard-content fade-in">
-        <div class="dashboard-header">
-            <div class="welcome-text">
-                <h2>Instructor Dashboard</h2>
-                <p>Manage your courses and track student progress.</p>
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Instructor Dashboard</h2>
+        <p class="text-muted mb-0">Welcome back, {{ current_user.name.split(' ')[0] }}! Manage your courses and track student progress.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('courses.create_course') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">
+            <i class="bi bi-plus-lg me-1"></i> New Course
+        </a>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #6366f1; background: #e0e7ff;">
+                <i class="bi bi-camera-video-fill"></i>
             </div>
-            <a href="{{ url_for('courses.create_course') }}" class="btn btn-primary">+ New Course</a>
-        </div>
-        
-        <div class="stats-grid slide-up">
-            <div class="stat-card">
-                <div class="stat-icon">📹</div>
-                <div class="stat-info">
-                    <h3>{{ courses|length }}</h3>
-                    <p>Total Courses</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-info">
-                    <h3>0</h3>
-                    <p>Total Students</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-info">
-                    <h3>$0</h3>
-                    <p>Total Revenue</p>
-                </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ courses|length }}</h3>
+                <span class="text-muted small fw-medium">Total Courses</span>
             </div>
         </div>
-        
-        <div class="section-title slide-up">
-            <h3>My Courses</h3>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #8b5cf6; background: #ede9fe;">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">0</h3>
+                <span class="text-muted small fw-medium">Total Students</span>
+            </div>
         </div>
-        
-        <div class="course-grid slide-up">
-            {% for course in courses %}
-            <div class="course-card">
-                <div class="course-img"></div>
-                <div class="course-content">
-                    <h3>{{ course.title }}</h3>
-                    <p>{{ course.description[:100] }}...</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                        <span style="font-weight: 600;">${{ "%.2f"|format(course.price) }}</span>
-                        <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-outline">View</a>
-                    </div>
-                </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #ec4899; background: #fce7f3;">
+                <i class="bi bi-cash-stack"></i>
             </div>
-            {% else %}
-            <div class="empty-state">
-                <p>You haven't created any courses yet.</p>
-                <a href="{{ url_for('courses.create_course') }}" class="btn btn-outline" style="margin-top: 1rem;">Create First Course</a>
+            <div>
+                <h3 class="mb-0 fw-bold">$0</h3>
+                <span class="text-muted small fw-medium">Total Revenue</span>
             </div>
-            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- My Courses -->
+<div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-in" data-aos-delay="200">
+    <h4 class="fw-bold mb-0">My Courses</h4>
+    <div class="search-box">
+        <i class="bi bi-search text-muted"></i>
+        <input type="text" placeholder="Search your courses..." class="form-control border-0 shadow-none bg-transparent">
+    </div>
+</div>
+
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="300">
+    {% for course in courses %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="dash-course-card h-100 d-flex flex-column">
+            <div class="mb-3">
+                <i class="bi bi-camera-video-fill text-primary fs-1"></i>
+            </div>
+            <h6 class="fw-bold mb-2 text-truncate" title="{{ course.title }}">{{ course.title }}</h6>
+            <p class="text-muted small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ course.description }}</p>
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-primary-subtle text-primary fw-bold">${{ "%.2f"|format(course.price|default(0.00)) }}</span>
+                <span class="text-muted small fw-medium"><i class="bi bi-people"></i> 0 Students</span>
+            </div>
+            
+            <div class="d-flex gap-2 mt-auto">
+                <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-outline-primary rounded-pill w-100 fw-bold py-2">Manage</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="empty-state text-center py-5 bg-white rounded-4 border shadow-sm" style="border-color: #eaeaea !important; border-style: solid !important;">
+            <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 80px; height: 80px;">
+                <i class="bi bi-camera-video-off fs-1"></i>
+            </div>
+            <h5 class="fw-bold mb-2">No courses created yet</h5>
+            <p class="text-muted mx-auto mb-4" style="max-width: 400px;">Share your knowledge with the world. Start building your first course and reach students globally.</p>
+            <a href="{{ url_for('courses.create_course') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">Create First Course</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Recent Activity Placeholder -->
+<h4 class="fw-bold mb-4" data-aos="fade-right" data-aos-delay="400">Recent Instructor Activity</h4>
+<div class="dash-activity-card mb-5" data-aos="fade-up" data-aos-delay="500">
+    <div class="activity-item">
+        <div class="activity-badge">LOGIN</div>
+        <div>
+            <p class="mb-0 fw-medium">Logged into the application</p>
+            <small class="text-muted">Just now</small>
+        </div>
+    </div>
+    <div class="activity-item">
+        <div class="activity-badge text-primary" style="background: var(--primary-light);">VIEW</div>
+        <div>
+            <p class="mb-0 fw-medium">Viewed instructor dashboard</p>
+            <small class="text-muted">2 minutes ago</small>
         </div>
     </div>
 </div>

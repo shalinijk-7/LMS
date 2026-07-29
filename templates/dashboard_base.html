@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dashboard - LearnSphere AI{% endblock %}</title>
+    <title>{% block title %}Dashboard - AuraLearn{% endblock %}</title>
     
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -32,20 +32,47 @@
                             <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m7.5-6.923c-.67.204-1.335.82-1.887 1.855A8 8 0 0 0 5.145 4H7.5zM4.09 4a9.3 9.3 0 0 1 .64-1.539 7 7 0 0 1 .597-.933A7.03 7.03 0 0 0 2.255 4zm-.582 3.5c.03-.877.138-1.718.312-2.5H1.674a7 7 0 0 0-.656 2.5zM4.847 5a12.5 12.5 0 0 0-.338 2.5H7.5V5zM8.5 5v2.5h2.99a12.5 12.5 0 0 0-.337-2.5zM4.51 8.5a12.5 12.5 0 0 0 .337 2.5H7.5V8.5zm3.99 0V11h2.653c.187-.765.306-1.608.338-2.5zM5.145 12c.138.386.295.744.468 1.068.552 1.035 1.218 1.65 1.887 1.855V12zm.182 2.472a7 7 0 0 1-.597-.933A9.3 9.3 0 0 1 4.09 12H2.255a7.03 7.03 0 0 0 3.072 2.472M3.82 11a13.7 13.7 0 0 1-.312-2.5h-2.49c.062.89.291 1.733.656 2.5zm6.853 3.472A7.03 7.03 0 0 0 13.745 12H11.91a9.3 9.3 0 0 1-.64 1.539 7 7 0 0 1-.597.933M8.5 12v2.923c.67-.204 1.335-.82 1.887-1.855q.26-.436.468-1.068zm3.68-1h2.146c.365-.767.594-1.61.656-2.5h-2.49a13.7 13.7 0 0 1-.312 2.5m2.802-3.5a7 7 0 0 0-.656-2.5H12.18c.174.782.282 1.623.312 2.5zM11.27 2.461c.247.464.462.98.64 1.539h1.835a7.03 7.03 0 0 0-3.072-2.472c.218.284.418.598.597.933M10.855 4a8 8 0 0 0-.468-1.068C9.835 1.897 9.17 1.282 8.5 1.077V4z"/>
                         </svg>
                     </div>
-                    LearnSphere
+                    AuraLearn
                 </a>
+            </div>
+            
+            <!-- User Profile Widget -->
+            <div class="px-3 py-3 mx-3 mb-3 rounded-4" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.15);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 1.1rem;">
+                        {{ current_user.name[0]|upper }}
+                    </div>
+                    <div style="line-height: 1.2; overflow: hidden;">
+                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;" title="{{ current_user.name }}">{{ current_user.name }}</div>
+                        <small class="text-primary fw-medium" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ current_user.role.name }}</small>
+                    </div>
+                </div>
             </div>
             
             <ul class="dash-menu">
                 <li><a href="{{ url_for('dashboard.index') }}" class="active"><i class="bi bi-house-door-fill"></i> Dashboard</a></li>
+                
+                {% if current_user.role.name == 'student' %}
                 <li><a href="#"><i class="bi bi-bell-fill"></i> Notifications</a></li>
                 <li><a href="{{ url_for('courses.list_courses') }}"><i class="bi bi-cloud-arrow-up-fill"></i> Browse Courses</a></li>
                 <li><a href="#"><i class="bi bi-journal-text"></i> My Notes</a></li>
                 <li><a href="#"><i class="bi bi-award-fill"></i> Certificates</a></li>
                 <li><a href="#"><i class="bi bi-lightning-charge-fill"></i> Flashcards</a></li>
                 <li><a href="#"><i class="bi bi-bar-chart-fill"></i> Study Analytics</a></li>
+                
+                {% elif current_user.role.name == 'instructor' %}
+                <li><a href="{{ url_for('courses.create_course') }}"><i class="bi bi-plus-circle-fill"></i> Create Course</a></li>
+                <li><a href="#"><i class="bi bi-people-fill"></i> My Students</a></li>
+                <li><a href="#"><i class="bi bi-cash-stack"></i> Earnings</a></li>
+                
+                {% elif current_user.role.name == 'admin' %}
+                <li><a href="#"><i class="bi bi-people-fill"></i> All Users</a></li>
+                <li><a href="#"><i class="bi bi-collection-play-fill"></i> All Courses</a></li>
+                <li><a href="#"><i class="bi bi-file-earmark-bar-graph-fill"></i> Reports</a></li>
+                {% endif %}
+                
                 <li><a href="#"><i class="bi bi-person-fill"></i> My Profile</a></li>
-                <li><a href="#"><i class="bi bi-gear-fill"></i> Preferences</a></li>
+                <li><a href="#"><i class="bi bi-gear-fill"></i> Settings</a></li>
             </ul>
             
             <div class="dash-menu-bottom">

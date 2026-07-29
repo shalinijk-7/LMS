@@ -1,106 +1,136 @@
-{% extends 'base.html' %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
-{% endblock %}
+{% extends 'dashboard_base.html' %}
 
 {% block content %}
-<div class="admin-header fade-in">
-    <h1>Admin Control Panel</h1>
-    <p>Manage users, courses, and platform settings.</p>
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Admin Control Panel</h2>
+        <p class="text-muted mb-0">Welcome back, {{ current_user.name.split(' ')[0] }}! Manage users, courses, and platform settings.</p>
+    </div>
 </div>
 
-<div class="admin-container-premium slide-up">
-    <div class="stats-grid" style="margin-top: -2rem;">
-        <div class="stat-card" style="background: white;">
-            <div class="stat-icon" style="background: #e0e7ff; color: #4f46e5;">👥</div>
-            <div class="stat-info">
-                <h3>{{ users_count }}</h3>
-                <p>Total Users</p>
+<!-- Stats Section -->
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #6366f1; background: #e0e7ff;">
+                <i class="bi bi-people-fill"></i>
             </div>
-        </div>
-        <div class="stat-card" style="background: white;">
-            <div class="stat-icon" style="background: #fce7f3; color: #ec4899;">📚</div>
-            <div class="stat-info">
-                <h3>{{ courses_count }}</h3>
-                <p>Total Courses</p>
-            </div>
-        </div>
-        <div class="stat-card" style="background: white;">
-            <div class="stat-icon" style="background: #dcfce7; color: #22c55e;">💵</div>
-            <div class="stat-info">
-                <h3>System Health</h3>
-                <p>100% Operational</p>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ users_count }}</h3>
+                <span class="text-muted small fw-medium">Total Users</span>
             </div>
         </div>
     </div>
-    
-    <div style="margin-top: 4rem;">
-        <h3>Instructor Performances</h3>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Courses Created</th>
-                    <th>Joined</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in instructors %}
-                <tr>
-                    <td>#{{ user.id }}</td>
-                    <td>{{ user.first_name }} {{ user.last_name }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.courses_taught|length }} Courses</td>
-                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-                </tr>
-                {% else %}
-                <tr><td colspan="5">No instructors found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #ec4899; background: #fce7f3;">
+                <i class="bi bi-journal-album"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ courses_count }}</h3>
+                <span class="text-muted small fw-medium">Total Courses</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #22c55e; background: #dcfce7;">
+                <i class="bi bi-activity"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">100%</h3>
+                <span class="text-muted small fw-medium">System Health</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Instructor Performances -->
+<div class="mb-5" data-aos="fade-up" data-aos-delay="200">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">Instructor Performances</h4>
     </div>
     
-    <div style="margin-top: 4rem;">
-        <h3>Student Performances</h3>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Enrollments</th>
-                    <th>Joined</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in students %}
-                <tr>
-                    <td>#{{ user.id }}</td>
-                    <td>{{ user.first_name }} {{ user.last_name }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>
-                        {{ user.enrollments|length }} Courses 
-                        {% if user.enrollments %}
-                            <br/><span style="font-size: 0.8rem; color: var(--text-muted);">Avg Progress: 
-                            {% set total_prog = namespace(value=0) %}
-                            {% for e in user.enrollments %}
-                                {% set total_prog.value = total_prog.value + e.progress_percentage %}
-                            {% endfor %}
-                            {{ (total_prog.value / user.enrollments|length)|round(1) }}%
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-                </tr>
-                {% else %}
-                <tr><td colspan="5">No students found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">ID</th>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Name</th>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Email</th>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Courses Created</th>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in instructors %}
+                    <tr>
+                        <td class="px-4 py-3">#{{ user.id }}</td>
+                        <td class="px-4 py-3 fw-bold">{{ user.name }}</td>
+                        <td class="px-4 py-3 text-muted">{{ user.email }}</td>
+                        <td class="px-4 py-3"><span class="badge bg-primary-subtle text-primary">{{ user.courses_taught|length }} Courses</span></td>
+                        <td class="px-4 py-3 text-muted small">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-4 text-center text-muted">No instructors found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Student Performances -->
+<div class="mb-5" data-aos="fade-up" data-aos-delay="300">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">Student Performances</h4>
+    </div>
+    
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">ID</th>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Name</th>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Email</th>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Enrollments</th>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in students %}
+                    <tr>
+                        <td class="px-4 py-3">#{{ user.id }}</td>
+                        <td class="px-4 py-3 fw-bold">{{ user.name }}</td>
+                        <td class="px-4 py-3 text-muted">{{ user.email }}</td>
+                        <td class="px-4 py-3">
+                            <div class="d-flex flex-column">
+                                <span class="badge bg-success-subtle text-success align-self-start">{{ user.enrollments|length }} Courses</span>
+                                {% if user.enrollments %}
+                                    <small class="text-muted mt-1" style="font-size: 0.75rem;">Avg Progress: 
+                                    {% set total_prog = namespace(value=0) %}
+                                    {% for e in user.enrollments %}
+                                        {% set total_prog.value = total_prog.value + e.progress_percent %}
+                                    {% endfor %}
+                                    {{ (total_prog.value / user.enrollments|length)|round(1) }}%
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-muted small">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-4 text-center text-muted">No students found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
