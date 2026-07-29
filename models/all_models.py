@@ -76,6 +76,7 @@ class Course(db.Model):
     banner = db.Column(db.String(255))
     duration = db.Column(db.String(50))
     difficulty = db.Column(db.String(50)) # Beginner, Intermediate, Advanced
+    price = db.Column(db.Float, default=0.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -215,10 +216,24 @@ class Notification(db.Model):
     __tablename__ = 'notifications'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class LiveSession(db.Model):
+    __tablename__ = 'live_sessions'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    instructor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    meeting_link = db.Column(db.String(512), nullable=False)
+    scheduled_date = db.Column(db.DateTime, nullable=False)
+    is_recurring = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    course = db.relationship('Course', backref='live_sessions')
+    instructor = db.relationship('User', backref='live_sessions')
 
 class Message(db.Model):
     __tablename__ = 'messages'

@@ -1,0 +1,73 @@
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Upcoming Live Sessions</h2>
+        <p class="text-muted mb-0">Join your instructors for interactive live classes.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 py-3 text-muted fw-bold border-bottom-0 rounded-top-start-4">Session Title</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Course</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Instructor</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Scheduled For</th>
+                                <th class="pe-4 py-3 text-muted fw-bold border-bottom-0 text-end rounded-top-end-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in live_sessions %}
+                            <tr>
+                                <td class="ps-4 py-4">
+                                    <h6 class="mb-0 fw-bold">{{ session.title }}</h6>
+                                </td>
+                                <td class="py-4">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                        {{ session.course.title }}
+                                    </span>
+                                </td>
+                                <td class="py-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.75rem;">
+                                            {{ session.instructor.name[0]|upper }}
+                                        </div>
+                                        <span class="text-dark">{{ session.instructor.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-4">
+                                    <span class="text-dark fw-medium">{{ session.scheduled_date.strftime('%B %d, %Y') }}</span>
+                                    <br>
+                                    <small class="text-muted">{{ session.scheduled_date.strftime('%I:%M %p') }}</small>
+                                </td>
+                                <td class="pe-4 py-4 text-end">
+                                    <a href="{{ session.meeting_link }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
+                                        Join Meeting
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="bi bi-camera-video text-muted fs-1 mb-3 d-block"></i>
+                                    <h5 class="fw-bold">No Upcoming Sessions</h5>
+                                    <p class="text-muted">Your instructors haven't scheduled any upcoming live sessions for your enrolled courses.</p>
+                                    <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-primary rounded-pill px-4 mt-3">Back to Dashboard</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,56 +1,101 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/courses.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="course-detail-header fade-in">
-    <div class="course-detail-container-premium slide-up">
-        <div class="course-info">
-            <h1>{{ course.title }}</h1>
-            <p style="font-size: 1.25rem; color: var(--text-muted); margin-bottom: 2rem;">{{ course.description }}</p>
-            
-            <div class="course-meta">
-                <div>
-                    <span style="display: block; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Instructor</span>
-                    <strong>{{ course.instructor.first_name }} {{ course.instructor.last_name }}</strong>
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Course Details</h2>
+        <p class="text-muted mb-0">Learn more about what this course has to offer.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('courses.list_courses') }}" class="btn btn-outline-secondary rounded-pill px-4">Back to Courses</a>
+    </div>
+</div>
+
+<div class="row g-4 fade-in">
+    <!-- Course Info (Left) -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 p-md-5">
+                <h1 class="fw-bold mb-3">{{ course.title }}</h1>
+                <p class="fs-5 text-muted mb-4" style="line-height: 1.6;">{{ course.description }}</p>
+                
+                <div class="d-flex flex-wrap gap-4 mb-5 p-4 bg-light rounded-4">
+                    <div>
+                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">Instructor</span>
+                        <div class="fs-6 fw-bold text-dark mt-1">{{ course.instructor.name }}</div>
+                    </div>
+                    <div class="border-start ps-4">
+                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">Last Updated</span>
+                        <div class="fs-6 fw-bold text-dark mt-1">{{ course.created_at.strftime('%B %Y') }}</div>
+                    </div>
                 </div>
-                <div>
-                    <span style="display: block; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Last Updated</span>
-                    <strong>{{ course.created_at.strftime('%B %Y') }}</strong>
+                
+                <h3 class="fw-bold mb-4">What you'll learn</h3>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex text-dark mb-2">
+                            <i class="bi bi-check-circle-fill text-primary me-3 mt-1"></i>
+                            <span>Master the core concepts of this subject from scratch</span>
+                        </div>
+                        <div class="d-flex text-dark mb-2">
+                            <i class="bi bi-check-circle-fill text-primary me-3 mt-1"></i>
+                            <span>Build real-world projects and portfolio pieces</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex text-dark mb-2">
+                            <i class="bi bi-check-circle-fill text-primary me-3 mt-1"></i>
+                            <span>Understand industry best practices and standards</span>
+                        </div>
+                        <div class="d-flex text-dark mb-2">
+                            <i class="bi bi-check-circle-fill text-primary me-3 mt-1"></i>
+                            <span>Earn a verifiable certificate of completion</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div style="margin-top: 3rem;">
-                <h2>What you'll learn</h2>
-                <ul style="margin-top: 1rem; padding-left: 1.5rem; line-height: 2;">
-                    <li>Master the core concepts of this subject</li>
-                    <li>Build real-world projects</li>
-                    <li>Earn a verifiable certificate of completion</li>
-                </ul>
             </div>
         </div>
-        
-        <div class="course-action-card hover-lift">
-            <div class="course-img" style="height: 200px; background: var(--gradient-primary); border-radius: var(--radius-md); margin-bottom: 1.5rem;"></div>
-            <h3>${{ "%.2f"|format(course.price) }}</h3>
-            
-            {% if is_enrolled %}
-                <a href="#" class="btn btn-primary btn-lg" style="width: 100%; margin-bottom: 1rem;">Go to Course</a>
-                <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">You are enrolled in this course.</p>
+    </div>
+    
+    <!-- Enrollment Card (Right) -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-sticky" style="top: 2rem;">
+            <!-- Thumbnail Image instead of gradient box -->
+            {% if course.thumbnail %}
+                <img src="{{ url_for('static', filename='uploads/' + course.thumbnail) }}" alt="{{ course.title }}" class="img-fluid w-100" style="height: 220px; object-fit: cover;">
             {% else %}
-                <form method="POST" action="{{ url_for('courses.enroll', course_id=course.id) }}">
-                    <button type="submit" class="btn btn-primary btn-lg pulse-hover" style="width: 100%; margin-bottom: 1rem;">Enroll Now</button>
-                </form>
-                <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">30-Day Money-Back Guarantee</p>
+                <div class="bg-primary text-white d-flex align-items-center justify-content-center" style="height: 220px;">
+                    <i class="bi bi-camera-video fs-1"></i>
+                </div>
             {% endif %}
             
-            <ul style="margin-top: 2rem; list-style: none; color: var(--text-muted); font-size: 0.95rem;">
-                <li style="margin-bottom: 0.5rem;">✓ Full lifetime access</li>
-                <li style="margin-bottom: 0.5rem;">✓ Access on mobile and TV</li>
-                <li style="margin-bottom: 0.5rem;">✓ Certificate of completion</li>
-            </ul>
+            <div class="card-body p-4">
+                <h2 class="fw-bold mb-4">${{ "%.2f"|format(course.price) }}</h2>
+                
+                {% if is_enrolled %}
+                    <a href="{{ url_for('courses.course_start', course_id=course.id) }}" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm">Start Learning</a>
+                    <p class="text-center text-success small fw-medium mb-0"><i class="bi bi-check-circle-fill me-1"></i> You are enrolled in this course.</p>
+                {% else %}
+                    <form method="POST" action="{{ url_for('courses.enroll', course_id=course.id) }}">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold pulse-hover shadow-sm">Enroll Now</button>
+                    </form>
+                    <p class="text-center text-muted small mb-0">30-Day Money-Back Guarantee</p>
+                {% endif %}
+                
+                <hr class="my-4">
+                
+                <h6 class="fw-bold mb-3">This course includes:</h6>
+                <ul class="list-unstyled text-muted small mb-0">
+                    <li class="mb-2"><i class="bi bi-infinity me-2 text-primary"></i> Full lifetime access</li>
+                    <li class="mb-2"><i class="bi bi-phone me-2 text-primary"></i> Access on mobile and TV</li>
+                    <li class="mb-2"><i class="bi bi-file-earmark-text me-2 text-primary"></i> Assignments and resources</li>
+                    <li><i class="bi bi-trophy me-2 text-primary"></i> Certificate of completion</li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>

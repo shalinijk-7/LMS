@@ -1,36 +1,51 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="admin-container-premium fade-in slide-up" style="margin-top: 80px; max-width: 800px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h2>Your Notifications</h2>
-        <a href="#" class="btn btn-outline btn-sm">Mark all as read</a>
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Your Notifications</h2>
+        <p class="text-muted mb-0">Stay up to date with course activities and announcements.</p>
     </div>
-    
-    <div class="notifications-list">
+    <div>
+        <a href="#" class="btn btn-outline-secondary rounded-pill px-4">Mark all as read</a>
+    </div>
+</div>
+
+<div class="row fade-in slide-up">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush rounded-4">
         {% for notif in notifications %}
-        <div class="notification-item {% if not notif.is_read %}unread{% endif %}">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <div style="font-size: 1.5rem;">{% if not notif.is_read %}🔔{% else %}✓{% endif %}</div>
-                <div>
-                    <p style="margin: 0; font-weight: {% if not notif.is_read %}600{% else %}400{% endif %};">{{ notif.message }}</p>
-                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ notif.created_at.strftime('%B %d, %Y - %H:%M') }}</span>
+                    <div class="list-group-item p-4 {% if not notif.is_read %}bg-light border-start border-primary border-4{% endif %} d-flex justify-content-between align-items-center">
+                        <div style="display: flex; align-items: center; gap: 1.5rem;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center {% if not notif.is_read %}bg-primary text-white{% else %}bg-secondary-subtle text-secondary{% endif %}" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                {% if not notif.is_read %}<i class="bi bi-bell-fill"></i>{% else %}<i class="bi bi-check2-all"></i>{% endif %}
+                            </div>
+                            <div>
+                                <h6 style="margin: 0; font-weight: {% if not notif.is_read %}bold{% else %}normal{% endif %};">{{ notif.title }}</h6>
+                                <p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">{{ notif.message }}</p>
+                                <span style="font-size: 0.75rem; color: #adb5bd;"><i class="bi bi-clock me-1"></i>{{ notif.created_at.strftime('%B %d, %Y - %H:%M') }}</span>
+                            </div>
+                        </div>
+                        {% if not notif.is_read %}
+                        <a href="{{ url_for('notifications.mark_read', notif_id=notif.id) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">Mark Read</a>
+                        {% endif %}
+                    </div>
+        {% else %}
+                    <div class="text-center p-5 text-muted">
+                        <i class="bi bi-mailbox2 fs-1 mb-3 text-light"></i>
+                        <h5>You're all caught up!</h5>
+                        <p>No new notifications at the moment.</p>
+                    </div>
+                {% endfor %}
                 </div>
             </div>
-            {% if not notif.is_read %}
-            <a href="{{ url_for('notifications.mark_read', notif_id=notif.id) }}" class="btn btn-primary btn-sm">Mark Read</a>
-            {% endif %}
         </div>
-        {% else %}
-        <div class="empty-state text-center" style="padding: 4rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border);">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
-            <p>You're all caught up! No new notifications.</p>
-        </div>
-        {% endfor %}
     </div>
 </div>
 {% endblock %}

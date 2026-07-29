@@ -53,22 +53,74 @@
                 <li><a href="{{ url_for('dashboard.index') }}" class="active"><i class="bi bi-house-door-fill"></i> Dashboard</a></li>
                 
                 {% if current_user.role.name == 'student' %}
-                <li><a href="#"><i class="bi bi-bell-fill"></i> Notifications</a></li>
+                <li><a href="{{ url_for('student.dashboard') }}"><i class="bi bi-book-fill"></i> Enrolled Courses</a></li>
                 <li><a href="{{ url_for('courses.list_courses') }}"><i class="bi bi-cloud-arrow-up-fill"></i> Browse Courses</a></li>
+                <li>
+                    <a href="#studentSessions" data-bs-toggle="collapse" class="d-flex align-items-center justify-content-between">
+                        <span><i class="bi bi-camera-video-fill"></i> Sessions</span>
+                        <i class="bi bi-chevron-down" style="font-size: 0.75rem;"></i>
+                    </a>
+                    <ul class="collapse list-unstyled mb-0" id="studentSessions" style="background: rgba(0,0,0,0.02); border-left: 2px solid var(--primary-light); margin-left: 1.2rem;">
+                        <li><a href="{{ url_for('student.sessions') }}" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-record-circle me-2" style="font-size: 0.75rem;"></i> Live Sessions</a></li>
+                    </ul>
+                </li>
+                <li><a href="#"><i class="bi bi-chat-dots-fill"></i> Instructor Chat</a></li>
+                <li>
+                    <a href="{{ url_for('notifications.index') }}" class="d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-bell-fill"></i> Notifications</span>
+                        {% set unread_count = current_user.notifications|selectattr('is_read', 'equalto', false)|list|length %}
+                        {% if unread_count > 0 %}
+                            <span class="badge bg-danger rounded-pill">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
                 <li><a href="#"><i class="bi bi-journal-text"></i> My Notes</a></li>
                 <li><a href="#"><i class="bi bi-award-fill"></i> Certificates</a></li>
-                <li><a href="#"><i class="bi bi-lightning-charge-fill"></i> Flashcards</a></li>
                 <li><a href="#"><i class="bi bi-bar-chart-fill"></i> Study Analytics</a></li>
                 
                 {% elif current_user.role.name == 'instructor' %}
                 <li><a href="{{ url_for('courses.create_course') }}"><i class="bi bi-plus-circle-fill"></i> Create Course</a></li>
-                <li><a href="#"><i class="bi bi-people-fill"></i> My Students</a></li>
+                <li><a href="{{ url_for('instructor.students') }}"><i class="bi bi-people-fill"></i> My Students</a></li>
+                
+                <!-- New Session Management Features -->
+                <li>
+                    <a href="#sessionsSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sessionsSubmenu" class="d-flex align-items-center justify-content-between">
+                        <span><i class="bi bi-camera-video-fill"></i> Sessions</span>
+                        <i class="bi bi-chevron-down" style="font-size: 0.75rem;"></i>
+                    </a>
+                    <ul class="collapse list-unstyled mb-0" id="sessionsSubmenu" style="background: rgba(0,0,0,0.02); border-left: 2px solid var(--primary-light); margin-left: 1.2rem;">
+                        <li><a href="{{ url_for('instructor.sessions') }}" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-record-circle me-2" style="font-size: 0.75rem;"></i> Live Sessions</a></li>
+                        <!-- 
+                        <li><a href="#" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-arrow-repeat me-2" style="font-size: 0.75rem;"></i> Recurring Events</a></li>
+                        <li><a href="#" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-calendar-check me-2" style="font-size: 0.75rem;"></i> Schedules</a></li>
+                        <li><a href="#" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-link-45deg me-2" style="font-size: 0.75rem;"></i> Permanent Links</a></li>
+                        <li><a href="#" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-shield-lock me-2" style="font-size: 0.75rem;"></i> Session Link Control</a></li>
+                        <li><a href="#" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-ui-checks me-2" style="font-size: 0.75rem;"></i> Post-session Surveys</a></li>
+                        -->
+                    </ul>
+                </li>
+                <!-- 
+                <li><a href="#"><i class="bi bi-window-stack"></i> Session Templates</a></li>
+                -->
+                <li><a href="#"><i class="bi bi-folder-fill"></i> File Library</a></li>
+                
+                <li>
+                    <a href="#reportsSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="reportsSubmenu" class="d-flex align-items-center justify-content-between">
+                        <span><i class="bi bi-bar-chart-fill"></i> Reports</span>
+                        <i class="bi bi-chevron-down" style="font-size: 0.75rem;"></i>
+                    </a>
+                    <ul class="collapse list-unstyled mb-0" id="reportsSubmenu" style="background: rgba(0,0,0,0.02); border-left: 2px solid var(--primary-light); margin-left: 1.2rem;">
+                        <li><a href="#" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-graph-up me-2" style="font-size: 0.75rem;"></i> Attendance</a></li>
+                        <li><a href="#" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-pie-chart me-2" style="font-size: 0.75rem;"></i> Engagement</a></li>
+                    </ul>
+                </li>
+                
                 <li><a href="#"><i class="bi bi-cash-stack"></i> Earnings</a></li>
                 
                 {% elif current_user.role.name == 'admin' %}
-                <li><a href="#"><i class="bi bi-people-fill"></i> All Users</a></li>
-                <li><a href="#"><i class="bi bi-collection-play-fill"></i> All Courses</a></li>
-                <li><a href="#"><i class="bi bi-file-earmark-bar-graph-fill"></i> Reports</a></li>
+                <li><a href="{{ url_for('admin.users') }}"><i class="bi bi-people-fill"></i> All Users</a></li>
+                <li><a href="{{ url_for('admin.courses') }}"><i class="bi bi-collection-play-fill"></i> All Courses</a></li>
+                <li><a href="{{ url_for('admin.reports') }}"><i class="bi bi-file-earmark-bar-graph-fill"></i> Reports</a></li>
                 {% endif %}
                 
                 <li><a href="#"><i class="bi bi-person-fill"></i> My Profile</a></li>

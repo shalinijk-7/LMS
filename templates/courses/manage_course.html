@@ -1,0 +1,74 @@
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-1">Manage Course: {{ course.title }}</h2>
+            <p class="text-muted mb-0">Add lessons and structure your course content.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('instructor.dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom p-4 pb-3">
+                <h5 class="fw-bold mb-0">Course Lessons</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if lessons %}
+                    <div class="list-group list-group-flush rounded-bottom-4">
+                        {% for lesson in lessons %}
+                        <div class="list-group-item p-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-1">Lesson {{ lesson.order_index }}: {{ lesson.title }}</h6>
+                                <p class="text-muted small mb-0">{{ lesson.description[:60] if lesson.description else '' }}...</p>
+                            </div>
+                            <div>
+                                <span class="badge bg-light text-dark border"><i class="bi bi-play-circle-fill text-primary me-1"></i> Video</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center p-5 text-muted">
+                        <i class="bi bi-journal-x fs-1 text-light mb-3"></i>
+                        <h5>No lessons added yet</h5>
+                        <p>Start building your course by adding your first lesson.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-5 mb-4">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom p-4 pb-3">
+                <h5 class="fw-bold mb-0">Add New Lesson</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('courses.add_lesson', course_id=course.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Lesson Title</label>
+                        <input type="text" name="title" class="form-control bg-light border-0" required placeholder="e.g. Introduction to HTML">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Lesson Content / Description</label>
+                        <textarea name="content" class="form-control bg-light border-0" rows="4" required placeholder="What will be covered in this lesson?"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Video URL (YouTube/Vimeo)</label>
+                        <input type="url" name="video_url" class="form-control bg-light border-0" placeholder="https://youtube.com/...">
+                        <div class="form-text small">Optional. Link to your video lesson.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Add Lesson</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

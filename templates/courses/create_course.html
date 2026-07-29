@@ -1,34 +1,57 @@
-{% extends 'base.html' %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/courses.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-{% endblock %}
+{% extends 'dashboard_base.html' %}
 
 {% block content %}
-<div class="form-container-premium fade-in slide-up" style="margin-top: 100px;">
-    <h2 style="margin-bottom: 2rem; color: var(--primary);">Create New Course</h2>
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Create New Course</h2>
+        <p class="text-muted mb-0">Share your knowledge with the world.</p>
+    </div>
+</div>
+
+<div class="row" data-aos="fade-up" data-aos-delay="100">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" action="{{ url_for('courses.create_course') }}">
+                    <div class="mb-4">
+                        <label for="title" class="form-label fw-bold text-dark">Course Title</label>
+                        <input type="text" id="title" name="title" class="form-control form-control-lg bg-light border-0" placeholder="e.g. Complete Web Development Bootcamp" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-bold text-dark">Course Description</label>
+                        <textarea id="description" name="description" class="form-control bg-light border-0" rows="5" placeholder="Describe what students will learn..." required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="price" class="form-label fw-bold text-dark">Price ($)</label>
+                            <input type="number" step="0.01" id="price" name="price" class="form-control form-control-lg bg-light border-0" placeholder="0.00" value="0.00" required>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4 text-muted opacity-25">
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm">Publish Course</button>
+                        <a href="{{ url_for('instructor.dashboard') }}" class="btn btn-light btn-lg rounded-pill px-4 fw-bold border">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     
-    <form method="POST" action="{{ url_for('courses.create_course') }}">
-        <div class="form-group">
-            <label for="title">Course Title</label>
-            <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Complete Web Development Bootcamp" required>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-primary-subtle text-primary border-primary border-opacity-25">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb-fill me-2"></i> Course Creation Tips</h5>
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-3 small">
+                    <li><strong class="text-dark">Catchy Title:</strong> Make sure your title is clear and concise.</li>
+                    <li><strong class="text-dark">Detailed Description:</strong> Explain the outcomes and who the course is for.</li>
+                    <li><strong class="text-dark">Fair Pricing:</strong> Consider your target audience when setting a price.</li>
+                </ul>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="description">Course Description</label>
-            <textarea id="description" name="description" class="form-control" placeholder="Describe what students will learn..." required></textarea>
-        </div>
-        
-        <div class="form-group">
-            <label for="price">Price ($)</label>
-            <input type="number" step="0.01" id="price" name="price" class="form-control" placeholder="0.00" value="0.00" required>
-        </div>
-        
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn btn-primary btn-lg">Publish Course</button>
-            <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline btn-lg">Cancel</a>
-        </div>
-    </form>
+    </div>
 </div>
 {% endblock %}

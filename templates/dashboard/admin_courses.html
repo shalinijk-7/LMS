@@ -1,0 +1,73 @@
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Platform Courses</h2>
+        <p class="text-muted mb-0">View all courses created by instructors across the platform.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 py-3 text-muted fw-bold border-bottom-0 rounded-top-start-4">Course Title</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Instructor</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Price</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Enrollments</th>
+                                <th class="pe-4 py-3 text-muted fw-bold border-bottom-0 text-end rounded-top-end-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in courses %}
+                            <tr>
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if course.thumbnail %}
+                                            <img src="{{ url_for('static', filename='uploads/thumbnails/' + course.thumbnail) }}" class="rounded-3 object-fit-cover" width="60" height="40" alt="Course Thumbnail">
+                                        {% else %}
+                                            <div class="rounded-3 bg-primary text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 40px;">
+                                                <i class="bi bi-camera-video"></i>
+                                            </div>
+                                        {% endif %}
+                                        <h6 class="mb-0 fw-bold">{{ course.title }}</h6>
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 24px; height: 24px; font-size: 0.75rem;">
+                                            {{ course.instructor.name[0]|upper }}
+                                        </div>
+                                        <span class="text-dark">{{ course.instructor.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    <span class="fw-bold text-success">${{ "%.2f"|format(course.price) }}</span>
+                                </td>
+                                <td class="py-3">
+                                    <span class="badge bg-secondary-subtle text-secondary border px-2 py-1"><i class="bi bi-people-fill me-1"></i> {{ course.enrollments|length }}</span>
+                                </td>
+                                <td class="pe-4 py-3 text-end">
+                                    <span class="badge bg-success rounded-pill px-3 py-2">Published</span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <p class="text-muted mb-0">No courses found.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
