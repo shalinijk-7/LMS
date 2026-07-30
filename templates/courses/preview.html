@@ -1,0 +1,66 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Preview: {{ material.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Preview: {{ material.title }}</h4>
+    <div>
+        <a href="{{ material.file_path }}" class="btn btn-primary me-2" download>
+            <i class="bi bi-download"></i> Download
+        </a>
+        <button onclick="window.close()" class="btn btn-outline-secondary">
+            Close Tab
+        </button>
+    </div>
+</div>
+
+<div class="bg-white rounded shadow-sm border p-0" style="height: 80vh; overflow-y: auto;" id="preview-container">
+    {% if material.file_path.lower().endswith('.pdf') or material.file_type == 'pdf' %}
+        <iframe src="{{ material.file_path }}" width="100%" height="100%" style="border: none; min-height: 80vh;"></iframe>
+    {% elif material.file_path.lower().endswith('.docx') or material.file_type == 'docx' %}
+        <div class="d-flex justify-content-center align-items-center h-100" id="preview-loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading document...</span>
+            </div>
+            <span class="ms-2">Loading document preview...</span>
+        </div>
+    {% else %}
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-file-earmark fs-1"></i>
+            <p class="mt-3">Preview not available for this file type.</p>
+            <a href="{{ material.file_path }}" class="btn btn-primary mt-2" download>Download File</a>
+        </div>
+    {% endif %}
+</div>
+
+{% if material.file_path.lower().endswith('.docx') or material.file_type == 'docx' %}
+<script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
+<script src="https://unpkg.com/docx-preview/dist/docx-preview.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const container = document.getElementById('preview-container');
+        const loader = document.getElementById('preview-loading');
+        
+        fetch("{{ material.file_path }}")
+            .then(response => response.blob())
+            .then(blob => {
+                // Try to render the docx
+                docx.renderAsync(blob, container)
+                    .then(() => {
+                        if (loader) loader.style.display = 'none';
+                    })
+                    .catch(err => {
+                        if (loader) loader.style.display = 'none';
+                        container.innerHTML = `<div class="p-5 text-center text-danger"><h5>Error rendering Word Document.</h5><p>Please download the file to view it.</p></div>`;
+                    });
+            })
+            .catch(err => {
+                if (loader) loader.style.display = 'none';
+                container.innerHTML = `<div class="p-5 text-center text-danger"><h5>Error fetching document.</h5></div>`;
+            });
+    });
+</script>
+{% endif %}
+
+{% endblock %}

@@ -74,6 +74,11 @@ def create_app(config_class=Config):
     def index():
         return render_template('landing/index.html')
 
+    from flask import send_from_directory
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
     # Ensure instance folder and upload folders exist
     os.makedirs(app.instance_path, exist_ok=True)
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

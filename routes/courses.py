@@ -105,6 +105,7 @@ def add_lesson(course_id):
     title = request.form.get('title')
     content = request.form.get('content')
     video_url = request.form.get('video_url')
+    video_file = request.files.get('video_file')
     
     from models import Lesson, Video
     # Get current max order
@@ -120,8 +121,21 @@ def add_lesson(course_id):
     db.session.add(new_lesson)
     db.session.flush() # get new_lesson.id
     
-    if video_url:
-        new_video = Video(lesson_id=new_lesson.id, url=video_url)
+    final_video_url = None
+    if video_file and video_file.filename != '':
+        import os
+        import time
+        from werkzeug.utils import secure_filename
+        from flask import current_app
+        filename = secure_filename(video_file.filename)
+        filename = f"{int(time.time())}_{filename}"
+        video_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+        final_video_url = f"/uploads/{filename}"
+    elif video_url:
+        final_video_url = video_url
+        
+    if final_video_url:
+        new_video = Video(lesson_id=new_lesson.id, url=final_video_url)
         db.session.add(new_video)
         
     db.session.commit()
@@ -139,6 +153,137 @@ def add_lesson(course_id):
     db.session.commit()
     
     flash('Lesson added successfully!', 'success')
+    return redirect(url_for('courses.manage_course', course_id=course.id))
+
+@courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/material/upload', methods=['POST'])
+@login_required
+def upload_material(course_id, lesson_id):
+    if current_user.role.name != 'instructor':
+        flash('Only instructors can upload materials.', 'error')
+        return redirect(url_for('student.dashboard'))
+        
+    course = Course.query.get_or_404(course_id)
+    if course.instructor_id != current_user.id:
+        flash('You can only manage your own courses.', 'error')
+        return redirect(url_for('instructor.dashboard'))
+        
+    from models import Lesson, StudyMaterial
+    lesson = Lesson.query.filter_by(id=lesson_id, course_id=course.id).first_or_404()
+    
+    file = request.files.get('material_file')
+    title = request.form.get('title')
+    
+    if file and file.filename != '':
+        import os
+        import time
+        from werkzeug.utils import secure_filename
+        from flask import current_app
+        
+        filename = secure_filename(file.filename)
+        filename = f"{int(time.time())}_{filename}"
+        file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+        
+        file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+        
+        new_material = StudyMaterial(
+            lesson_id=lesson.id,
+            title=title or file.filename,
+            file_path=f"/uploads/{filename}",
+            file_type=file_ext
+        )
+        db.session.add(new_material)
+        db.session.commit()
+        flash('Study material uploaded successfully!', 'success')
+    else:
+        flash('No file selected.', 'error')
+        
+    return redirect(url_for('courses.manage_course', course_id=course.id))
+
+@courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/material/<int:material_id>/delete', methods=['POST'])
+@login_required
+def delete_material(course_id, lesson_id, material_id):
+    if current_user.role.name != 'instructor':
+        flash('Only instructors can manage materials.', 'error')
+        return redirect(url_for('student.dashboard'))
+        
+    course = Course.query.get_or_404(course_id)
+    if course.instructor_id != current_user.id:
+        flash('You can only manage your own courses.', 'error')
+        return redirect(url_for('instructor.dashboard'))
+        
+    from models import StudyMaterial
+    material = StudyMaterial.query.filter_by(id=material_id, lesson_id=lesson_id).first_or_404()
+    
+    db.session.delete(material)
+    db.session.commit()
+    flash('Material deleted successfully!', 'success')
+    return redirect(url_for('courses.manage_course', course_id=course.id))
+
+@courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/video/delete', methods=['POST'])
+@login_required
+def delete_video(course_id, lesson_id):
+    if current_user.role.name != 'instructor':
+        flash('Only instructors can manage materials.', 'error')
+        return redirect(url_for('student.dashboard'))
+        
+    course = Course.query.get_or_404(course_id)
+    if course.instructor_id != current_user.id:
+        flash('You can only manage your own courses.', 'error')
+        return redirect(url_for('instructor.dashboard'))
+        
+    from models import Lesson, Video
+    lesson = Lesson.query.filter_by(id=lesson_id, course_id=course.id).first_or_404()
+    
+    if lesson.video:
+        db.session.delete(lesson.video)
+        db.session.commit()
+        flash('Video deleted successfully!', 'success')
+        
+    return redirect(url_for('courses.manage_course', course_id=course.id))
+
+@courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/video/add', methods=['POST'])
+@login_required
+def add_lesson_video(course_id, lesson_id):
+    if current_user.role.name != 'instructor':
+        flash('Only instructors can manage materials.', 'error')
+        return redirect(url_for('student.dashboard'))
+        
+    course = Course.query.get_or_404(course_id)
+    if course.instructor_id != current_user.id:
+        flash('You can only manage your own courses.', 'error')
+        return redirect(url_for('instructor.dashboard'))
+        
+    from models import Lesson, Video
+    lesson = Lesson.query.filter_by(id=lesson_id, course_id=course.id).first_or_404()
+    
+    if lesson.video:
+        flash('Lesson already has a video.', 'error')
+        return redirect(url_for('courses.manage_course', course_id=course.id))
+        
+    video_url = request.form.get('video_url')
+    video_file = request.files.get('video_file')
+    
+    final_video_url = None
+    if video_file and video_file.filename != '':
+        import os
+        import time
+        from werkzeug.utils import secure_filename
+        from flask import current_app
+        filename = secure_filename(video_file.filename)
+        filename = f"{int(time.time())}_{filename}"
+        video_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+        final_video_url = f"/uploads/{filename}"
+    elif video_url:
+        final_video_url = video_url
+        
+    if final_video_url:
+        new_video = Video(lesson_id=lesson.id, url=final_video_url)
+        db.session.add(new_video)
+        db.session.commit()
+        flash('Video added successfully!', 'success')
+    else:
+        flash('No video link or file provided.', 'error')
+        
     return redirect(url_for('courses.manage_course', course_id=course.id))
 
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>', methods=['GET'])
@@ -167,6 +312,30 @@ def lesson_view(course_id, lesson_id):
     all_lessons = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).all()
     
     return render_template('courses/lesson.html', course=course, lesson=lesson, all_lessons=all_lessons)
+
+@courses_bp.route('/material/<int:material_id>/preview')
+@login_required
+def preview_material(material_id):
+    from models import StudyMaterial
+    material = StudyMaterial.query.get_or_404(material_id)
+    
+    # Check if the user is enrolled or is the instructor
+    course = material.lesson.course
+    has_access = False
+    
+    if current_user.role.name == 'instructor' and course.instructor_id == current_user.id:
+        has_access = True
+    elif current_user.role.name == 'student':
+        from models import Enrollment
+        enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
+        if enrollment:
+            has_access = True
+            
+    if not has_access:
+        flash('You do not have access to this material.', 'error')
+        return redirect(url_for('main.index'))
+        
+    return render_template('courses/preview.html', material=material, course=course)
 
 @courses_bp.route('/<int:course_id>/start', methods=['GET'])
 @login_required
