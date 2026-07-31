@@ -17,9 +17,25 @@
             <input type="text" id="title" name="title" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" required>
         </div>
         
-        <div class="form-group" style="margin-bottom: 2rem;">
-            <label for="timer_minutes" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Time Limit (Minutes)</label>
-            <input type="number" id="timer_minutes" name="timer_minutes" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" value="30" min="1" required>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label for="timer_minutes" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Time Limit (Minutes)</label>
+                    <input type="number" id="timer_minutes" name="timer_minutes" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" value="30" min="1" required>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label for="start_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Start Date & Time (Optional)</label>
+                    <input type="datetime-local" id="start_date" name="start_date" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label for="expiry_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Expiry Date & Time (Optional)</label>
+                    <input type="datetime-local" id="expiry_date" name="expiry_date" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);">
+                </div>
+            </div>
         </div>
         
         <div class="form-group" style="margin-bottom: 2rem;">

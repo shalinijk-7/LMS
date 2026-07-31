@@ -2,117 +2,185 @@
 
 {% block content %}
 <div class="dash-header mb-5" data-aos="fade-down">
-    <div>
-        <h2 class="fw-bold mb-1">Study Workspace</h2>
-        <p class="text-muted mb-0">Welcome back to your learning library, {{ current_user.name.split(' ')[0] }}!</p>
-    </div>
-    <div>
-        <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">
-            <i class="bi bi-plus-lg me-1"></i> Enroll in Course
-        </a>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 w-100">
+        <div>
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 mb-2 fw-bold border border-primary-subtle" style="font-size: 0.75rem; letter-spacing: 0.5px;">STUDENT DASHBOARD</span>
+            <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Study Workspace</h2>
+            <p class="text-muted mb-0 fw-medium">Welcome back to your learning library, {{ current_user.name.split(' ')[0] }}!</p>
+        </div>
+        <div>
+            <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold d-flex align-items-center gap-2 hover-lift">
+                <i class="bi bi-search"></i> Browse Courses
+            </a>
+        </div>
     </div>
 </div>
 
 <!-- Stats Section -->
 <div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
     <div class="col-md-4">
-        <div class="dash-stat-card">
-            <div class="icon-container" style="color: #6366f1; background: #e0e7ff;">
-                <i class="bi bi-file-earmark-text-fill"></i>
-            </div>
-            <div>
-                <h3 class="mb-0 fw-bold">{{ enrollments|length }}</h3>
-                <span class="text-muted small fw-medium">Enrolled Courses</span>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="dash-stat-card">
-            <div class="icon-container" style="color: #8b5cf6; background: #ede9fe;">
-                <i class="bi bi-highlighter"></i>
-            </div>
-            <div>
-                <h3 class="mb-0 fw-bold">0</h3>
-                <span class="text-muted small fw-medium">Completed Courses</span>
+        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift" style="padding: 1.75rem;">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0) 100%); pointer-events: none;"></div>
+            <div class="d-flex align-items-center gap-4">
+                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #6366f1; background: #e0e7ff; width: 64px; height: 64px; font-size: 1.75rem;">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <div>
+                    <h2 class="mb-0 fw-bold text-dark lh-1">{{ enrollments|length }}</h2>
+                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Enrolled Courses</span>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="dash-stat-card">
-            <div class="icon-container" style="color: #ec4899; background: #fce7f3;">
-                <i class="bi bi-award-fill"></i>
+        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift" style="padding: 1.75rem;">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0) 100%); pointer-events: none;"></div>
+            <div class="d-flex align-items-center gap-4">
+                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #8b5cf6; background: #ede9fe; width: 64px; height: 64px; font-size: 1.75rem;">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div>
+                    <h2 class="mb-0 fw-bold text-dark lh-1">0</h2>
+                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Completed Courses</span>
+                </div>
             </div>
-            <div>
-                <h3 class="mb-0 fw-bold">0</h3>
-                <span class="text-muted small fw-medium">Certificates Earned</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift" style="padding: 1.75rem;">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(236, 72, 153, 0) 100%); pointer-events: none;"></div>
+            <div class="d-flex align-items-center gap-4">
+                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #ec4899; background: #fce7f3; width: 64px; height: 64px; font-size: 1.75rem;">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+                <div>
+                    <h2 class="mb-0 fw-bold text-dark lh-1">0</h2>
+                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Certificates Earned</span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- My Document Library equivalent (My Learning) -->
-<div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-in" data-aos-delay="200">
-    <h4 class="fw-bold mb-0">My Learning Library</h4>
-    <div class="search-box">
-        <i class="bi bi-search text-muted"></i>
-        <input type="text" placeholder="Search courses instantly..." class="form-control border-0 shadow-none bg-transparent">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-in" data-aos-delay="200">
+    <h4 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+        <i class="bi bi-collection-play-fill text-primary"></i> My Learning Library
+    </h4>
+    <div class="search-box bg-white shadow-sm border rounded-pill px-3 py-2 d-flex align-items-center" style="width: 100%; max-width: 350px;">
+        <i class="bi bi-search text-muted me-2"></i>
+        <input type="text" placeholder="Search your courses..." class="form-control border-0 shadow-none bg-transparent p-0">
     </div>
 </div>
 
 <div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="300">
     {% for enrollment in enrollments %}
-    <div class="col-xl-3 col-lg-4 col-md-6">
-        <div class="dash-course-card">
-            <div class="mb-3">
-                <i class="bi bi-camera-video-fill text-danger fs-1"></i>
-            </div>
-            <h6 class="fw-bold mb-3 text-truncate">{{ enrollment.course.title }}</h6>
-            <div class="d-flex justify-content-between text-muted small fw-medium mb-2">
-                <span>{{ enrollment.progress_percent }}% Completed</span>
-                <span>Self-paced</span>
-            </div>
-            <div class="progress mb-4 rounded-pill" style="height: 6px;">
-                <div class="progress-bar bg-primary rounded-pill" role="progressbar" style="width: {{ enrollment.progress_percent }}%;" aria-valuenow="{{ enrollment.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-            <div class="d-flex flex-column gap-2">
-                <a href="{{ url_for('courses.course_start', course_id=enrollment.course.id) }}" class="btn btn-primary rounded-pill w-100 fw-bold py-2"><i class="bi bi-book-half me-1"></i> Open Workspace</a>
-                <div class="d-flex gap-2">
-                    <a href="{{ url_for('quiz.list_quizzes', course_id=enrollment.course.id) }}" class="btn btn-sm btn-outline-secondary w-50" style="border-radius: 8px;">Quizzes</a>
-                    <a href="{{ url_for('assignment.list_assignments', course_id=enrollment.course.id) }}" class="btn btn-sm btn-outline-secondary w-50" style="border-radius: 8px;">Assignments</a>
+    <div class="col-xl-4 col-lg-6 col-md-6">
+        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden dash-course-card transition-all hover-lift">
+            <div class="card-body p-4 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div class="rounded-3 shadow-sm d-flex align-items-center justify-content-center" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; width: 56px; height: 56px;">
+                        <i class="bi bi-camera-video-fill fs-3"></i>
+                    </div>
+                    <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small fw-bold shadow-sm">Self-paced</span>
+                </div>
+                
+                <h5 class="fw-bold mb-2 text-dark line-clamp-2" style="min-height: 48px; line-height: 1.4;">{{ enrollment.course.title }}</h5>
+                <p class="text-muted small mb-4 line-clamp-2">{{ enrollment.course.description[:80] }}...</p>
+                
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-end text-muted small fw-bold mb-2 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <span>Progress</span>
+                        <span class="text-primary fs-6">{{ enrollment.progress_percent }}%</span>
+                    </div>
+                    <div class="progress mb-4 rounded-pill bg-light border shadow-sm" style="height: 8px;">
+                        <div class="progress-bar bg-primary rounded-pill progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ enrollment.progress_percent }}%;" aria-valuenow="{{ enrollment.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    
+                    <a href="{{ url_for('courses.course_start', course_id=enrollment.course.id) }}" class="btn btn-primary w-100 rounded-pill fw-bold py-2 mb-3 shadow hover-lift transition-all">
+                        <i class="bi bi-play-circle-fill me-2"></i> Continue Learning
+                    </a>
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('quiz.list_quizzes', course_id=enrollment.course.id) }}" class="btn btn-white bg-white w-50 rounded-pill border fw-bold text-secondary shadow-sm hover-primary d-flex align-items-center justify-content-center gap-2 transition-all">
+                            <i class="bi bi-question-circle"></i> Quizzes
+                        </a>
+                        <a href="{{ url_for('assignment.list_assignments', course_id=enrollment.course.id) }}" class="btn btn-white bg-white w-50 rounded-pill border fw-bold text-secondary shadow-sm hover-primary d-flex align-items-center justify-content-center gap-2 transition-all">
+                            <i class="bi bi-file-earmark-text"></i> Tasks
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     {% else %}
     <div class="col-12">
-        <div class="empty-state text-center py-5 bg-white rounded-4 border shadow-sm" style="border-color: #eaeaea !important; border-style: solid !important;">
-            <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 80px; height: 80px;">
-                <i class="bi bi-journal-x fs-1"></i>
+        <div class="empty-state text-center py-5 bg-white rounded-4 shadow-sm border-0 position-relative overflow-hidden">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at center, rgba(99, 102, 241, 0.03) 0%, transparent 70%);"></div>
+            <div class="position-relative z-index-1">
+                <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary shadow-sm" style="width: 100px; height: 100px;">
+                    <i class="bi bi-journal-x" style="font-size: 2.5rem;"></i>
+                </div>
+                <h4 class="fw-bold mb-3 text-dark">Your learning library is empty</h4>
+                <p class="text-muted mx-auto mb-4 fw-medium" style="max-width: 500px; line-height: 1.6;">It looks like you haven't enrolled in any courses yet. Discover our collection of expert-led courses and start building your skills today.</p>
+                <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-5 py-3 shadow hover-lift fw-bold fs-6">
+                    <i class="bi bi-compass me-2"></i> Explore Courses
+                </a>
             </div>
-            <h5 class="fw-bold mb-2">Your learning library is empty</h5>
-            <p class="text-muted mx-auto mb-4" style="max-width: 400px;">It looks like you haven't enrolled in any courses yet. Discover our collection of expert-led courses and start building your skills today.</p>
-            <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">Explore Courses</a>
         </div>
     </div>
     {% endfor %}
 </div>
 
 <!-- Recent Activity -->
-<h4 class="fw-bold mb-4" data-aos="fade-right" data-aos-delay="400">Recent Learning Activity</h4>
-<div class="dash-activity-card mb-5" data-aos="fade-up" data-aos-delay="500">
-    <div class="activity-item">
-        <div class="activity-badge">LOGIN</div>
-        <div>
-            <p class="mb-0 fw-medium">Logged into the application</p>
-            <small class="text-muted">Just now</small>
+<h4 class="fw-bold mb-4 text-dark d-flex align-items-center gap-2" data-aos="fade-right" data-aos-delay="400">
+    <i class="bi bi-activity text-primary"></i> Recent Learning Activity
+</h4>
+<div class="dash-activity-card mb-5 bg-white rounded-4 border-0 shadow-sm overflow-hidden" data-aos="fade-up" data-aos-delay="500">
+    <div class="activity-item p-4 border-bottom d-flex align-items-center gap-4 transition-all hover-bg-light">
+        <div class="activity-badge bg-success-subtle text-success fw-bold px-3 py-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center" style="min-width: 80px;">
+            <i class="bi bi-box-arrow-in-right me-2"></i> LOGIN
+        </div>
+        <div class="flex-grow-1">
+            <h6 class="mb-1 fw-bold text-dark">Logged into the application</h6>
+            <span class="text-muted small fw-medium d-flex align-items-center gap-1"><i class="bi bi-clock"></i> Just now</span>
         </div>
     </div>
-    <div class="activity-item">
-        <div class="activity-badge text-primary" style="background: var(--primary-light);">VIEW</div>
-        <div>
-            <p class="mb-0 fw-medium">Viewed dashboard</p>
-            <small class="text-muted">2 minutes ago</small>
+    <div class="activity-item p-4 d-flex align-items-center gap-4 transition-all hover-bg-light">
+        <div class="activity-badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center" style="min-width: 80px;">
+            <i class="bi bi-eye me-2"></i> VIEW
+        </div>
+        <div class="flex-grow-1">
+            <h6 class="mb-1 fw-bold text-dark">Viewed dashboard</h6>
+            <span class="text-muted small fw-medium d-flex align-items-center gap-1"><i class="bi bi-clock"></i> 2 minutes ago</span>
         </div>
     </div>
 </div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08) !important;
+    }
+    .hover-primary:hover {
+        color: var(--primary) !important;
+        border-color: var(--primary) !important;
+        background-color: rgba(99, 102, 241, 0.05) !important;
+    }
+    .hover-bg-light:hover {
+        background-color: #f8f9fa;
+    }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .transition-all {
+        transition: all 0.2s ease-in-out;
+    }
+</style>
 {% endblock %}

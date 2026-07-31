@@ -6,11 +6,16 @@
     <div class="col-lg-8 mb-4">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-body p-4 p-md-5">
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                     <h2 class="fw-bold mb-0">Lesson {{ lesson.order_index }}: {{ lesson.title }}</h2>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
-                        <i class="bi bi-book me-1"></i> Course: {{ course.title }}
-                    </span>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                            <i class="bi bi-book me-1"></i> Course: {{ course.title }}
+                        </span>
+                        <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-bold">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Course
+                        </a>
+                    </div>
                 </div>
                 
                 {% if lesson.video %}

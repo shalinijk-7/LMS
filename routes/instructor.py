@@ -164,11 +164,30 @@ def create_quiz(course_id):
         lesson_id_str = request.form.get('lesson_id')
         lesson_id = int(lesson_id_str) if lesson_id_str else None
         
+        start_date_str = request.form.get('start_date')
+        expiry_date_str = request.form.get('expiry_date')
+        
+        from datetime import datetime
+        start_date = None
+        expiry_date = None
+        if start_date_str:
+            try:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                pass
+        if expiry_date_str:
+            try:
+                expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                pass
+        
         new_quiz = Quiz(
             course_id=course.id,
             lesson_id=lesson_id,
             title=title,
-            timer_minutes=int(timer_minutes)
+            timer_minutes=int(timer_minutes),
+            start_date=start_date,
+            expiry_date=expiry_date
         )
         db.session.add(new_quiz)
         db.session.flush() # Get the new_quiz.id

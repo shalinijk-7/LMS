@@ -162,6 +162,8 @@ class Quiz(db.Model):
     lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=True)
     title = db.Column(db.String(200), nullable=False)
     timer_minutes = db.Column(db.Integer, default=30)
+    start_date = db.Column(db.DateTime, nullable=True)
+    expiry_date = db.Column(db.DateTime, nullable=True)
     
     questions = db.relationship('Question', backref='quiz', cascade='all, delete-orphan', lazy=True)
     results = db.relationship('Result', backref='quiz', cascade='all, delete-orphan', lazy=True)

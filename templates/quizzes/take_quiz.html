@@ -5,50 +5,184 @@
 {% endblock %}
 
 {% block content %}
+<!-- Fixed Timer Badge -->
+<div class="timer-badge p-3 rounded-4 shadow-sm border border-primary-subtle" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); min-width: 150px; text-align: center; position: fixed; top: 100px; right: 30px; z-index: 1050;">
+    <p class="small text-muted fw-bold mb-1 text-uppercase" style="letter-spacing: 0.5px;">Time Remaining</p>
+    <div id="countdown-timer" class="fs-3 fw-bold text-primary font-monospace">--:--</div>
+</div>
+
 <div class="activity-container-premium fade-in slide-up">
-    <div class="activity-header">
-        <h1 class="activity-title">{{ quiz.title }}</h1>
-        <p>Time Limit: <strong>{{ quiz.timer_minutes }} Minutes</strong></p>
-        <p>Answer all questions carefully before submitting.</p>
+    <div class="activity-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="activity-title mb-2">{{ quiz.title }}</h1>
+            <p class="mb-0">Answer all questions carefully before submitting.</p>
+        </div>
     </div>
     
-    <form method="POST" action="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" id="quizForm">
-        {% for question in quiz.questions %}
-        <div class="quiz-question" style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.5rem;">
-            <h4 style="margin-bottom: 1rem;">{{ loop.index }}. {{ question.text }}</h4>
-            <div class="quiz-options">
-                {% for answer in question.answers %}
-                <label style="display: block; margin-bottom: 0.75rem; padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; transition: background 0.3s;">
-                    <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}" required style="margin-right: 0.5rem;">
-                    {{ answer.text }}
-                </label>
-                {% endfor %}
+    <form method="POST" action="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" id="quizForm" class="mt-4">
+        <div id="questions-container">
+            {% for question in quiz.questions %}
+            <div class="quiz-question" data-index="{{ loop.index0 }}" style="display: none; background: var(--bg-main); padding: 2rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">Question {{ loop.index }} of {{ quiz.questions|length }}</span>
+                </div>
+                <h5 style="margin-bottom: 1.5rem; line-height: 1.5;" class="fw-bold"><span class="text-primary me-2">{{ loop.index }}.</span> {{ question.text }}</h5>
+                <div class="quiz-options">
+                    {% for answer in question.answers %}
+                    <label style="display: flex; align-items: center; margin-bottom: 0.75rem; padding: 1rem 1.25rem; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s ease;">
+                        <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}" style="margin-right: 1rem; transform: scale(1.2);">
+                        <span style="font-size: 1.05rem;">{{ answer.text }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
             </div>
+            {% else %}
+            <p>This quiz doesn't have any questions yet.</p>
+            {% endfor %}
         </div>
-        {% else %}
-        <p>This quiz doesn't have any questions yet.</p>
-        {% endfor %}
         
         {% if quiz.questions %}
-        <button type="submit" class="btn btn-primary btn-lg pulse-hover" style="width: 100%; margin-top: 1rem;">Submit Quiz</button>
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" id="prevBtn" class="btn btn-outline-secondary btn-lg rounded-pill fw-bold px-4 shadow-sm" style="display: none;">
+                <i class="bi bi-arrow-left me-2"></i> Previous
+            </button>
+            <div class="ms-auto">
+                <button type="button" id="nextBtn" class="btn btn-primary btn-lg rounded-pill fw-bold px-5 shadow-sm">
+                    Next <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+                <button type="submit" id="submitBtn" class="btn btn-success btn-lg pulse-hover rounded-pill fw-bold px-5 shadow-sm" style="display: none;">
+                    Submit Quiz
+                </button>
+            </div>
+        </div>
         {% endif %}
     </form>
 </div>
 
 <script>
-    // Simple script to highlight selected answers
-    document.querySelectorAll('.quiz-options label').forEach(label => {
-        label.addEventListener('click', function() {
-            // Find all labels in the same question group and remove highlight
-            const group = this.closest('.quiz-options');
-            group.querySelectorAll('label').forEach(l => {
-                l.style.background = 'transparent';
-                l.style.borderColor = 'var(--border)';
+    document.addEventListener('DOMContentLoaded', function() {
+        // Option highlighting
+        document.querySelectorAll('.quiz-options label').forEach(label => {
+            label.addEventListener('click', function() {
+                const group = this.closest('.quiz-options');
+                group.querySelectorAll('label').forEach(l => {
+                    l.style.background = 'transparent';
+                    l.style.borderColor = 'var(--border)';
+                });
+                this.style.background = 'rgba(99, 102, 241, 0.05)';
+                this.style.borderColor = 'var(--primary)';
             });
-            // Add highlight to current
-            this.style.background = 'rgba(var(--primary-rgb), 0.1)';
-            this.style.borderColor = 'var(--primary)';
         });
+
+        // Pagination Logic
+        const questions = document.querySelectorAll('.quiz-question');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const quizForm = document.getElementById('quizForm');
+        let currentIndex = 0;
+
+        function showQuestion(index) {
+            if (questions.length === 0) return;
+            
+            // Hide all questions
+            questions.forEach(q => q.style.display = 'none');
+            
+            // Show current question
+            questions[index].style.display = 'block';
+            
+            // Update buttons
+            if (index === 0) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'inline-block';
+            }
+            
+            if (index === questions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        if (questions.length > 0) {
+            showQuestion(0);
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                if (currentIndex < questions.length - 1) {
+                    currentIndex++;
+                    showQuestion(currentIndex);
+                }
+            });
+        }
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    showQuestion(currentIndex);
+                }
+            });
+        }
+
+        if (quizForm) {
+            quizForm.addEventListener('submit', function(e) {
+                // Check if all questions are answered
+                let allAnswered = true;
+                for (let i = 0; i < questions.length; i++) {
+                    const radios = questions[i].querySelectorAll('input[type="radio"]');
+                    let answered = false;
+                    for (let j = 0; j < radios.length; j++) {
+                        if (radios[j].checked) {
+                            answered = true;
+                            break;
+                        }
+                    }
+                    if (!answered) {
+                        allAnswered = false;
+                        currentIndex = i;
+                        showQuestion(i);
+                        alert("Please answer this question before submitting.");
+                        e.preventDefault(); // Stop submission
+                        return;
+                    }
+                }
+            });
+        }
+
+        // Timer Logic
+        const timerMinutes = {{ quiz.timer_minutes }};
+        let timeRemaining = timerMinutes * 60; 
+        const timerDisplay = document.getElementById('countdown-timer');
+        
+        function updateDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeRemaining <= 60) {
+                timerDisplay.classList.remove('text-primary');
+                timerDisplay.classList.add('text-danger');
+                timerDisplay.parentElement.style.borderColor = 'var(--bs-danger)';
+            }
+        }
+        
+        updateDisplay();
+        
+        const timerInterval = setInterval(function() {
+            timeRemaining--;
+            updateDisplay();
+            
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Your quiz will be submitted automatically.");
+                quizForm.submit();
+            }
+        }, 1000);
     });
 </script>
 {% endblock %}
