@@ -1,35 +1,144 @@
-{% extends 'base.html' %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-{% endblock %}
+{% extends 'dashboard_base.html' %}
 
 {% block content %}
-<div class="dashboard-layout fade-in">
-    <div class="dashboard-content" style="margin-left: 0;">
-        <div class="dashboard-header">
-            <div class="welcome-text">
-                <h2>Analytics Overview</h2>
-                <p>Track platform engagement and revenue.</p>
-            </div>
-        </div>
-        
-        <div class="stats-grid slide-up">
-            <div class="stat-card">
-                <div class="stat-icon">📈</div>
-                <div class="stat-info">
-                    <h3>Analytics</h3>
-                    <p>Coming Soon</p>
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Analytics Dashboard</h2>
+        <p class="text-muted mb-0">Track platform engagement, course metrics, and revenue.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
+    <!-- Stat Cards -->
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="bi bi-people-fill"></i>
                 </div>
+                <h3 class="fw-bold mb-0">{{ total_students + total_instructors }}</h3>
+                <p class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-0">Total Users</p>
             </div>
         </div>
-        
-        <div style="background: var(--bg-card); padding: 4rem; text-align: center; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-top: 2rem;" class="slide-up">
-            <div style="font-size: 4rem; margin-bottom: 1rem;">📊</div>
-            <h3>Detailed Analytics Dashboard</h3>
-            <p style="color: var(--text-muted); max-width: 500px; margin: 1rem auto;">This feature is currently under development. Soon you'll be able to track user engagement, course completion rates, and revenue metrics with interactive charts.</p>
-            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary mt-4">Return to Dashboard</a>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <h3 class="fw-bold mb-0">{{ total_courses }}</h3>
+                <p class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-0">Courses</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-info-subtle text-info d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <h3 class="fw-bold mb-0">{{ total_enrollments }}</h3>
+                <p class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-0">Enrollments</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <h3 class="fw-bold mb-0">${{ "%.2f"|format(total_revenue) }}</h3>
+                <p class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-0">Est. Revenue</p>
+            </div>
         </div>
     </div>
 </div>
+
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="200">
+    <!-- Charts -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0">User Distribution</h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="userChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0">Platform Engagement</h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="engagementChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inject the data from backend
+    const chartData = {{ chart_data|tojson }};
+    
+    // User Distribution Doughnut Chart
+    const ctxUser = document.getElementById('userChart').getContext('2d');
+    new Chart(ctxUser, {
+        type: 'doughnut',
+        data: {
+            labels: chartData.roles,
+            datasets: [{
+                data: chartData.role_counts,
+                backgroundColor: ['#a855f7', '#ec4899'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // Engagement Bar Chart
+    const ctxEng = document.getElementById('engagementChart').getContext('2d');
+    new Chart(ctxEng, {
+        type: 'bar',
+        data: {
+            labels: chartData.metrics,
+            datasets: [{
+                label: 'Count',
+                data: chartData.metric_counts,
+                backgroundColor: 'rgba(168, 85, 247, 0.8)',
+                borderRadius: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -8,58 +8,109 @@
     </div>
 </div>
 
+{% macro user_table(user_list) %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+            <tr>
+                <th class="ps-4 py-3 text-muted fw-bold border-bottom-0 rounded-top-start-4">User</th>
+                <th class="py-3 text-muted fw-bold border-bottom-0">Role</th>
+                <th class="py-3 text-muted fw-bold border-bottom-0">Joined</th>
+                <th class="pe-4 py-3 text-muted fw-bold border-bottom-0 text-end rounded-top-end-4">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in user_list %}
+            <tr>
+                <td class="ps-4 py-3">
+                    <div class="d-flex align-items-center gap-3">
+                        {% if user.profile_photo and user.profile_photo != 'default.jpg' %}
+                        <img src="{{ url_for('uploaded_file', filename=user.profile_photo) }}" alt="Profile Photo" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; background: {% if user.role.name == 'admin' %}var(--danger){% elif user.role.name == 'instructor' %}var(--primary){% else %}var(--secondary){% endif %};">
+                            {{ user.name[0]|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ user.name }}</h6>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3">
+                    <span class="badge {% if user.role.name == 'admin' %}bg-danger-subtle text-danger{% elif user.role.name == 'instructor' %}bg-primary-subtle text-primary{% else %}bg-secondary-subtle text-secondary{% endif %} border px-2 py-1 text-uppercase">
+                        {{ user.role.name }}
+                    </span>
+                </td>
+                <td class="py-3">
+                    <span class="text-dark fw-medium">{{ user.created_at.strftime('%B %d, %Y') }}</span>
+                </td>
+                <td class="pe-4 py-3 text-end">
+                    <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Active</span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center py-5">
+                    <p class="text-muted mb-0">No users found.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
 <div class="row">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4" data-aos="fade-up" data-aos-delay="100">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4 py-3 text-muted fw-bold border-bottom-0 rounded-top-start-4">User</th>
-                                <th class="py-3 text-muted fw-bold border-bottom-0">Role</th>
-                                <th class="py-3 text-muted fw-bold border-bottom-0">Joined</th>
-                                <th class="pe-4 py-3 text-muted fw-bold border-bottom-0 text-end rounded-top-end-4">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user in users %}
-                            <tr>
-                                <td class="ps-4 py-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; background: {% if user.role.name == 'admin' %}var(--danger){% elif user.role.name == 'instructor' %}var(--primary){% else %}var(--secondary){% endif %};">
-                                            {{ user.name[0]|upper }}
-                                        </div>
-                                        <div>
-                                            <h6 class="mb-0 fw-bold">{{ user.name }}</h6>
-                                            <small class="text-muted">{{ user.email }}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-3">
-                                    <span class="badge {% if user.role.name == 'admin' %}bg-danger-subtle text-danger{% elif user.role.name == 'instructor' %}bg-primary-subtle text-primary{% else %}bg-secondary-subtle text-secondary{% endif %} border px-2 py-1 text-uppercase">
-                                        {{ user.role.name }}
-                                    </span>
-                                </td>
-                                <td class="py-3">
-                                    <span class="text-dark fw-medium">{{ user.created_at.strftime('%B %d, %Y') }}</span>
-                                </td>
-                                <td class="pe-4 py-3 text-end">
-                                    <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Active</span>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="4" class="text-center py-5">
-                                    <p class="text-muted mb-0">No users found.</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    <div class="col-12" data-aos="fade-up" data-aos-delay="100">
+        
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 gap-2" id="userTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill px-4" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">All Users</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4" id="students-tab" data-bs-toggle="tab" data-bs-target="#students" type="button" role="tab">Students</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4" id="instructors-tab" data-bs-toggle="tab" data-bs-target="#instructors" type="button" role="tab">Instructors</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4" id="admins-tab" data-bs-toggle="tab" data-bs-target="#admins" type="button" role="tab">Admins</button>
+            </li>
+        </ul>
+        
+        <!-- Tab Content -->
+        <div class="tab-content" id="userTabsContent">
+            <!-- All Users Tab -->
+            <div class="tab-pane fade show active card border-0 shadow-sm rounded-4" id="all" role="tabpanel">
+                <div class="card-body p-0">
+                    {{ user_table(users) }}
+                </div>
+            </div>
+            
+            <!-- Students Tab -->
+            <div class="tab-pane fade card border-0 shadow-sm rounded-4" id="students" role="tabpanel">
+                <div class="card-body p-0">
+                    {{ user_table(users|selectattr('role.name', 'equalto', 'student')|list) }}
+                </div>
+            </div>
+            
+            <!-- Instructors Tab -->
+            <div class="tab-pane fade card border-0 shadow-sm rounded-4" id="instructors" role="tabpanel">
+                <div class="card-body p-0">
+                    {{ user_table(users|selectattr('role.name', 'equalto', 'instructor')|list) }}
+                </div>
+            </div>
+            
+            <!-- Admins Tab -->
+            <div class="tab-pane fade card border-0 shadow-sm rounded-4" id="admins" role="tabpanel">
+                <div class="card-body p-0">
+                    {{ user_table(users|selectattr('role.name', 'equalto', 'admin')|list) }}
                 </div>
             </div>
         </div>
+        
     </div>
 </div>
 {% endblock %}

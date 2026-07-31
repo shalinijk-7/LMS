@@ -394,7 +394,8 @@ def complete_lesson(course_id, lesson_id):
     db.session.commit()
     
     # Update course enrollment progress_percent
-    from models import Enrollment, Lesson
+    from models import Enrollment, Lesson, Certificate
+    from utils.certificate import generate_certificate
     enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course_id).first()
     if enrollment:
         total_lessons = Lesson.query.filter_by(course_id=course_id).count()
@@ -406,6 +407,25 @@ def complete_lesson(course_id, lesson_id):
             ).count()
             enrollment.progress_percent = int((completed_lessons / total_lessons) * 100)
             db.session.commit()
+            
+            # Check if course is completed and generate certificate if not already present
+            if enrollment.progress_percent == 100:
+                existing_cert = Certificate.query.filter_by(student_id=current_user.id, course_id=course_id).first()
+                if not existing_cert:
+                    # Generate certificate
+                    course = enrollment.course
+                    student = current_user
+                    cert_id, file_path = generate_certificate(student.name, course.title)
+                    
+                    new_cert = Certificate(
+                        student_id=student.id,
+                        course_id=course.id,
+                        certificate_id=cert_id,
+                        file_path=file_path
+                    )
+                    db.session.add(new_cert)
+                    db.session.commit()
+                    flash(f'Congratulations! You have earned a certificate for completing {course.title}.', 'success')
     
     # Try to find the next lesson
     current_lesson = Lesson.query.get_or_404(lesson_id)

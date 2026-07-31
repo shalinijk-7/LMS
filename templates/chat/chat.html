@@ -1,0 +1,278 @@
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="chat-container d-flex" style="height: calc(100vh - 100px); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); background: var(--bg-main);">
+    
+    <!-- Sidebar -->
+    <div class="chat-sidebar" style="width: 300px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: #fafafa;">
+        <div class="p-3 border-bottom">
+            <h5 class="fw-bold mb-0">Messages</h5>
+        </div>
+        
+        <div class="chat-list overflow-auto" style="flex: 1;">
+            {% if courses %}
+            <div class="p-2 small fw-bold text-muted text-uppercase">Course Groups</div>
+            {% for course in courses %}
+            <div class="chat-item chat-item-btn p-3 border-bottom cursor-pointer d-flex align-items-center" data-chat-type="course" data-chat-id="{{ course.id }}" data-chat-title="{{ course.title }}" style="cursor: pointer; transition: background 0.2s;">
+                <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">
+                    {{ course.title[0] }}
+                </div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <h6 class="mb-0 text-truncate">{{ course.title }}</h6>
+                    <small class="text-muted">Group Chat</small>
+                </div>
+                <span class="badge bg-danger rounded-pill ms-2 unread-badge {% if not course_unread_counts.get(course.id) %}d-none{% endif %}">{{ course_unread_counts.get(course.id, 0) }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if users %}
+            <div class="p-2 small fw-bold text-muted text-uppercase mt-2">Direct Messages</div>
+            {% for u in users %}
+            <div class="chat-item chat-item-btn p-3 border-bottom cursor-pointer d-flex align-items-center" data-chat-type="user" data-chat-id="{{ u.id }}" data-chat-title="{{ u.name }}" style="cursor: pointer; transition: background 0.2s;">
+                <div class="avatar bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">
+                    {{ u.name[0] }}
+                </div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <h6 class="mb-0 text-truncate">{{ u.name }}</h6>
+                    <small class="text-muted">{{ u.role.name|capitalize }}</small>
+                </div>
+                <span class="badge bg-danger rounded-pill ms-2 unread-badge {% if not unread_counts.get(u.id) %}d-none{% endif %}">{{ unread_counts.get(u.id, 0) }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Chat Window -->
+    <div class="chat-main flex-grow-1 d-flex flex-column bg-white">
+        <!-- Header -->
+        <div class="chat-header p-3 border-bottom d-flex align-items-center" style="background: #fff; z-index: 10;">
+            <div id="chat-header-avatar" class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 d-none" style="width: 45px; height: 45px; font-weight: bold; font-size: 1.2rem;">
+                #
+            </div>
+            <div>
+                <h5 id="chat-title" class="fw-bold mb-0">Select a chat</h5>
+                <small id="chat-subtitle" class="text-muted d-none">Active now</small>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chat-messages" class="flex-grow-1 p-4 overflow-auto d-flex flex-column" style="background: #f8f9fa;">
+            <div class="m-auto text-muted text-center" id="empty-state">
+                <i class="bi bi-chat-dots fs-1 mb-2 d-block"></i>
+                <p>Select a conversation from the sidebar to start chatting.</p>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input p-3 border-top" style="background: #fff;">
+            <form id="chat-form" class="d-flex gap-2">
+                <input type="hidden" id="active-chat-type" value="">
+                <input type="hidden" id="active-chat-id" value="">
+                <button type="button" class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" title="Attach File (Not yet implemented)">
+                    <i class="bi bi-paperclip fs-5"></i>
+                </button>
+                <input type="text" id="chat-input-box" class="form-control rounded-pill px-4" placeholder="Type your message here..." disabled>
+                <button type="submit" id="chat-send-btn" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" disabled>
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Socket.IO client -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const socket = io();
+    const currentUserId = {{ current_user.id }};
+    const messagesContainer = document.getElementById('chat-messages');
+    const chatTitle = document.getElementById('chat-title');
+    const chatSubtitle = document.getElementById('chat-subtitle');
+    const headerAvatar = document.getElementById('chat-header-avatar');
+    const chatForm = document.getElementById('chat-form');
+    const inputBox = document.getElementById('chat-input-box');
+    const sendBtn = document.getElementById('chat-send-btn');
+    const activeChatType = document.getElementById('active-chat-type');
+    const activeChatId = document.getElementById('active-chat-id');
+
+    socket.on('connect', () => {
+        console.log('Connected to chat server');
+    });
+
+    document.querySelectorAll('.chat-item-btn').forEach(item => {
+        item.addEventListener('click', function() {
+            const type = this.getAttribute('data-chat-type');
+            const id = this.getAttribute('data-chat-id');
+            const title = this.getAttribute('data-chat-title');
+            loadChat(type, id, title);
+        });
+    });
+
+    socket.on('receive_message', (data) => {
+        // Only append if it belongs to the currently active chat
+        if (activeChatType.value === data.chat_type && parseInt(activeChatId.value) === data.chat_id) {
+            appendMessage(data);
+        } else if (data.chat_type === 'user' && activeChatType.value === 'user' && parseInt(activeChatId.value) === data.sender_id) {
+            // Case where we receive a DM from the person we are chatting with
+            appendMessage(data);
+        } else {
+            showNotification(data.sender_name, data.content);
+            
+            // Increment the individual badge
+            const targetId = data.chat_type === 'user' ? data.sender_id : data.chat_id;
+            const chatItem = document.querySelector(`.chat-item-btn[data-chat-type="${data.chat_type}"][data-chat-id="${targetId}"]`);
+            if (chatItem) {
+                let badge = chatItem.querySelector('.unread-badge');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'badge bg-danger rounded-pill ms-2 unread-badge';
+                    chatItem.appendChild(badge);
+                    badge.textContent = '0';
+                }
+                badge.textContent = parseInt(badge.textContent || '0') + 1;
+                badge.classList.remove('d-none');
+            }
+            
+            // Increment the global badge
+            document.querySelectorAll('.global-unread-badge').forEach(globalBadge => {
+                globalBadge.textContent = parseInt(globalBadge.textContent || '0') + 1;
+                globalBadge.classList.remove('d-none');
+            });
+        }
+    });
+
+    function showNotification(senderName, content) {
+        const toastHtml = `
+            <div class="toast align-items-center text-bg-primary border-0 show" role="alert" style="margin-bottom: 10px; transition: opacity 0.3s;">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <strong>New message from ${senderName}:</strong> ${content.substring(0, 30)}${content.length > 30 ? '...' : ''}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            </div>
+        `;
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container position-fixed bottom-0 end-0 p-4';
+            container.style.zIndex = '1055';
+            document.body.appendChild(container);
+        }
+        container.insertAdjacentHTML('beforeend', toastHtml);
+        
+        const toasts = container.querySelectorAll('.toast');
+        const lastToast = toasts[toasts.length - 1];
+        setTimeout(() => {
+            if (lastToast && lastToast.parentElement) {
+                lastToast.style.opacity = '0';
+                setTimeout(() => lastToast.remove(), 300);
+            }
+        }, 5000);
+    }
+
+    function loadChat(type, id, title) {
+        // Leave previous course room if applicable
+        if (activeChatType.value === 'course') {
+            socket.emit('leave_course', {course_id: activeChatId.value});
+        }
+
+        activeChatType.value = type;
+        activeChatId.value = id;
+        
+        chatTitle.textContent = title;
+        headerAvatar.textContent = title[0];
+        headerAvatar.classList.remove('d-none');
+        chatSubtitle.classList.remove('d-none');
+        
+        inputBox.disabled = false;
+        sendBtn.disabled = false;
+        inputBox.focus();
+
+        if (type === 'course') {
+            socket.emit('join_course', {course_id: id});
+        }
+        
+        // Clear unread badge for this chat
+        const chatItem = document.querySelector(`.chat-item-btn[data-chat-type="${type}"][data-chat-id="${id}"]`);
+        if (chatItem) {
+            const badge = chatItem.querySelector('.unread-badge');
+            if (badge && !badge.classList.contains('d-none')) {
+                const count = parseInt(badge.textContent || '0');
+                badge.classList.add('d-none');
+                badge.textContent = '0';
+                
+                // Decrement global badges
+                document.querySelectorAll('.global-unread-badge').forEach(globalBadge => {
+                    let newCount = parseInt(globalBadge.textContent || '0') - count;
+                    if (newCount <= 0) {
+                        newCount = 0;
+                        globalBadge.classList.add('d-none');
+                    }
+                    globalBadge.textContent = newCount;
+                });
+            }
+        }
+
+        // Fetch history
+        fetch(`/chat/history/${type}/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                messagesContainer.innerHTML = '';
+                if (data.length === 0) {
+                    messagesContainer.innerHTML = '<div class="m-auto text-muted text-center" id="empty-state">No messages yet. Start the conversation!</div>';
+                } else {
+                    data.forEach(msg => appendMessage(msg));
+                }
+                scrollToBottom();
+            });
+    }
+
+    function appendMessage(msg) {
+        // Remove empty state message if exists
+        const emptyState = document.getElementById('empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+        
+        const isMine = msg.sender_id === currentUserId;
+        const align = isMine ? 'align-self-end text-end' : 'align-self-start';
+        const bg = isMine ? 'bg-primary text-white' : 'bg-white border';
+        
+        const msgHtml = `
+            <div class="d-flex flex-column mb-3 ${align}" style="max-width: 75%;">
+                ${!isMine && activeChatType.value === 'course' ? `<small class="text-muted mb-1 ms-2" style="font-size: 0.75rem;">${msg.sender_name}</small>` : ''}
+                <div class="p-3 rounded-4 shadow-sm ${bg}" style="border-radius: ${isMine ? '1rem 1rem 0 1rem' : '1rem 1rem 1rem 0'};">
+                    ${msg.content}
+                </div>
+                <small class="text-muted mt-1 ${isMine ? 'me-2' : 'ms-2'}" style="font-size: 0.7rem;">${msg.timestamp}</small>
+            </div>
+        `;
+        messagesContainer.insertAdjacentHTML('beforeend', msgHtml);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const content = inputBox.value.trim();
+        if (!content) return;
+        
+        socket.emit('send_message', {
+            type: activeChatType.value,
+            id: activeChatId.value,
+            content: content
+        });
+        
+        inputBox.value = '';
+    });
+</script>
+{% endblock %}

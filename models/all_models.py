@@ -203,7 +203,10 @@ class DiscussionThread(db.Model):
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_pinned = db.Column(db.Boolean, default=False)
+    is_locked = db.Column(db.Boolean, default=False)
     
+    user = db.relationship('User', backref='threads')
     replies = db.relationship('DiscussionReply', backref='thread', cascade='all, delete-orphan', lazy=True)
 
 class DiscussionReply(db.Model):
@@ -215,6 +218,8 @@ class DiscussionReply(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_best_answer = db.Column(db.Boolean, default=False)
     likes = db.Column(db.Integer, default=0)
+    
+    user = db.relationship('User', backref='discussion_replies')
 
 class Notification(db.Model):
     __tablename__ = 'notifications'
@@ -243,10 +248,20 @@ class Message(db.Model):
     __tablename__ = 'messages'
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True) # Null for group chats
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True) # Set for group chats
     content = db.Column(db.Text, nullable=False)
+    file_url = db.Column(db.String(512), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    is_delivered = db.Column(db.Boolean, default=False)
     is_read = db.Column(db.Boolean, default=False)
+
+class CourseChatReadStatus(db.Model):
+    __tablename__ = 'course_chat_read_status'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    last_read_message_id = db.Column(db.Integer, nullable=False, default=0)
 
 # ----------------------------------------------------
 # OTHERS
@@ -259,6 +274,8 @@ class Certificate(db.Model):
     certificate_id = db.Column(db.String(100), unique=True, nullable=False)
     file_path = db.Column(db.String(255))
     issued_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    course = db.relationship('Course', backref='course_certificates', lazy=True)
 
 class Attendance(db.Model):
     __tablename__ = 'attendance'

@@ -1,0 +1,177 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Study Analytics - AuraLearn{% endblock %}
+
+{% block content %}
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 w-100">
+        <div>
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 mb-2 fw-bold border border-primary-subtle" style="font-size: 0.75rem; letter-spacing: 0.5px;">ANALYTICS</span>
+            <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Study Analytics</h2>
+            <p class="text-muted mb-0 fw-medium">Track your progress, quiz scores, and assignment marks.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Course Progress Section -->
+<h4 class="fw-bold mb-4 text-dark d-flex align-items-center gap-2" data-aos="fade-right">
+    <i class="bi bi-graph-up text-primary"></i> Course Progress
+</h4>
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
+    {% for enrollment in enrollments %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 hover-lift">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center bg-primary-subtle text-primary" style="width: 48px; height: 48px;">
+                    <i class="bi bi-book fs-4"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1 fw-bold text-dark line-clamp-1" title="{{ enrollment.course.title }}">{{ enrollment.course.title }}</h6>
+                    <span class="text-muted small">Enrolled on {{ enrollment.enrolled_at.strftime('%b %d, %Y') if enrollment.enrolled_at else 'N/A' }}</span>
+                </div>
+            </div>
+            
+            <div class="mt-auto pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-end text-muted small fw-bold mb-2 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                    <span>Completion</span>
+                    <span class="text-primary fs-6">{{ enrollment.progress_percent }}%</span>
+                </div>
+                <div class="progress rounded-pill bg-light border shadow-sm" style="height: 8px;">
+                    <div class="progress-bar bg-primary rounded-pill progress-bar-striped" role="progressbar" style="width: {{ enrollment.progress_percent }}%;" aria-valuenow="{{ enrollment.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 py-4">
+            <i class="bi bi-info-circle-fill fs-3 text-info"></i>
+            <div>
+                <h6 class="fw-bold mb-1">No course progress found</h6>
+                <p class="mb-0 text-muted small">Enroll in courses to start tracking your progress here.</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Quizzes and Assignments Row -->
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="200">
+    <!-- Quiz Marks -->
+    <div class="col-lg-6">
+        <h4 class="fw-bold mb-4 text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-patch-question text-success"></i> Quiz Results
+        </h4>
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+            {% if quiz_results %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-uppercase text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                        <tr>
+                            <th class="py-3 px-4 border-0 fw-bold">Quiz</th>
+                            <th class="py-3 px-4 border-0 fw-bold">Score</th>
+                            <th class="py-3 px-4 border-0 fw-bold text-end">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in quiz_results[:10] %}
+                        <tr>
+                            <td class="px-4 py-3 border-bottom-0">
+                                <h6 class="mb-0 fw-bold text-dark">{{ result.quiz.title }}</h6>
+                                <span class="text-muted small d-block">{{ result.quiz.course.title if result.quiz.course else 'Unknown Course' }}</span>
+                            </td>
+                            <td class="px-4 py-3 border-bottom-0">
+                                {% set percentage = (result.score / result.total * 100) if result.total > 0 else 0 %}
+                                <span class="badge {% if percentage >= 80 %}bg-success-subtle text-success{% elif percentage >= 50 %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3 py-1 fw-bold border">
+                                    {{ result.score }} / {{ result.total }} ({{ percentage|round|int }}%)
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 border-bottom-0 text-end text-muted small fw-medium">
+                                {{ result.submitted_at.strftime('%b %d, %Y') if result.submitted_at else 'N/A' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-5 text-center">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-muted mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-slash-circle fs-3"></i>
+                </div>
+                <h6 class="fw-bold mb-1">No quiz attempts yet</h6>
+                <p class="text-muted small mb-0">Take quizzes in your courses to see your marks here.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Assignment Marks -->
+    <div class="col-lg-6">
+        <h4 class="fw-bold mb-4 text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-check text-warning"></i> Assignment Submissions
+        </h4>
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+            {% if submissions %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-uppercase text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                        <tr>
+                            <th class="py-3 px-4 border-0 fw-bold">Assignment</th>
+                            <th class="py-3 px-4 border-0 fw-bold">Marks</th>
+                            <th class="py-3 px-4 border-0 fw-bold text-end">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in submissions[:10] %}
+                        <tr>
+                            <td class="px-4 py-3 border-bottom-0">
+                                <h6 class="mb-0 fw-bold text-dark">{{ submission.assignment.title if submission.assignment else 'Unknown Assignment' }}</h6>
+                                <span class="text-muted small d-block">{{ submission.assignment.course.title if submission.assignment and submission.assignment.course else 'Unknown Course' }}</span>
+                            </td>
+                            <td class="px-4 py-3 border-bottom-0">
+                                {% if submission.marks_obtained is not none %}
+                                    <span class="fw-bold text-dark">{{ submission.marks_obtained }}</span> <span class="text-muted small">/ {{ submission.assignment.total_marks if submission.assignment else '-' }}</span>
+                                {% else %}
+                                    <span class="text-muted small fst-italic">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 border-bottom-0 text-end">
+                                <span class="badge {% if submission.status == 'Graded' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} rounded-pill px-3 py-1 fw-bold border">
+                                    {{ submission.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-5 text-center">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-muted mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-slash-circle fs-3"></i>
+                </div>
+                <h6 class="fw-bold mb-1">No assignments submitted</h6>
+                <p class="text-muted small mb-0">Submit assignments to track your grades here.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08) !important;
+    }
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}

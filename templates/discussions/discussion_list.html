@@ -1,40 +1,88 @@
-{% extends 'base.html' %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
-{% endblock %}
+{% extends 'dashboard_base.html' %}
 
 {% block content %}
-<div class="admin-container-premium fade-in slide-up" style="margin-top: 80px;">
-    <h2>Discussions: {{ course.title }}</h2>
-    
-    <div style="background: var(--bg-card); padding: 2rem; border-radius: var(--radius-lg); margin: 2rem 0; border: 1px solid var(--border);">
-        <h3 style="margin-bottom: 1rem;">Start a new discussion</h3>
-        <form method="POST">
-            <input type="text" name="title" class="form-control" placeholder="Discussion Topic" style="margin-bottom: 1rem;" required>
-            <textarea name="content" class="form-control" placeholder="What's on your mind?" style="min-height: 100px; margin-bottom: 1rem;" required></textarea>
-            <button type="submit" class="btn btn-primary">Post Discussion</button>
-        </form>
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <span class="badge bg-info-subtle text-info rounded-pill px-3 py-1 mb-2 fw-bold border border-info-subtle" style="font-size: 0.75rem; letter-spacing: 0.5px;">FORUM</span>
+            <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Discussions: {{ course.title }}</h2>
+            <p class="text-muted mb-0 fw-medium">Join the conversation with your peers and instructors.</p>
+        </div>
+        <div>
+            <a href="javascript:history.back()" class="btn btn-white bg-white text-dark border shadow-sm rounded-pill px-4 py-2 fw-bold" style="transition: all 0.2s ease;">
+                <i class="bi bi-arrow-left me-2"></i> Back
+            </a>
+        </div>
     </div>
-    
-    <div class="discussion-board">
-        {% for discussion in discussions %}
-        <div class="discussion-post">
-            <div class="discussion-meta">
-                <div class="author-avatar"></div>
-                <div>
-                    <h4 style="margin: 0;">{{ discussion.title }}</h4>
-                    <span style="font-size: 0.85rem; color: var(--text-muted);">By {{ discussion.user.first_name }} on {{ discussion.created_at.strftime('%B %d') }}</span>
-                </div>
-            </div>
-            <p style="margin-top: 1rem;">{{ discussion.content[:150] }}...</p>
-            <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-                <a href="{{ url_for('discussion.view_discussion', discussion_id=discussion.id) }}" class="btn btn-outline btn-sm">View Replies ({{ discussion.replies|length }})</a>
+</div>
+
+<div class="row g-4">
+    <!-- Start Discussion Form -->
+    <div class="col-lg-4 order-lg-2" data-aos="fade-up" data-aos-delay="100">
+        <div class="card border-0 shadow-sm rounded-4 position-sticky" style="top: 20px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-pencil-square text-primary"></i> Start a new topic
+                </h5>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Topic Title</label>
+                        <input type="text" name="title" class="form-control bg-light border-0" placeholder="e.g. Help with Flask routes" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Details</label>
+                        <textarea name="content" class="form-control bg-light border-0" placeholder="What's on your mind?" style="min-height: 120px;" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2">
+                        Post Discussion <i class="bi bi-send ms-1"></i>
+                    </button>
+                </form>
             </div>
         </div>
-        {% else %}
-        <p>No discussions yet. Be the first to start one!</p>
-        {% endfor %}
+    </div>
+
+    <!-- Discussions List -->
+    <div class="col-lg-8 order-lg-1" data-aos="fade-up">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom p-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-chat-left-text text-primary me-2"></i> Recent Discussions</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if discussions %}
+                    <div class="list-group list-group-flush">
+                    {% for discussion in discussions %}
+                        <a href="{{ url_for('discussion.view_discussion', discussion_id=discussion.id) }}" class="list-group-item list-group-item-action p-4 border-bottom" style="transition: background-color 0.2s;">
+                            <div class="d-flex gap-3">
+                                <div class="avatar bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                                    {{ discussion.user.name[0]|upper }}
+                                </div>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="d-flex justify-content-between align-items-start mb-1 flex-wrap gap-2">
+                                        <h5 class="fw-bold mb-0 text-dark text-truncate pe-2">{{ discussion.title }}</h5>
+                                        <span class="badge bg-light text-dark border"><i class="bi bi-reply-fill me-1"></i>{{ discussion.replies|length }} replies</span>
+                                    </div>
+                                    <p class="text-muted small mb-2 text-truncate">{{ discussion.content }}</p>
+                                    <div class="d-flex align-items-center text-muted small fw-medium">
+                                        <span class="text-primary me-2">{{ discussion.user.name }}</span>
+                                        <i class="bi bi-dot"></i>
+                                        <span class="ms-1">{{ discussion.created_at.strftime('%b %d, %Y') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center p-5 text-muted">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-chat-dots fs-1 text-secondary"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">No discussions yet</h5>
+                        <p class="mb-0">Be the first to start a conversation in this course!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

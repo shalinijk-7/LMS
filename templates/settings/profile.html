@@ -10,7 +10,7 @@
             <div class="card glass-card h-100">
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        <img src="{{ url_for('static', filename='images/default.jpg') }}" alt="Profile Photo" class="rounded-circle img-thumbnail mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                        <img src="{% if current_user.profile_photo == 'default.jpg' %}{{ url_for('static', filename='images/default.jpg') }}{% else %}{{ url_for('uploaded_file', filename=current_user.profile_photo) }}{% endif %}" alt="Profile Photo" class="rounded-circle img-thumbnail mb-3" style="width: 120px; height: 120px; object-fit: cover;">
                         <h5 class="fw-bold">{{ current_user.name }}</h5>
                         <p class="text-muted small text-capitalize">{{ current_user.role.name }}</p>
                     </div>
@@ -37,6 +37,10 @@
                 </div>
                 <div class="card-body p-4">
                     <form method="POST" action="{{ url_for('settings.profile') }}" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label for="profile_photo" class="form-label fw-medium">Profile Photo</label>
+                            <input class="form-control" type="file" id="profile_photo" name="profile_photo" accept="image/*">
+                        </div>
                         
                         <div class="row mb-4">
                             <div class="col-md-6 mb-3 mb-md-0">

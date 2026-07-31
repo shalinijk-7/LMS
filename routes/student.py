@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
-from models import db, Enrollment
+from models import db, Enrollment, Result, Submission
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
 
@@ -28,3 +28,20 @@ def sessions():
     live_sessions = LiveSession.query.filter(LiveSession.course_id.in_(course_ids), LiveSession.scheduled_date >= datetime.utcnow()).order_by(LiveSession.scheduled_date.asc()).all()
     
     return render_template('dashboard/student_sessions.html', live_sessions=live_sessions)
+
+@student_bp.route('/analytics')
+@login_required
+def analytics():
+    if current_user.role.name != 'student':
+        from flask import flash, redirect, url_for
+        flash('Only students can view this page.', 'error')
+        return redirect(url_for('dashboard.index'))
+        
+    enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
+    quiz_results = Result.query.filter_by(student_id=current_user.id).order_by(Result.submitted_at.desc()).all()
+    submissions = Submission.query.filter_by(student_id=current_user.id).order_by(Submission.submitted_at.desc()).all()
+    
+    return render_template('dashboard/student_analytics.html', 
+                           enrollments=enrollments,
+                           quiz_results=quiz_results,
+                           submissions=submissions)

@@ -72,9 +72,9 @@
                             
                             {% if percentage >= 90 %}
                                 {% set _ = grade_info.update({'grade': 'A', 'color': 'success', 'bg': 'success-subtle', 'msg': 'Excellent work! You got very good marks. Work hard for the next assessment like this!'}) %}
-                            {% elif percentage >= 80 %}
+                            {% elif percentage >= 75 %}
                                 {% set _ = grade_info.update({'grade': 'B', 'color': 'primary', 'bg': 'primary-subtle', 'msg': 'Great job! You got good marks. Work hard for the next assessment like this!'}) %}
-                            {% elif percentage >= 70 %}
+                            {% elif percentage >= 60 %}
                                 {% set _ = grade_info.update({'grade': 'C', 'color': 'warning', 'bg': 'warning-subtle', 'msg': 'Good effort! Keep up the hard work for the next assessment.'}) %}
                             {% endif %}
                             
@@ -89,7 +89,10 @@
                                     </div>
                                 </div>
                                 <div class="p-3 bg-white rounded-3 shadow-sm border border-light">
-                                    <p class="mb-0 small fw-medium text-dark"><i class="bi bi-chat-quote-fill text-{{ grade_info.color }} me-2"></i>{{ grade_info.msg }}</p>
+                                    <p class="mb-2 small fw-medium text-dark"><i class="bi bi-chat-quote-fill text-{{ grade_info.color }} me-2"></i>{{ grade_info.msg }}</p>
+                                    <a href="{{ url_for('quiz.quiz_result', quiz_id=quiz.id) }}" class="btn btn-sm w-100 rounded-pill fw-bold mt-2" style="background-color: {{ grade_info.bg }}; color: {{ grade_info.color }}; border: 1px solid {{ grade_info.color }}40;">
+                                        <i class="bi bi-card-checklist me-1"></i> Review Answers
+                                    </a>
                                 </div>
                             </div>
                         {% else %}

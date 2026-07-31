@@ -51,6 +51,19 @@ def take_quiz(quiz_id):
         db.session.commit()
         
         flash(f'Quiz submitted! You scored {score} out of {total}!', 'success')
-        return redirect(url_for('quiz.list_quizzes', course_id=quiz.course_id))
+        return redirect(url_for('quiz.quiz_result', quiz_id=quiz.id))
         
     return render_template('quizzes/take_quiz.html', quiz=quiz)
+
+@quiz_bp.route('/result/<int:quiz_id>')
+@login_required
+def quiz_result(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    result = Result.query.filter_by(quiz_id=quiz.id, student_id=current_user.id).first()
+    
+    if not result:
+        flash('You have not taken this quiz yet.', 'warning')
+        return redirect(url_for('quiz.list_quizzes', course_id=quiz.course_id))
+        
+    return render_template('quizzes/quiz_result.html', quiz=quiz, result=result)
+

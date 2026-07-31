@@ -1,47 +1,87 @@
-{% extends 'base.html' %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
-{% endblock %}
+{% extends 'dashboard_base.html' %}
 
 {% block content %}
-<div class="admin-container-premium fade-in slide-up" style="margin-top: 80px; max-width: 1000px;">
-    <a href="{{ url_for('discussion.list_discussions', course_id=discussion.course_id) }}" class="btn btn-outline btn-sm mb-4">&larr; Back to Discussions</a>
-    
-    <div class="discussion-post" style="border-left: 4px solid var(--primary);">
-        <div class="discussion-meta">
-            <div class="author-avatar"></div>
-            <div>
-                <h2 style="margin: 0;">{{ discussion.title }}</h2>
-                <span style="font-size: 0.9rem; color: var(--text-muted);">Posted by {{ discussion.user.first_name }} on {{ discussion.created_at.strftime('%B %d, %Y') }}</span>
+<div class="dash-header mb-4" data-aos="fade-down">
+    <a href="{{ url_for('discussion.list_discussions', course_id=discussion.course_id) }}" class="btn btn-white bg-white text-dark border shadow-sm rounded-pill px-4 py-2 fw-bold mb-3 d-inline-block" style="transition: all 0.2s ease;">
+        <i class="bi bi-arrow-left me-2"></i> Back to Discussions
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9 col-xl-8">
+        
+        <!-- Original Post -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4" data-aos="fade-up">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex gap-3 mb-4">
+                    <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 56px; height: 56px; font-size: 1.5rem;">
+                        {{ discussion.user.name[0]|upper }}
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-1 text-dark">{{ discussion.title }}</h3>
+                        <div class="text-muted small fw-medium">
+                            <span class="text-primary">{{ discussion.user.name }}</span>
+                            <span class="mx-2">&bull;</span>
+                            <span>{{ discussion.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="discussion-content text-dark" style="font-size: 1.1rem; line-height: 1.7; white-space: pre-wrap;">{{ discussion.content }}</div>
             </div>
         </div>
-        <p style="margin-top: 1.5rem; font-size: 1.1rem; line-height: 1.8;">{{ discussion.content }}</p>
-    </div>
-    
-    <h3 style="margin: 3rem 0 1.5rem;">Replies ({{ discussion.replies|length }})</h3>
-    
-    <div class="replies-list">
-        {% for reply in discussion.replies %}
-        <div class="discussion-post" style="margin-left: 3rem; background: var(--bg-main);">
-            <div class="discussion-meta">
-                <div class="author-avatar" style="width: 30px; height: 30px;"></div>
-                <div>
-                    <strong style="margin: 0;">{{ reply.user.first_name }} {{ reply.user.last_name }}</strong>
-                    <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 1rem;">{{ reply.created_at.strftime('%B %d, %H:%M') }}</span>
+
+        <!-- Replies Section -->
+        <div class="d-flex align-items-center gap-2 mb-4 mt-5">
+            <h4 class="fw-bold mb-0">Replies</h4>
+            <span class="badge bg-primary rounded-pill">{{ discussion.replies|length }}</span>
+        </div>
+
+        <div class="replies-container mb-5">
+            {% for reply in discussion.replies %}
+            <div class="card border-0 shadow-sm rounded-4 mb-3" data-aos="fade-up" style="background: var(--bg-main);">
+                <div class="card-body p-4">
+                    <div class="d-flex gap-3">
+                        <div class="avatar bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 40px; height: 40px;">
+                            {{ reply.user.name[0]|upper }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold mb-0">{{ reply.user.name }}</h6>
+                                <span class="text-muted small">{{ reply.created_at.strftime('%b %d, %I:%M %p') }}</span>
+                            </div>
+                            <div class="text-dark" style="white-space: pre-wrap;">{{ reply.content }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <p style="margin-top: 1rem;">{{ reply.content }}</p>
+            {% else %}
+            <div class="text-center p-5 text-muted bg-white rounded-4 shadow-sm border-0">
+                <i class="bi bi-chat-left-dots fs-1 text-secondary mb-3 d-block"></i>
+                <p class="mb-0">No replies yet. Be the first to reply!</p>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    
-    <div style="background: var(--bg-card); padding: 2rem; border-radius: var(--radius-lg); margin-top: 3rem; border: 1px solid var(--border);">
-        <h4 style="margin-bottom: 1rem;">Leave a Reply</h4>
-        <form method="POST">
-            <textarea name="content" class="form-control" placeholder="Write your reply here..." style="min-height: 120px; margin-bottom: 1rem;" required></textarea>
-            <button type="submit" class="btn btn-primary">Post Reply</button>
-        </form>
+
+        <!-- Leave a Reply -->
+        <div class="card border-0 shadow-sm rounded-4 bg-white" data-aos="fade-up">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-reply-fill text-primary"></i> Leave a Reply
+                </h5>
+                <form method="POST">
+                    <div class="mb-3">
+                        <textarea name="content" class="form-control bg-light border-0 p-3" placeholder="Write your reply here..." style="min-height: 120px;" required></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary rounded-pill fw-bold px-4 py-2">
+                            Post Reply
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

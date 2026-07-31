@@ -6,9 +6,11 @@ from config import Config
 from models import db, User
 from flask_mail import Mail
 from authlib.integrations.flask_client import OAuth
+from flask_socketio import SocketIO
 
 mail = Mail()
 oauth = OAuth()
+socketio = SocketIO(cors_allowed_origins="*")
 
 # Blueprints
 from routes.auth import auth_bp
@@ -24,6 +26,10 @@ from routes.certificate import certificate_bp
 from routes.discussion import discussion_bp
 from routes.notifications import notifications_bp
 from routes.analytics import analytics_bp
+from routes.chat import chat_bp
+
+# Import socket events to register them
+import routes.events
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -34,6 +40,8 @@ def create_app(config_class=Config):
     migrate = Migrate(app, db)
     mail.init_app(app)
     oauth.init_app(app)
+    socketio.init_app(app)
+    routes.events.register_events(socketio)
     
     oauth.register(
         name='google',
@@ -54,6 +62,30 @@ def create_app(config_class=Config):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+    @app.context_processor
+    def inject_unread_counts():
+        from flask_login import current_user
+        if current_user.is_authenticated:
+            from models import Message, CourseChatReadStatus, Course
+            
+            dm_unread = Message.query.filter_by(receiver_id=current_user.id, is_read=False).count()
+            
+            course_unread = 0
+            courses = []
+            if current_user.role.name == 'student':
+                courses = [e.course for e in current_user.enrollments if e.course]
+            elif current_user.role.name == 'instructor':
+                courses = Course.query.filter_by(instructor_id=current_user.id).all()
+                
+            for course in courses:
+                status = CourseChatReadStatus.query.filter_by(user_id=current_user.id, course_id=course.id).first()
+                last_id = status.last_read_message_id if status else 0
+                count = Message.query.filter_by(course_id=course.id).filter(Message.id > last_id).count()
+                course_unread += count
+                
+            return dict(unread_messages_count=dm_unread + course_unread)
+        return dict(unread_messages_count=0)
+
     # Register Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
@@ -68,6 +100,7 @@ def create_app(config_class=Config):
     app.register_blueprint(discussion_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(analytics_bp)
+    app.register_blueprint(chat_bp)
 
     # Landing Page Route (since it's small, keeping it here for now)
     @app.route('/')
@@ -90,4 +123,10 @@ app = create_app()
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    
+    print("\n" + "="*50)
+    print("🚀 App is running! Click the link below to view it:")
+    print("👉 http://127.0.0.1:5000 👈")
+    print("="*50 + "\n")
+    
+    socketio.run(app, debug=True)
