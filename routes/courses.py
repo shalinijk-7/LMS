@@ -305,13 +305,21 @@ def lesson_view(course_id, lesson_id):
         flash('You must be enrolled in this course to view its lessons.', 'error')
         return redirect(url_for('courses.course_details', course_id=course.id))
         
-    from models import Lesson
+    from models import Lesson, Result
     lesson = Lesson.query.filter_by(id=lesson_id, course_id=course.id).first_or_404()
+    
+    # Fetch user results for any quizzes attached to this lesson
+    user_results = {}
+    if current_user.is_authenticated and current_user.role.name == 'student':
+        for quiz in lesson.quizzes:
+            res = Result.query.filter_by(quiz_id=quiz.id, student_id=current_user.id).order_by(Result.submitted_at.desc()).first()
+            if res:
+                user_results[quiz.id] = res
     
     # Get all lessons for navigation sidebar
     all_lessons = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).all()
     
-    return render_template('courses/lesson.html', course=course, lesson=lesson, all_lessons=all_lessons)
+    return render_template('courses/lesson.html', course=course, lesson=lesson, all_lessons=all_lessons, user_results=user_results)
 
 @courses_bp.route('/material/<int:material_id>/preview')
 @login_required

@@ -8,7 +8,8 @@
 <div class="activity-container-premium fade-in slide-up">
     <div class="activity-header">
         <h1 class="activity-title">{{ assignment.title }}</h1>
-        <p>Due Date: <strong>{{ assignment.due_date.strftime('%B %d, %Y') if assignment.due_date else 'None' }}</strong></p>
+        <p>Deadline: <strong>{{ assignment.deadline.strftime('%B %d, %Y %H:%M') if assignment.deadline else 'None' }}</strong></p>
+        <p>Total Marks: <strong>{{ assignment.total_marks }}</strong></p>
     </div>
     
     <div style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
@@ -16,13 +17,33 @@
     </div>
     
     <div style="background: var(--bg-main); padding: 2rem; border-radius: var(--radius-lg); border: 1px dashed var(--border);">
-        <h3 style="margin-bottom: 1rem;">Submit your work</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1rem;">Upload your completed assignment file here (PDF, DOCX, ZIP).</p>
-        
-        <form action="#" method="POST" enctype="multipart/form-data">
-            <input type="file" name="submission_file" required style="margin-bottom: 1rem; display: block;">
-            <button type="submit" class="btn btn-primary pulse-hover">Upload Submission</button>
-        </form>
+        {% if current_user.role.name == 'student' %}
+            {% if submission %}
+                <h3 style="margin-bottom: 1rem; color: #28a745;">Assignment Submitted</h3>
+                <p><strong>Submitted on:</strong> {{ submission.submitted_at.strftime('%B %d, %Y %H:%M') }}</p>
+                <p><strong>Status:</strong> {{ submission.status }}</p>
+                {% if submission.status == 'Graded' %}
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(40,167,69,0.1); border-left: 4px solid #28a745;">
+                        <p><strong>Grade:</strong> {{ submission.marks_obtained }} / {{ assignment.total_marks }}</p>
+                        {% if submission.feedback %}
+                        <p><strong>Feedback:</strong> {{ submission.feedback }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <h3 style="margin-bottom: 1rem;">Submit your work</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">Upload your completed assignment file here (PDF, DOCX, ZIP).</p>
+                
+                <form action="{{ url_for('assignment.view_assignment', assignment_id=assignment.id) }}" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="submission_file" required style="margin-bottom: 1rem; display: block;">
+                    <button type="submit" class="btn btn-primary pulse-hover">Upload Submission</button>
+                </form>
+            {% endif %}
+        {% else %}
+            <h3 style="margin-bottom: 1rem; color: var(--primary);">Instructor View</h3>
+            <p style="color: var(--text-muted);">As an instructor, you do not need to submit assignments.</p>
+            <a href="{{ url_for('instructor.grade_submissions', course_id=assignment.course_id, assignment_id=assignment.id) }}" class="btn btn-primary mt-2">Grade Submissions</a>
+        {% endif %}
     </div>
     
     <a href="{{ url_for('assignment.list_assignments', course_id=assignment.course_id) }}" class="btn btn-outline" style="margin-top: 2rem;">Back to Assignments</a>

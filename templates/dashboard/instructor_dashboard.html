@@ -74,8 +74,25 @@
                 <span class="text-muted small fw-medium"><i class="bi bi-people"></i> {{ course.enrollments|length }} Students</span>
             </div>
             
-            <div class="d-flex gap-2 mt-auto">
-                <a href="{{ url_for('courses.manage_course', course_id=course.id) }}" class="btn btn-outline-primary rounded-pill w-100 fw-bold py-2">Manage</a>
+            <div class="d-flex flex-column gap-3 mt-auto pt-3 border-top" style="border-color: #f1f5f9 !important;">
+                <a href="{{ url_for('courses.manage_course', course_id=course.id) }}" class="btn btn-primary rounded-pill w-100 fw-bold py-2 shadow-sm">Manage Course</a>
+                
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="small fw-bold text-muted mb-1 text-center" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Quizzes</div>
+                        <div class="btn-group w-100 shadow-sm" role="group">
+                            <a href="{{ url_for('quiz.list_quizzes', course_id=course.id) }}" class="btn btn-sm btn-light border border-secondary-subtle" title="All Quizzes"><i class="bi bi-list-ul text-secondary"></i></a>
+                            <a href="{{ url_for('instructor.create_quiz', course_id=course.id) }}" class="btn btn-sm btn-light border border-secondary-subtle border-start-0" title="Add Quiz"><i class="bi bi-plus-lg text-secondary"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small fw-bold text-muted mb-1 text-center" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Assignments</div>
+                        <div class="btn-group w-100 shadow-sm" role="group">
+                            <a href="{{ url_for('assignment.list_assignments', course_id=course.id) }}" class="btn btn-sm btn-light border border-secondary-subtle" title="All Assignments"><i class="bi bi-list-ul text-secondary"></i></a>
+                            <a href="{{ url_for('instructor.create_assignment', course_id=course.id) }}" class="btn btn-sm btn-light border border-secondary-subtle border-start-0" title="Add Assignment"><i class="bi bi-plus-lg text-secondary"></i></a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

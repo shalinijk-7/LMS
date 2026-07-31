@@ -1,0 +1,138 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Create Quiz - LMS Premium{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="header-info">
+        <h1>Create Quiz</h1>
+        <p>Course: {{ course.title }}</p>
+    </div>
+</div>
+
+<div class="glass-card" style="padding: 2rem;">
+    <form method="POST" action="{{ url_for('instructor.create_quiz', course_id=course.id) }}" id="quizForm">
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="title" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Quiz Title</label>
+            <input type="text" id="title" name="title" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" required>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 2rem;">
+            <label for="timer_minutes" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Time Limit (Minutes)</label>
+            <input type="number" id="timer_minutes" name="timer_minutes" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" value="30" min="1" required>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 2rem;">
+            <label for="lesson_id" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Attach to Lesson (Optional)</label>
+            <select id="lesson_id" name="lesson_id" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);">
+                <option value="">-- Course Wide (No specific lesson) --</option>
+                {% for l in lessons %}
+                <option value="{{ l.id }}">{{ l.order_index }}. {{ l.title }}</option>
+                {% endfor %}
+            </select>
+            <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">If attached to a lesson, the quiz will appear at the bottom of the lesson material.</small>
+        </div>
+        
+        <div id="questions-container" style="margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem;">Questions</h3>
+            <!-- Dynamic questions will be added here -->
+        </div>
+        
+        <button type="button" class="btn btn-outline" id="addQuestionBtn" style="margin-bottom: 2rem; width: 100%;">+ Add Question</button>
+        
+        <input type="hidden" name="quiz_data" id="quiz_data">
+        
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary pulse-hover">Save Quiz</button>
+            <a href="{{ url_for('instructor.dashboard') }}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questionsContainer = document.getElementById('questions-container');
+        const addQuestionBtn = document.getElementById('addQuestionBtn');
+        const quizForm = document.getElementById('quizForm');
+        const quizDataInput = document.getElementById('quiz_data');
+        let questionCount = 0;
+
+        function addQuestion() {
+            questionCount++;
+            const qDiv = document.createElement('div');
+            qDiv.className = 'question-block';
+            qDiv.style.cssText = 'background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem; position: relative;';
+            qDiv.innerHTML = `
+                <button type="button" class="btn-remove-q" style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; color: #ff4d4f; cursor: pointer; font-weight: bold;">✕</button>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem;">Question ${questionCount} Text</label>
+                    <input type="text" class="q-text form-control" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" required>
+                </div>
+                <div class="answers-container">
+                    <p style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">Answers (Select the correct one)</p>
+                    <div class="answer-row" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
+                        <input type="radio" name="q${questionCount}_correct" value="0" required>
+                        <input type="text" class="a-text form-control" placeholder="Option 1" style="flex: 1; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" required>
+                    </div>
+                    <div class="answer-row" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
+                        <input type="radio" name="q${questionCount}_correct" value="1">
+                        <input type="text" class="a-text form-control" placeholder="Option 2" style="flex: 1; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" required>
+                    </div>
+                    <div class="answer-row" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
+                        <input type="radio" name="q${questionCount}_correct" value="2">
+                        <input type="text" class="a-text form-control" placeholder="Option 3" style="flex: 1; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" required>
+                    </div>
+                    <div class="answer-row" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
+                        <input type="radio" name="q${questionCount}_correct" value="3">
+                        <input type="text" class="a-text form-control" placeholder="Option 4" style="flex: 1; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);" required>
+                    </div>
+                </div>
+            `;
+            
+            qDiv.querySelector('.btn-remove-q').addEventListener('click', function() {
+                qDiv.remove();
+            });
+            
+            questionsContainer.appendChild(qDiv);
+        }
+
+        addQuestionBtn.addEventListener('click', addQuestion);
+
+        quizForm.addEventListener('submit', function(e) {
+            const questionBlocks = document.querySelectorAll('.question-block');
+            const data = [];
+            
+            if(questionBlocks.length === 0) {
+                e.preventDefault();
+                alert('Please add at least one question.');
+                return;
+            }
+
+            questionBlocks.forEach(function(block) {
+                const qText = block.querySelector('.q-text').value;
+                const answerRows = block.querySelectorAll('.answer-row');
+                const answers = [];
+                
+                answerRows.forEach(function(row) {
+                    const radio = row.querySelector('input[type="radio"]');
+                    const text = row.querySelector('.a-text').value;
+                    answers.push({
+                        text: text,
+                        is_correct: radio.checked
+                    });
+                });
+                
+                data.push({
+                    text: qText,
+                    answers: answers
+                });
+            });
+            
+            quizDataInput.value = JSON.stringify(data);
+        });
+        
+        // Add one question by default
+        addQuestion();
+    });
+</script>
+{% endblock %}

@@ -113,6 +113,7 @@ class Lesson(db.Model):
     # Material relationships
     video = db.relationship('Video', backref='lesson', uselist=False, cascade='all, delete-orphan')
     materials = db.relationship('StudyMaterial', backref='lesson', cascade='all, delete-orphan', lazy=True)
+    quizzes = db.relationship('Quiz', backref='lesson_ref', lazy=True)
 
 class Video(db.Model):
     __tablename__ = 'videos'
@@ -158,6 +159,7 @@ class Quiz(db.Model):
     __tablename__ = 'quizzes'
     id = db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=True)
     title = db.Column(db.String(200), nullable=False)
     timer_minutes = db.Column(db.Integer, default=30)
     

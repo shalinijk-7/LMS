@@ -9,6 +9,16 @@
     border: 1px solid var(--border);
 }
 
+.activity-container-premium {
+    max-width: 1000px;
+    margin: 4rem auto;
+    padding: 3rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
 .activity-header {
     border-bottom: 1px solid var(--border);
     padding-bottom: 1.5rem;

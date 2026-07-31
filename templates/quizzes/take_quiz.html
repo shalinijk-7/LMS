@@ -8,30 +8,21 @@
 <div class="activity-container-premium fade-in slide-up">
     <div class="activity-header">
         <h1 class="activity-title">{{ quiz.title }}</h1>
+        <p>Time Limit: <strong>{{ quiz.timer_minutes }} Minutes</strong></p>
         <p>Answer all questions carefully before submitting.</p>
     </div>
     
-    <form method="POST" action="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}">
+    <form method="POST" action="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" id="quizForm">
         {% for question in quiz.questions %}
-        <div class="quiz-question">
-            <h4>{{ loop.index }}. {{ question.question_text }}</h4>
+        <div class="quiz-question" style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 1rem;">{{ loop.index }}. {{ question.text }}</h4>
             <div class="quiz-options">
-                <label>
-                    <input type="radio" name="question_{{ question.id }}" value="A" required>
-                    {{ question.option_a }}
+                {% for answer in question.answers %}
+                <label style="display: block; margin-bottom: 0.75rem; padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; transition: background 0.3s;">
+                    <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}" required style="margin-right: 0.5rem;">
+                    {{ answer.text }}
                 </label>
-                <label>
-                    <input type="radio" name="question_{{ question.id }}" value="B" required>
-                    {{ question.option_b }}
-                </label>
-                <label>
-                    <input type="radio" name="question_{{ question.id }}" value="C" required>
-                    {{ question.option_c }}
-                </label>
-                <label>
-                    <input type="radio" name="question_{{ question.id }}" value="D" required>
-                    {{ question.option_d }}
-                </label>
+                {% endfor %}
             </div>
         </div>
         {% else %}
@@ -39,8 +30,25 @@
         {% endfor %}
         
         {% if quiz.questions %}
-        <button type="submit" class="btn btn-primary btn-lg pulse-hover" style="width: 100%;">Submit Quiz</button>
+        <button type="submit" class="btn btn-primary btn-lg pulse-hover" style="width: 100%; margin-top: 1rem;">Submit Quiz</button>
         {% endif %}
     </form>
 </div>
+
+<script>
+    // Simple script to highlight selected answers
+    document.querySelectorAll('.quiz-options label').forEach(label => {
+        label.addEventListener('click', function() {
+            // Find all labels in the same question group and remove highlight
+            const group = this.closest('.quiz-options');
+            group.querySelectorAll('label').forEach(l => {
+                l.style.background = 'transparent';
+                l.style.borderColor = 'var(--border)';
+            });
+            // Add highlight to current
+            this.style.background = 'rgba(var(--primary-rgb), 0.1)';
+            this.style.borderColor = 'var(--primary)';
+        });
+    });
+</script>
 {% endblock %}

@@ -13,13 +13,25 @@
     
     {% if quizzes %}
         {% for quiz in quizzes %}
-        <div class="assignment-card">
-            <h3>{{ quiz.title }}</h3>
-            <div class="assignment-meta">
-                <span>Created: {{ quiz.created_at.strftime('%Y-%m-%d') }}</span>
-                <span>Questions: {{ quiz.questions|length }}</span>
+        <div class="assignment-card" style="margin-bottom: 1.5rem; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main);">
+            <h3 style="margin-bottom: 1rem;">{{ quiz.title }}</h3>
+            <div class="assignment-meta" style="display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.9rem;">
+                <span style="padding: 0.25rem 0.75rem; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); border-radius: 4px;">Time Limit: {{ quiz.timer_minutes }} Min</span>
+                <span style="padding: 0.25rem 0.75rem; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); border-radius: 4px;">Questions: {{ quiz.questions|length }}</span>
             </div>
-            <a href="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" class="btn btn-primary" style="margin-top: 1rem;">Take Quiz</a>
+            
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                {% if current_user.role.name == 'instructor' and course.instructor_id == current_user.id %}
+                    <a href="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" class="btn btn-outline" style="border-radius: var(--radius-sm); padding: 0.5rem 1rem;">Preview Quiz</a>
+                    <a href="{{ url_for('instructor.quiz_results', course_id=course.id, quiz_id=quiz.id) }}" class="btn btn-primary pulse-hover" style="border-radius: var(--radius-sm); padding: 0.5rem 1rem;">View Results</a>
+                {% elif user_results and quiz.id in user_results %}
+                    <span style="color: #28a745; font-weight: bold; padding: 0.5rem 1rem; border: 1px solid #28a745; border-radius: var(--radius-md);">
+                        Grade: {{ user_results[quiz.id].score }} / {{ user_results[quiz.id].total }}
+                    </span>
+                {% else %}
+                    <a href="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" class="btn btn-primary pulse-hover">Take Quiz</a>
+                {% endif %}
+            </div>
         </div>
         {% endfor %}
     {% else %}

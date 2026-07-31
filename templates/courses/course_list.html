@@ -1,10 +1,16 @@
-{% extends 'dashboard_base.html' %}
+{% extends 'dashboard_base.html' if current_user.is_authenticated else 'base.html' %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/courses.css') }}">
+{% if not current_user.is_authenticated %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endif %}
 {% endblock %}
 
 {% block content %}
+{% if not current_user.is_authenticated %}
+<div class="container-premium mt-4">
+{% endif %}
 <!-- Page Header -->
 <div class="dash-header mb-4" data-aos="fade-down">
     <div>
@@ -120,4 +126,7 @@
 </div>
         </div>
     </div>
+{% if not current_user.is_authenticated %}
+</div>
+{% endif %}
 {% endblock %}

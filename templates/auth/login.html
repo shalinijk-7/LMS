@@ -3,7 +3,7 @@
 {% block title %}Login - LearnSphere AI{% endblock %}
 
 {% block content %}
-<div class="container-premium d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+<div class="container-premium d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 120px);">
     <div class="card glass-card p-4 p-md-5" style="max-width: 450px; width: 100%;">
         <div class="text-center mb-4">
             <h2 class="fw-bold" style="color: var(--primary);">Welcome Back</h2>
@@ -48,4 +48,5 @@
         </div>
     </div>
 </div>
+{% block footer %}{% endblock %}
 {% endblock %}
