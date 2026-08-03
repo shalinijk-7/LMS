@@ -282,5 +282,41 @@ class Attendance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    status = db.Column(db.String(20)) # Present, Absent
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=True)
+    instructor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    attendance_date = db.Column(db.Date, nullable=False)
+    status = db.Column(db.String(20)) # Present, Absent, Late
+    remarks = db.Column(db.Text, nullable=True)
+
+    student = db.relationship('User', foreign_keys=[student_id])
+    course = db.relationship('Course', foreign_keys=[course_id])
+    lesson = db.relationship('Lesson', foreign_keys=[lesson_id])
+
+class StudentProgress(db.Model):
+    __tablename__ = 'student_progress'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=True)
+    progress_percentage = db.Column(db.Integer, default=0)
+    lessons_completed = db.Column(db.Integer, default=0)
+    total_lessons = db.Column(db.Integer, default=0)
+    learning_time = db.Column(db.Integer, default=0) # in minutes
+    last_accessed = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(50), default='Not Started') # Not Started, In Progress, Completed
+
+    student = db.relationship('User', foreign_keys=[student_id])
+    course = db.relationship('Course', foreign_keys=[course_id])
+    lesson = db.relationship('Lesson', foreign_keys=[lesson_id])
+
+class CourseCompletion(db.Model):
+    __tablename__ = 'course_completion'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    completion_date = db.Column(db.DateTime, default=datetime.utcnow)
+    certificate_status = db.Column(db.String(50), default='Not Issued')
+    completion_percentage = db.Column(db.Integer, default=100)
+
+    student = db.relationship('User', foreign_keys=[student_id])
+    course = db.relationship('Course', foreign_keys=[course_id])

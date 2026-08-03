@@ -18,44 +18,56 @@
 
 <!-- Stats Section -->
 <div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
-    <div class="col-md-4">
-        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift" style="padding: 1.75rem;">
-            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0) 100%); pointer-events: none;"></div>
-            <div class="d-flex align-items-center gap-4">
-                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #6366f1; background: #e0e7ff; width: 64px; height: 64px; font-size: 1.75rem;">
+    <div class="col-md-3">
+        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift" style="padding: 1.5rem;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #6366f1; background: #e0e7ff; width: 56px; height: 56px; font-size: 1.5rem;">
                     <i class="bi bi-journal-bookmark-fill"></i>
                 </div>
                 <div>
-                    <h2 class="mb-0 fw-bold text-dark lh-1">{{ enrollments|length }}</h2>
-                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Enrolled Courses</span>
+                    <h3 class="mb-0 fw-bold text-dark lh-1">{{ in_progress_count }}</h3>
+                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">In Progress</span>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift" style="padding: 1.75rem;">
-            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0) 100%); pointer-events: none;"></div>
-            <div class="d-flex align-items-center gap-4">
-                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #8b5cf6; background: #ede9fe; width: 64px; height: 64px; font-size: 1.75rem;">
+    <div class="col-md-3">
+        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift" style="padding: 1.5rem;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #8b5cf6; background: #ede9fe; width: 56px; height: 56px; font-size: 1.5rem;">
                     <i class="bi bi-check-circle-fill"></i>
                 </div>
                 <div>
-                    <h2 class="mb-0 fw-bold text-dark lh-1">0</h2>
-                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Completed Courses</span>
+                    <h3 class="mb-0 fw-bold text-dark lh-1">{{ completed_courses_count }}</h3>
+                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Completed</span>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift" style="padding: 1.75rem;">
-            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(236, 72, 153, 0) 100%); pointer-events: none;"></div>
-            <div class="d-flex align-items-center gap-4">
-                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #ec4899; background: #fce7f3; width: 64px; height: 64px; font-size: 1.75rem;">
-                    <i class="bi bi-award-fill"></i>
+    <div class="col-md-3">
+        <a href="{{ url_for('student.attendance') }}" class="text-decoration-none d-block h-100">
+            <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift {% if overall_attendance_pct < 75 %}border border-danger{% endif %}" style="padding: 1.5rem;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: {% if overall_attendance_pct >= 75 %}#ec4899{% else %}#dc3545{% endif %}; background: {% if overall_attendance_pct >= 75 %}#fce7f3{% else %}#f8d7da{% endif %}; width: 56px; height: 56px; font-size: 1.5rem;">
+                        <i class="bi bi-calendar-check-fill"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold {% if overall_attendance_pct < 75 %}text-danger{% else %}text-dark{% endif %} lh-1">{{ overall_attendance_pct }}%</h3>
+                        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Overall Attendance</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all hover-lift" style="padding: 1.5rem;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #10b981; background: #d1fae5; width: 56px; height: 56px; font-size: 1.5rem;">
+                    <i class="bi bi-clock-fill"></i>
                 </div>
                 <div>
-                    <h2 class="mb-0 fw-bold text-dark lh-1">0</h2>
-                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Certificates Earned</span>
+                    <h3 class="mb-0 fw-bold text-dark lh-1">{{ total_learning_time_hrs }}h</h3>
+                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Learning Time</span>
                 </div>
             </div>
         </div>
@@ -67,45 +79,52 @@
     <h4 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
         <i class="bi bi-collection-play-fill text-primary"></i> My Learning Library
     </h4>
-    <div class="search-box bg-white shadow-sm border rounded-pill px-3 py-2 d-flex align-items-center" style="width: 100%; max-width: 350px;">
-        <i class="bi bi-search text-muted me-2"></i>
-        <input type="text" placeholder="Search your courses..." class="form-control border-0 shadow-none bg-transparent p-0">
-    </div>
 </div>
 
 <div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="300">
-    {% for enrollment in enrollments %}
+    {% for data in dashboard_data %}
     <div class="col-xl-4 col-lg-6 col-md-6">
         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden dash-course-card transition-all hover-lift">
             <div class="card-body p-4 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="rounded-3 shadow-sm d-flex align-items-center justify-content-center" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; width: 56px; height: 56px;">
                         <i class="bi bi-camera-video-fill fs-3"></i>
                     </div>
+                    {% if data.is_completed %}
+                    <span class="badge bg-success text-white border px-3 py-1 rounded-pill small fw-bold shadow-sm"><i class="bi bi-check-circle"></i> Completed</span>
+                    {% else %}
                     <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small fw-bold shadow-sm">Self-paced</span>
+                    {% endif %}
                 </div>
                 
-                <h5 class="fw-bold mb-2 text-dark line-clamp-2" style="min-height: 48px; line-height: 1.4;">{{ enrollment.course.title }}</h5>
-                <p class="text-muted small mb-4 line-clamp-2">{{ enrollment.course.description[:80] }}...</p>
+                <h5 class="fw-bold mb-2 text-dark line-clamp-2" style="min-height: 48px; line-height: 1.4;">{{ data.course.title }}</h5>
+                <p class="text-muted small mb-3 line-clamp-2">{{ data.course.description[:80] }}...</p>
+                
+                <div class="d-flex justify-content-between text-muted small mb-3">
+                    <span><i class="bi bi-clock"></i> {{ data.learning_time_mins }}m spent</span>
+                    <a href="{{ url_for('student.attendance', course_id=data.course.id) }}" class="text-decoration-none {% if data.attendance_pct < 75 %}text-danger fw-bold{% else %}text-muted{% endif %} hover-primary transition-all">
+                        <i class="bi bi-calendar-event"></i> {{ data.attendance_pct }}% Attendance
+                    </a>
+                </div>
                 
                 <div class="mt-auto">
                     <div class="d-flex justify-content-between align-items-end text-muted small fw-bold mb-2 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
                         <span>Progress</span>
-                        <span class="text-primary fs-6">{{ enrollment.progress_percent }}%</span>
+                        <span class="text-primary fs-6">{{ data.progress_percent }}%</span>
                     </div>
                     <div class="progress mb-4 rounded-pill bg-light border shadow-sm" style="height: 8px;">
-                        <div class="progress-bar bg-primary rounded-pill progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ enrollment.progress_percent }}%;" aria-valuenow="{{ enrollment.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar bg-primary rounded-pill progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ data.progress_percent }}%;" aria-valuenow="{{ data.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     
-                    <a href="{{ url_for('courses.course_start', course_id=enrollment.course.id) }}" class="btn btn-primary w-100 rounded-pill fw-bold py-2 mb-3 shadow hover-lift transition-all">
+                    <a href="{{ url_for('courses.course_start', course_id=data.course.id) }}" class="btn btn-primary w-100 rounded-pill fw-bold py-2 mb-3 shadow hover-lift transition-all">
                         <i class="bi bi-play-circle-fill me-2"></i> Continue Learning
                     </a>
                     
                     <div class="d-flex gap-2">
-                        <a href="{{ url_for('quiz.list_quizzes', course_id=enrollment.course.id) }}" class="btn btn-white bg-white w-50 rounded-pill border fw-bold text-secondary shadow-sm hover-primary d-flex align-items-center justify-content-center gap-2 transition-all">
+                        <a href="{{ url_for('quiz.list_quizzes', course_id=data.course.id) }}" class="btn btn-white bg-white w-50 rounded-pill border fw-bold text-secondary shadow-sm hover-primary d-flex align-items-center justify-content-center gap-2 transition-all">
                             <i class="bi bi-question-circle"></i> Quizzes
                         </a>
-                        <a href="{{ url_for('assignment.list_assignments', course_id=enrollment.course.id) }}" class="btn btn-white bg-white w-50 rounded-pill border fw-bold text-secondary shadow-sm hover-primary d-flex align-items-center justify-content-center gap-2 transition-all">
+                        <a href="{{ url_for('assignment.list_assignments', course_id=data.course.id) }}" class="btn btn-white bg-white w-50 rounded-pill border fw-bold text-secondary shadow-sm hover-primary d-flex align-items-center justify-content-center gap-2 transition-all">
                             <i class="bi bi-file-earmark-text"></i> Tasks
                         </a>
                     </div>

@@ -27,6 +27,8 @@ from routes.discussion import discussion_bp
 from routes.notifications import notifications_bp
 from routes.analytics import analytics_bp
 from routes.chat import chat_bp
+from routes.progress import progress_bp
+from routes.attendance import attendance_bp
 
 # Import socket events to register them
 import routes.events
@@ -101,6 +103,8 @@ def create_app(config_class=Config):
     app.register_blueprint(notifications_bp)
     app.register_blueprint(analytics_bp)
     app.register_blueprint(chat_bp)
+    app.register_blueprint(progress_bp)
+    app.register_blueprint(attendance_bp)
 
     # Landing Page Route (since it's small, keeping it here for now)
     @app.route('/')

@@ -9,13 +9,26 @@ instructor_bp = Blueprint('instructor', __name__, url_prefix='/instructor')
 @login_required
 @instructor_required
 def dashboard():
+    from models import CourseCompletion, Enrollment
     courses = Course.query.filter_by(instructor_id=current_user.id).all()
     
     total_students = sum(len(course.enrollments) for course in courses)
     total_revenue = sum(course.price * len(course.enrollments) for course in courses if course.price)
     
+    course_data = []
+    for course in courses:
+        enrollments = Enrollment.query.filter_by(course_id=course.id).all()
+        # Count completion if progress is 100 or if CourseCompletion record exists
+        completions = sum(1 for e in enrollments if e.progress_percent == 100 or CourseCompletion.query.filter_by(student_id=e.user_id, course_id=course.id).first())
+        completion_rate = int((completions / len(enrollments)) * 100) if enrollments else 0
+        course_data.append({
+            'course': course,
+            'completion_rate': completion_rate
+        })
+    
     return render_template('dashboard/instructor_dashboard.html', 
-                           courses=courses, 
+                           courses=courses,
+                           course_data=course_data,
                            total_students=total_students, 
                            total_revenue=total_revenue)
 
@@ -23,16 +36,37 @@ def dashboard():
 @login_required
 @instructor_required
 def students():
+    from flask import request
     courses = Course.query.filter_by(instructor_id=current_user.id).all()
     # Sort courses so that courses with enrollments appear first
     courses.sort(key=lambda c: len(c.enrollments), reverse=True)
     course_ids = [c.id for c in courses]
     
-    from models import Enrollment, User
+    from models import Enrollment, User, CourseCompletion
     # Get all enrollments for the instructor's courses
-    enrollments = Enrollment.query.filter(Enrollment.course_id.in_(course_ids)).order_by(Enrollment.enrolled_at.desc()).all()
+    enrollments_query = Enrollment.query.filter(Enrollment.course_id.in_(course_ids)).order_by(Enrollment.enrolled_at.desc())
     
-    return render_template('dashboard/instructor_students.html', enrollments=enrollments, courses=courses)
+    # Filter by progress if requested
+    progress_filter = request.args.get('progress')
+    enrollments = enrollments_query.all()
+    
+    student_data = []
+    for enrollment in enrollments:
+        if progress_filter == 'completed' and enrollment.progress_percent < 100:
+            continue
+        if progress_filter == 'in_progress' and (enrollment.progress_percent == 100 or enrollment.progress_percent == 0):
+            continue
+        if progress_filter == 'not_started' and enrollment.progress_percent > 0:
+            continue
+            
+        is_completed = CourseCompletion.query.filter_by(student_id=enrollment.user_id, course_id=enrollment.course_id).first() is not None
+        
+        student_data.append({
+            'enrollment': enrollment,
+            'is_completed': is_completed
+        })
+    
+    return render_template('dashboard/instructor_students.html', student_data=student_data, courses=courses)
 
 @instructor_bp.route('/sessions', methods=['GET', 'POST'])
 @login_required

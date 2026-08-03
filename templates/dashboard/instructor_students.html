@@ -8,15 +8,35 @@
     </div>
 </div>
 
+<div class="row mb-4">
+    <div class="col-12">
+        <form method="GET" action="{{ url_for('instructor.students') }}" class="d-flex gap-2">
+            <select name="progress" class="form-select w-auto rounded-pill shadow-sm" onchange="this.form.submit()">
+                <option value="all">All Students</option>
+                <option value="completed" {% if request.args.get('progress') == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="in_progress" {% if request.args.get('progress') == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="not_started" {% if request.args.get('progress') == 'not_started' %}selected{% endif %}>Not Started</option>
+            </select>
+            <noscript><button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Filter</button></noscript>
+        </form>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-12">
         {% for course in courses %}
-        {% set course_enrollments = enrollments | selectattr('course_id', 'equalto', course.id) | list %}
-        {% if course_enrollments %}
+        {% set course_students = [] %}
+        {% for data in student_data %}
+            {% if data.enrollment.course_id == course.id %}
+                {% set _ = course_students.append(data) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if course_students %}
         <div class="card border-0 shadow-sm rounded-4 mb-4" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
             <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold mb-0 text-primary">{{ course.title }}</h5>
-                <span class="badge bg-primary-subtle text-primary rounded-pill">{{ course_enrollments|length }} Students</span>
+                <span class="badge bg-primary-subtle text-primary rounded-pill">{{ course_students|length }} Students</span>
             </div>
             <div class="card-body p-0 mt-3">
                 <div class="table-responsive">
@@ -26,37 +46,48 @@
                                 <th class="ps-4 py-3 text-muted fw-bold border-bottom-0">Student</th>
                                 <th class="py-3 text-muted fw-bold border-bottom-0">Enrollment Date</th>
                                 <th class="py-3 text-muted fw-bold border-bottom-0">Progress</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Status</th>
                                 <th class="pe-4 py-3 text-muted fw-bold border-bottom-0 text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for enrollment in course_enrollments %}
+                            {% for data in course_students %}
                             <tr>
                                 <td class="ps-4 py-3">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">
-                                            {{ enrollment.student.name[0]|upper }}
+                                            {{ data.enrollment.student.name[0]|upper }}
                                         </div>
                                         <div>
-                                            <h6 class="mb-0 fw-bold">{{ enrollment.student.name }}</h6>
-                                            <small class="text-muted">{{ enrollment.student.email }}</small>
+                                            <h6 class="mb-0 fw-bold">{{ data.enrollment.student.name }}</h6>
+                                            <small class="text-muted">{{ data.enrollment.student.email }}</small>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="py-3">
-                                    <span class="text-dark fw-medium">{{ enrollment.enrolled_at.strftime('%B %d, %Y') }}</span>
+                                    <span class="text-dark fw-medium">{{ data.enrollment.enrolled_at.strftime('%B %d, %Y') }}</span>
                                     <br>
-                                    <small class="text-muted">{{ enrollment.enrolled_at.strftime('%I:%M %p') }}</small>
+                                    <small class="text-muted">{{ data.enrollment.enrolled_at.strftime('%I:%M %p') }}</small>
                                 </td>
                                 <td class="py-3">
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="progress flex-grow-1 rounded-pill" style="height: 6px; width: 80px;">
-                                            <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: {{ enrollment.progress_percent }}%;" aria-valuenow="{{ enrollment.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: {{ data.enrollment.progress_percent }}%;" aria-valuenow="{{ data.enrollment.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
-                                        <span class="small fw-bold text-success">{{ enrollment.progress_percent }}%</span>
+                                        <span class="small fw-bold text-success">{{ data.enrollment.progress_percent }}%</span>
                                     </div>
                                 </td>
+                                <td class="py-3">
+                                    {% if data.is_completed or data.enrollment.progress_percent == 100 %}
+                                    <span class="badge bg-success rounded-pill px-3 py-1">Completed</span>
+                                    {% elif data.enrollment.progress_percent > 0 %}
+                                    <span class="badge bg-info text-dark rounded-pill px-3 py-1">In Progress</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary rounded-pill px-3 py-1">Not Started</span>
+                                    {% endif %}
+                                </td>
                                 <td class="pe-4 py-3 text-end">
+                                    <a href="{{ url_for('attendance.manage_attendance', course_id=course.id) }}" class="btn btn-sm btn-outline-info rounded-pill px-3 me-2">Attendance</a>
                                     <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Message</button>
                                 </td>
                             </tr>
