@@ -1,51 +1,215 @@
+<!-- Template for notifications view. -->
 {% extends 'dashboard_base.html' %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+<style>
+    .notif-center-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .notif-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        padding: 1.25rem;
+        text-decoration: none;
+        color: inherit;
+    }
+    .dark-mode .notif-card {
+        background: rgba(30, 30, 30, 0.85);
+        border-color: rgba(255,255,255,0.05);
+    }
+    .notif-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+        color: inherit;
+    }
+    .notif-card.unread {
+        background: rgba(99, 102, 241, 0.05);
+        border-left: 4px solid var(--primary);
+    }
+    .dark-mode .notif-card.unread {
+        background: rgba(99, 102, 241, 0.15);
+    }
+    .notif-icon-lg {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        margin-right: 1.25rem;
+    }
+    .notif-actions {
+        margin-left: auto;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .notif-card:hover .notif-actions {
+        opacity: 1;
+    }
+    .filter-tabs .nav-link {
+        color: var(--text-muted);
+        border-radius: 2rem;
+        padding: 0.5rem 1.25rem;
+        font-weight: 500;
+        border: none;
+        margin-right: 0.5rem;
+    }
+    .filter-tabs .nav-link.active {
+        background: var(--primary);
+        color: white;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="dash-header mb-4" data-aos="fade-down">
-    <div>
-        <h2 class="fw-bold mb-1">Your Notifications</h2>
-        <p class="text-muted mb-0">Stay up to date with course activities and announcements.</p>
+<div class="notif-center-container pb-5" data-aos="fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Notification Center</h2>
+            <p class="text-muted mb-0">Manage all your alerts and announcements</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="fetch('{{ url_for('notifications.mark_all_read') }}', {method: 'POST'}).then(() => window.location.reload())" class="btn btn-outline-primary rounded-pill px-4">Mark All Read</button>
+            <button onclick="if(confirm('Are you sure you want to clear all notifications?')) fetch('{{ url_for('notifications.clear_all') }}', {method: 'POST'}).then(() => window.location.reload())" class="btn btn-outline-danger rounded-pill px-4">Clear All</button>
+        </div>
     </div>
-    <div>
-        <a href="#" class="btn btn-outline-secondary rounded-pill px-4">Mark all as read</a>
-    </div>
-</div>
 
-<div class="row fade-in slide-up">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush rounded-4">
-        {% for notif in notifications %}
-                    <div class="list-group-item p-4 {% if not notif.is_read %}bg-light border-start border-primary border-4{% endif %} d-flex justify-content-between align-items-center">
-                        <div style="display: flex; align-items: center; gap: 1.5rem;">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center {% if not notif.is_read %}bg-primary text-white{% else %}bg-secondary-subtle text-secondary{% endif %}" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                                {% if not notif.is_read %}<i class="bi bi-bell-fill"></i>{% else %}<i class="bi bi-check2-all"></i>{% endif %}
-                            </div>
-                            <div>
-                                <h6 style="margin: 0; font-weight: {% if not notif.is_read %}bold{% else %}normal{% endif %};">{{ notif.title }}</h6>
-                                <p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">{{ notif.message }}</p>
-                                <span style="font-size: 0.75rem; color: #adb5bd;"><i class="bi bi-clock me-1"></i>{{ notif.created_at.strftime('%B %d, %Y - %H:%M') }}</span>
-                            </div>
-                        </div>
-                        {% if not notif.is_read %}
-                        <a href="{{ url_for('notifications.mark_read', notif_id=notif.id) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">Mark Read</a>
-                        {% endif %}
-                    </div>
-        {% else %}
-                    <div class="text-center p-5 text-muted">
-                        <i class="bi bi-mailbox2 fs-1 mb-3 text-light"></i>
-                        <h5>You're all caught up!</h5>
-                        <p>No new notifications at the moment.</p>
-                    </div>
-                {% endfor %}
+    <!-- Filter Tabs -->
+    <ul class="nav nav-pills filter-tabs mb-4" id="notif-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#all-notifs" type="button" role="tab">All</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="unread-tab" data-bs-toggle="pill" data-bs-target="#unread-notifs" type="button" role="tab">Unread</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="notif-tabs-content">
+        <!-- ALL NOTIFICATIONS TAB -->
+        <div class="tab-pane fade show active" id="all-notifs" role="tabpanel">
+            {% if not notifications %}
+                <div class="text-center p-5 text-muted bg-white rounded-4 shadow-sm">
+                    <i class="bi bi-bell-slash fs-1 mb-3 text-light d-block"></i>
+                    <h5>You're all caught up!</h5>
+                    <p>No new notifications at the moment.</p>
                 </div>
-            </div>
+            {% else %}
+                {% for notif in notifications %}
+                    <a href="{{ notif.action_url or url_for('notifications.mark_read', notif_id=notif.id) }}" class="notif-card {% if not notif.is_read %}unread{% endif %} notif-link-center" data-id="{{ notif.id }}" data-url="{{ notif.action_url or '#' }}">
+                        <div class="notif-icon-lg icon-{{ notif.notification_type }}">
+                            <i class="bi {{ notif.icon }}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1 fw-bold">{{ notif.title }}</h5>
+                            <p class="mb-2 text-muted" style="font-size: 0.95rem;">{{ notif.message }}</p>
+                            <small class="text-secondary"><i class="bi bi-clock me-1"></i>{{ notif.created_at.strftime('%B %d, %Y - %I:%M %p') }}</small>
+                        </div>
+                        <div class="notif-actions">
+                            {% if not notif.is_read %}
+                            <button class="btn btn-sm btn-primary rounded-pill px-3 mark-read-btn" data-id="{{ notif.id }}">Mark Read</button>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- UNREAD NOTIFICATIONS TAB -->
+        <div class="tab-pane fade" id="unread-notifs" role="tabpanel">
+            {% set unread_notifs = notifications|selectattr('is_read', 'equalto', false)|list %}
+            {% if not unread_notifs %}
+                <div class="text-center p-5 text-muted bg-white rounded-4 shadow-sm">
+                    <i class="bi bi-check2-circle fs-1 mb-3 text-success d-block"></i>
+                    <h5>No Unread Notifications</h5>
+                    <p>You have read all your notifications.</p>
+                </div>
+            {% else %}
+                {% for notif in unread_notifs %}
+                    <a href="{{ notif.action_url or url_for('notifications.mark_read', notif_id=notif.id) }}" class="notif-card unread notif-link-center" data-id="{{ notif.id }}" data-url="{{ notif.action_url or '#' }}">
+                        <div class="notif-icon-lg icon-{{ notif.notification_type }}">
+                            <i class="bi {{ notif.icon }}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1 fw-bold">{{ notif.title }}</h5>
+                            <p class="mb-2 text-muted" style="font-size: 0.95rem;">{{ notif.message }}</p>
+                            <small class="text-secondary"><i class="bi bi-clock me-1"></i>{{ notif.created_at.strftime('%B %d, %Y - %I:%M %p') }}</small>
+                        </div>
+                        <div class="notif-actions">
+                            <button class="btn btn-sm btn-primary rounded-pill px-3 mark-read-btn" data-id="{{ notif.id }}">Mark Read</button>
+                        </div>
+                    </a>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Handle inline mark read buttons inside the center
+    const markReadBtns = document.querySelectorAll('.mark-read-btn');
+    markReadBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            fetch(`/notifications/mark-read/${id}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(() => {
+                const card = btn.closest('.notif-card');
+                card.classList.remove('unread');
+                btn.remove();
+                
+                // Update badge and bell if exists
+                const badge = document.getElementById('notificationBadge');
+                if (badge) {
+                    let count = parseInt(badge.innerText) || 0;
+                    if (count > 0) {
+                        count--;
+                        badge.innerText = count;
+                        if (count === 0) badge.classList.add('d-none');
+                    }
+                }
+            });
+        });
+    });
+
+    // Main card click - if not clicking a button
+    const centerCards = document.querySelectorAll('.notif-link-center');
+    centerCards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.mark-read-btn')) return;
+            const id = card.dataset.id;
+            const url = card.dataset.url;
+            if (card.classList.contains('unread')) {
+                e.preventDefault();
+                fetch(`/notifications/mark-read/${id}`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).then(() => {
+                    if (url && url !== '#' && url !== 'None') {
+                        window.location.href = url;
+                    } else {
+                        window.location.href = `/notifications/mark-read/${id}`; // fallback to route
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

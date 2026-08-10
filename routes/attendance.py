@@ -10,6 +10,9 @@ attendance_bp = Blueprint('attendance', __name__, url_prefix='/attendance')
 @login_required
 @instructor_required
 def manage_attendance(course_id):
+    """
+    Handles the manage attendance functionality.
+    """
     course = Course.query.filter_by(id=course_id, instructor_id=current_user.id).first_or_404()
     lessons = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).all()
     enrollments = Enrollment.query.filter_by(course_id=course.id).all()
@@ -89,6 +92,9 @@ def manage_attendance(course_id):
 @login_required
 @instructor_required
 def attendance_history(course_id):
+    """
+    Handles the attendance history functionality.
+    """
     course = Course.query.filter_by(id=course_id, instructor_id=current_user.id).first_or_404()
     records = Attendance.query.filter_by(course_id=course.id).order_by(Attendance.attendance_date.desc()).all()
     

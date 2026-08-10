@@ -1,3 +1,4 @@
+<!-- Template for course list view. -->
 {% extends 'dashboard_base.html' if current_user.is_authenticated else 'base.html' %}
 
 {% block extra_css %}
@@ -34,32 +35,28 @@
                     <h5 class="fw-bold mb-4 text-dark">Categories</h5>
                     
                     <div class="d-flex flex-column gap-3 mb-4">
+                        {% for cat in categories %}
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="cat1" style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="cat1" style="cursor: pointer;">Web Development</label>
+                            <input class="form-check-input category-filter" type="checkbox" value="{{ cat }}" id="cat_{{ loop.index }}" style="cursor: pointer; border-color: #dee2e6;">
+                            <label class="form-check-label text-muted fw-medium" for="cat_{{ loop.index }}" style="cursor: pointer;">{{ cat }}</label>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="cat2" style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="cat2" style="cursor: pointer;">Data Science</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="cat3" style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="cat3" style="cursor: pointer;">Design</label>
-                        </div>
+                        {% else %}
+                        <p class="text-muted small">No categories found.</p>
+                        {% endfor %}
                     </div>
                     
                     <h5 class="fw-bold mb-4 text-dark">Price</h5>
                     <div class="d-flex flex-column gap-3 mb-4">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="priceFilter" id="priceAll" checked style="cursor: pointer; border-color: #dee2e6;">
+                            <input class="form-check-input price-filter" type="radio" name="priceFilter" id="priceAll" value="all" checked style="cursor: pointer; border-color: #dee2e6;">
                             <label class="form-check-label text-muted fw-medium" for="priceAll" style="cursor: pointer;">All Prices</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="priceFilter" id="priceFree" style="cursor: pointer; border-color: #dee2e6;">
+                            <input class="form-check-input price-filter" type="radio" name="priceFilter" id="priceFree" value="Free" style="cursor: pointer; border-color: #dee2e6;">
                             <label class="form-check-label text-muted fw-medium" for="priceFree" style="cursor: pointer;">Free Courses</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="priceFilter" id="pricePaid" style="cursor: pointer; border-color: #dee2e6;">
+                            <input class="form-check-input price-filter" type="radio" name="priceFilter" id="pricePaid" value="Paid" style="cursor: pointer; border-color: #dee2e6;">
                             <label class="form-check-label text-muted fw-medium" for="pricePaid" style="cursor: pointer;">Paid Courses</label>
                         </div>
                     </div>
@@ -68,7 +65,7 @@
                     <div class="d-flex flex-column gap-3 mb-4">
                         {% for instructor in instructors %}
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="{{ instructor.id }}" id="inst{{ instructor.id }}" style="cursor: pointer; border-color: #dee2e6;">
+                            <input class="form-check-input instructor-filter" type="checkbox" value="{{ instructor.id }}" id="inst{{ instructor.id }}" style="cursor: pointer; border-color: #dee2e6;">
                             <label class="form-check-label text-muted fw-medium" for="inst{{ instructor.id }}" style="cursor: pointer;">{{ instructor.name }}</label>
                         </div>
                         {% else %}
@@ -76,7 +73,7 @@
                         {% endfor %}
                     </div>
                     
-                    <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold mt-2 shadow-sm">Apply Filters</button>
+                    <button id="applyFiltersBtn" class="btn btn-primary w-100 rounded-pill py-2 fw-bold mt-2 shadow-sm">Apply Filters</button>
                 </div>
             </div>
             </div>
@@ -87,7 +84,7 @@
 <div class="courses-container-premium">
     <div class="course-list-grid slide-up">
         {% for course in courses %}
-        <div class="course-card hover-lift">
+        <div class="course-card hover-lift" data-category="{{ course.category.name if course.category else '' }}" data-type="{{ course.course_type }}" data-instructor="{{ course.instructor.id if course.instructor else '' }}">
             <!-- Course Thumbnail -->
             <div class="course-thumbnail">
                 {% if course.thumbnail %}
@@ -96,7 +93,13 @@
                     {% set imgs = ['course_python.jpg', 'course_datascience.jpg', 'course_webdev.jpg', 'course_design.jpg'] %}
                     <img src="{{ url_for('static', filename='images/' + imgs[loop.index0 % 4]) }}" alt="{{ course.title }}">
                 {% endif %}
-                <div class="course-badge">{{ "$%.2f"|format(course.price) }}</div>
+                {% if course.course_type == 'Free' %}
+                <div class="course-badge" style="background: rgba(40, 167, 69, 0.9); color: white;">FREE</div>
+                {% else %}
+                <div class="course-badge" style="background: rgba(111, 66, 193, 0.9); color: white;">
+                    {% if course.currency == 'INR' %}₹{% elif course.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(course.price) }}
+                </div>
+                {% endif %}
             </div>
             <!-- Course Info -->
             <div class="course-content">
@@ -129,4 +132,87 @@
 {% if not current_user.is_authenticated %}
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const applyBtn = document.getElementById('applyFiltersBtn');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', function() {
+            // Get selected categories
+            const selectedCategories = Array.from(document.querySelectorAll('.category-filter:checked')).map(cb => cb.value);
+            
+            // Get selected price
+            const selectedPrice = document.querySelector('.price-filter:checked').value;
+            
+            // Get selected instructors
+            const selectedInstructors = Array.from(document.querySelectorAll('.instructor-filter:checked')).map(cb => cb.value);
+            
+            // Filter courses
+            const courseCards = document.querySelectorAll('.course-card');
+            let visibleCount = 0;
+            
+            courseCards.forEach(card => {
+                const category = card.getAttribute('data-category');
+                const type = card.getAttribute('data-type');
+                const instructor = card.getAttribute('data-instructor');
+                
+                let show = true;
+                
+                if (selectedCategories.length > 0 && !selectedCategories.includes(category)) {
+                    show = false;
+                }
+                
+                if (selectedPrice !== 'all' && type !== selectedPrice) {
+                    show = false;
+                }
+                
+                if (selectedInstructors.length > 0 && !selectedInstructors.includes(instructor)) {
+                    show = false;
+                }
+                
+                if (show) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Handle no courses found state
+            let noCoursesMsg = document.getElementById('no-courses-msg');
+            if (visibleCount === 0) {
+                if (!noCoursesMsg) {
+                    noCoursesMsg = document.createElement('div');
+                    noCoursesMsg.id = 'no-courses-msg';
+                    noCoursesMsg.style.gridColumn = '1/-1';
+                    noCoursesMsg.style.textAlign = 'center';
+                    noCoursesMsg.style.padding = '5rem';
+                    noCoursesMsg.innerHTML = '<div style="font-size: 4rem; margin-bottom: 1rem;">📚</div><h3>No courses match your filters.</h3><p style="color: var(--text-muted);">Try selecting different criteria.</p>';
+                    document.querySelector('.course-list-grid').appendChild(noCoursesMsg);
+                } else {
+                    noCoursesMsg.style.display = '';
+                }
+            } else if (noCoursesMsg) {
+                noCoursesMsg.style.display = 'none';
+            }
+            
+            // On mobile, close sidebar after applying filters
+            const sidebar = document.getElementById('filterSidebar');
+            if (window.innerWidth < 992 && sidebar.classList.contains('show')) {
+                // If bootstrap is available globally
+                if (typeof bootstrap !== 'undefined') {
+                    const bsCollapse = bootstrap.Collapse.getInstance(sidebar);
+                    if (bsCollapse) {
+                        bsCollapse.hide();
+                    }
+                } else {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

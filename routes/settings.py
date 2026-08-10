@@ -7,6 +7,9 @@ settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
 @settings_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def profile():
+    """
+    Handles the profile functionality.
+    """
     if request.method == 'POST':
         # Handle profile photo upload
         photo_file = request.files.get('profile_photo')
@@ -35,10 +38,29 @@ def profile():
             
         current_user.settings.theme = request.form.get('theme', 'light')
         current_user.settings.language = request.form.get('language', 'en')
-        current_user.settings.notification_prefs = True if request.form.get('notifications') else False
+        current_user.settings.email_notifications_enabled = True if request.form.get('email_notifications') else False
+        current_user.settings.desktop_notifications_enabled = True if request.form.get('desktop_notifications') else False
+        current_user.settings.real_time_notifications_enabled = True if request.form.get('real_time_notifications') else False
+        current_user.settings.notification_sound_enabled = True if request.form.get('notification_sound') else False
         
         db.session.commit()
         flash('Settings updated successfully.', 'success')
         return redirect(url_for('settings.profile'))
         
     return render_template('settings/profile.html')
+
+@settings_bp.route('/update_notif_pref', methods=['POST'])
+@login_required
+def update_notif_pref():
+    """
+    Handles the update notif pref functionality.
+    """
+    data = request.get_json()
+    if not current_user.settings:
+        current_user.settings = Setting(user_id=current_user.id)
+    
+    if 'desktop' in data:
+        current_user.settings.desktop_notifications_enabled = data['desktop']
+        
+    db.session.commit()
+    return {'status': 'success'}

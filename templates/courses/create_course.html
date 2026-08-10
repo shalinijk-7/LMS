@@ -1,3 +1,4 @@
+<!-- Template for create course view. -->
 {% extends 'dashboard_base.html' %}
 
 {% block content %}
@@ -23,10 +24,36 @@
                         <textarea id="description" name="description" class="form-control bg-light border-0" rows="5" placeholder="Describe what students will learn..." required></textarea>
                     </div>
                     
-                    <div class="row">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-3">Course Type</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check form-check-inline custom-radio">
+                                <input class="form-check-input" type="radio" name="course_type" id="typeFree" value="Free" checked onchange="togglePrice()">
+                                <label class="form-check-label" for="typeFree">
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3 fs-6 rounded-pill">Free Course</span>
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline custom-radio">
+                                <input class="form-check-input" type="radio" name="course_type" id="typePaid" value="Paid" onchange="togglePrice()">
+                                <label class="form-check-label" for="typePaid">
+                                    <span class="badge bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25 py-2 px-3 fs-6 rounded-pill" style="color: var(--bs-purple);">Paid Course</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row" id="priceSection" style="display: none;">
                         <div class="col-md-6 mb-4">
-                            <label for="price" class="form-label fw-bold text-dark">Price ($)</label>
-                            <input type="number" step="0.01" id="price" name="price" class="form-control form-control-lg bg-light border-0" placeholder="0.00" value="0.00" required>
+                            <label for="currency" class="form-label fw-bold text-dark">Currency</label>
+                            <select id="currency" name="currency" class="form-select form-select-lg bg-light border-0">
+                                <option value="USD">USD ($)</option>
+                                <option value="INR">INR (₹)</option>
+                                <option value="EUR">EUR (€)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="price" class="form-label fw-bold text-dark">Price</label>
+                            <input type="number" step="0.01" id="price" name="price" class="form-control form-control-lg bg-light border-0" placeholder="0.00" value="0.00">
                         </div>
                     </div>
                     
@@ -54,4 +81,32 @@
         </div>
     </div>
 </div>
+
+<script>
+    function togglePrice() {
+        const isPaid = document.getElementById('typePaid').checked;
+        const priceSection = document.getElementById('priceSection');
+        if (isPaid) {
+            priceSection.style.display = 'flex';
+            document.getElementById('price').required = true;
+        } else {
+            priceSection.style.display = 'none';
+            document.getElementById('price').required = false;
+        }
+    }
+</script>
+
+<style>
+    .custom-radio .form-check-input {
+        display: none;
+    }
+    .custom-radio .form-check-input:checked + .form-check-label span {
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+        border-color: var(--bs-primary) !important;
+    }
+    .bg-purple { background-color: #6f42c1; }
+    .text-purple { color: #6f42c1; }
+    .border-purple { border-color: #6f42c1; }
+</style>
 {% endblock %}

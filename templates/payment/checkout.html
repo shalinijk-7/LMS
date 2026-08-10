@@ -1,0 +1,241 @@
+<!-- Template for checkout view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block extra_css %}
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    .gradient-bg {
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+    }
+
+    .nav-pills .nav-link {
+        border-radius: 0.5rem;
+        color: #495057;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s;
+    }
+
+    .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+        background: linear-gradient(135deg, #6f42c1, #007bff);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3);
+    }
+    
+    .form-control-custom {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .form-control-custom:focus {
+        background-color: #fff;
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 0.25rem rgba(139, 92, 246, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-light rounded-circle p-2 me-3 shadow-sm">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+                <h2 class="fw-bold mb-0">Secure Checkout</h2>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Order Summary (Left) -->
+                <div class="col-md-5 order-md-2">
+                    <div class="card glass-card shadow-lg rounded-4 border-0 p-4 sticky-top" style="top: 2rem;">
+                        <h4 class="fw-bold mb-4">Order Summary</h4>
+                        
+                        <div class="d-flex gap-3 mb-4 pb-4 border-bottom">
+                            {% if course.thumbnail %}
+                                <img src="{{ url_for('static', filename='uploads/' + course.thumbnail) }}" alt="{{ course.title }}" class="rounded-3 object-fit-cover" width="80" height="60">
+                            {% else %}
+                                <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 60px;">
+                                    <i class="bi bi-journal-code"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ course.title }}</h6>
+                                <p class="small text-muted mb-0">By {{ course.instructor.name }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Original Price</span>
+                            <span class="fw-medium">{% if course.currency == 'INR' %}₹{% elif course.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(course.price) }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                            <span class="text-muted">Tax (5%)</span>
+                            <span class="fw-medium">{% if course.currency == 'INR' %}₹{% elif course.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(tax) }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold fs-5">Total</span>
+                            <span class="fw-bold fs-3 text-dark">{% if course.currency == 'INR' %}₹{% elif course.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(total_amount) }}</span>
+                        </div>
+                        
+                        <div class="mt-4 pt-4 border-top text-center text-muted small">
+                            <i class="bi bi-shield-lock-fill text-success me-1"></i> Payments are 100% secure and encrypted.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Methods (Right/Left) -->
+                <div class="col-md-7 order-md-1">
+                    <div class="card shadow-sm border-0 rounded-4 p-4">
+                        <h5 class="fw-bold mb-4">Select Payment Method</h5>
+                        
+                        <div class="d-flex align-items-start">
+                            <div class="nav flex-column nav-pills me-4 w-25" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                                <button class="nav-link active text-start" id="v-pills-card-tab" data-bs-toggle="pill" data-bs-target="#v-pills-card" type="button" role="tab" aria-selected="true">
+                                    <i class="bi bi-credit-card me-2"></i> Card
+                                </button>
+                                <button class="nav-link text-start" id="v-pills-upi-tab" data-bs-toggle="pill" data-bs-target="#v-pills-upi" type="button" role="tab" aria-selected="false">
+                                    <i class="bi bi-phone me-2"></i> UPI
+                                </button>
+                                <button class="nav-link text-start" id="v-pills-netbanking-tab" data-bs-toggle="pill" data-bs-target="#v-pills-netbanking" type="button" role="tab" aria-selected="false">
+                                    <i class="bi bi-bank me-2"></i> Net Banking
+                                </button>
+                                <button class="nav-link text-start" id="v-pills-wallet-tab" data-bs-toggle="pill" data-bs-target="#v-pills-wallet" type="button" role="tab" aria-selected="false">
+                                    <i class="bi bi-wallet2 me-2"></i> Wallet
+                                </button>
+                            </div>
+                            
+                            <div class="tab-content w-75 p-3 bg-light rounded-4 border" id="v-pills-tabContent">
+                                <!-- Card Payment -->
+                                <div class="tab-pane fade show active" id="v-pills-card" role="tabpanel">
+                                    <h6 class="fw-bold mb-3">Credit / Debit Card</h6>
+                                    <form method="POST" action="{{ url_for('payment.process_payment', course_id=course.id) }}">
+                                        <input type="hidden" name="payment_method" value="Card">
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-bold">Card Number</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-credit-card"></i></span>
+                                                <input type="text" class="form-control form-control-custom border-start-0 ps-0" placeholder="0000 0000 0000 0000" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-bold">Name on Card</label>
+                                            <input type="text" class="form-control form-control-custom" placeholder="John Doe" required>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-6 mb-4">
+                                                <label class="form-label small fw-bold">Expiry (MM/YY)</label>
+                                                <input type="text" class="form-control form-control-custom" placeholder="MM/YY" required>
+                                            </div>
+                                            <div class="col-6 mb-4">
+                                                <label class="form-label small fw-bold">CVV</label>
+                                                <input type="text" class="form-control form-control-custom" placeholder="123" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">Pay {% if course.currency == 'INR' %}₹{% elif course.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(total_amount) }}</button>
+                                    </form>
+                                </div>
+                                
+                                <!-- UPI Payment -->
+                                <div class="tab-pane fade" id="v-pills-upi" role="tabpanel">
+                                    <h6 class="fw-bold mb-3">UPI Payment</h6>
+                                    <form method="POST" action="{{ url_for('payment.process_payment', course_id=course.id) }}">
+                                        <input type="hidden" name="payment_method" value="UPI">
+                                        
+                                        <div class="text-center mb-4 p-3 bg-white rounded-3 border">
+                                            <p class="small text-muted mb-2">Scan QR code using any UPI app</p>
+                                            <div class="bg-light d-inline-flex p-2 rounded-3 border">
+                                                <!-- A placeholder for QR code -->
+                                                <i class="bi bi-qr-code text-dark" style="font-size: 6rem;"></i>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex align-items-center mb-3">
+                                            <hr class="flex-grow-1">
+                                            <span class="mx-2 text-muted small">OR ENTER UPI ID</span>
+                                            <hr class="flex-grow-1">
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <label class="form-label small fw-bold">UPI ID</label>
+                                            <input type="text" class="form-control form-control-custom" placeholder="username@upi" required>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">Verify & Pay</button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Net Banking -->
+                                <div class="tab-pane fade" id="v-pills-netbanking" role="tabpanel">
+                                    <h6 class="fw-bold mb-3">Net Banking</h6>
+                                    <form method="POST" action="{{ url_for('payment.process_payment', course_id=course.id) }}">
+                                        <input type="hidden" name="payment_method" value="Net Banking">
+                                        
+                                        <div class="mb-4">
+                                            <label class="form-label small fw-bold">Select Bank</label>
+                                            <select class="form-select form-control-custom">
+                                                <option selected disabled>Choose your bank...</option>
+                                                <option>HDFC Bank</option>
+                                                <option>State Bank of India</option>
+                                                <option>ICICI Bank</option>
+                                                <option>Axis Bank</option>
+                                                <option>Chase Bank</option>
+                                                <option>Bank of America</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">Proceed to Bank</button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Wallet -->
+                                <div class="tab-pane fade" id="v-pills-wallet" role="tabpanel">
+                                    <h6 class="fw-bold mb-3">Wallets</h6>
+                                    <form method="POST" action="{{ url_for('payment.process_payment', course_id=course.id) }}">
+                                        <input type="hidden" name="payment_method" value="Wallet">
+                                        
+                                        <div class="d-flex flex-column gap-2 mb-4">
+                                            <div class="form-check border bg-white p-3 rounded-3 d-flex align-items-center">
+                                                <input class="form-check-input ms-0 me-3" type="radio" name="walletType" id="walletGpay" checked>
+                                                <label class="form-check-label flex-grow-1 fw-medium mb-0" for="walletGpay">Google Pay</label>
+                                            </div>
+                                            <div class="form-check border bg-white p-3 rounded-3 d-flex align-items-center">
+                                                <input class="form-check-input ms-0 me-3" type="radio" name="walletType" id="walletApple">
+                                                <label class="form-check-label flex-grow-1 fw-medium mb-0" for="walletApple">Apple Pay</label>
+                                            </div>
+                                            <div class="form-check border bg-white p-3 rounded-3 d-flex align-items-center">
+                                                <input class="form-check-input ms-0 me-3" type="radio" name="walletType" id="walletPaypal">
+                                                <label class="form-check-label flex-grow-1 fw-medium mb-0" for="walletPaypal">PayPal</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">Continue to Wallet</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

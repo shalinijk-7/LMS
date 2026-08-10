@@ -1,3 +1,4 @@
+<!-- Template for instructor dashboard view. -->
 {% extends 'dashboard_base.html' %}
 
 {% block content %}
@@ -55,18 +56,18 @@
     <h4 class="fw-bold mb-0">My Courses</h4>
     <div class="search-box">
         <i class="bi bi-search text-muted"></i>
-        <input type="text" placeholder="Search your courses..." class="form-control border-0 shadow-none bg-transparent">
+        <input type="text" id="courseSearch" placeholder="Search your courses..." class="form-control border-0 shadow-none bg-transparent">
     </div>
 </div>
 
 <div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="300">
     {% for data in course_data %}
-    <div class="col-xl-3 col-lg-4 col-md-6">
+    <div class="col-xl-3 col-lg-4 col-md-6 course-item">
         <div class="dash-course-card h-100 d-flex flex-column">
             <div class="mb-3">
                 <i class="bi bi-camera-video-fill text-primary fs-1"></i>
             </div>
-            <h6 class="fw-bold mb-2 text-truncate" title="{{ data.course.title }}">{{ data.course.title }}</h6>
+            <h6 class="fw-bold mb-2 text-truncate course-title" title="{{ data.course.title }}">{{ data.course.title }}</h6>
             <p class="text-muted small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ data.course.description }}</p>
             
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -140,4 +141,31 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('courseSearch');
+        const courseItems = document.querySelectorAll('.course-item');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                
+                courseItems.forEach(item => {
+                    const titleElement = item.querySelector('.course-title');
+                    if (titleElement) {
+                        const title = titleElement.textContent.toLowerCase();
+                        if (title.includes(query)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+    });
+</script>
 {% endblock %}

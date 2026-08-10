@@ -1,24 +1,7 @@
+/*
+ * Styles for the main component/section.
+ */
 :root {
-    /* Color Palette */
-    --primary: #a855f7; /* Purple */
-    --primary-hover: #9333ea;
-    --primary-light: #f3e8ff; 
-    --secondary: #ffffff;
-    --accent: #ec4899; /* Pink */
-    --accent-hover: #db2777;
-    --gradient-primary: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
-    
-    /* Backgrounds */
-    --bg-main: #ffffff; 
-    --bg-card: #ffffff;
-    
-    /* Text */
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    
-    /* UI Elements */
-    --border: #e2e8f0;
-    
     /* Shadows - Glassmorphism & Soft */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);

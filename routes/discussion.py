@@ -9,6 +9,9 @@ discussion_bp = Blueprint('discussion', __name__, url_prefix='/discussion')
 @discussion_bp.route('/course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def list_discussions(course_id):
+    """
+    Handles the list discussions functionality.
+    """
     course = Course.query.get_or_404(course_id)
     
     if request.method == 'POST':
@@ -26,6 +29,9 @@ def list_discussions(course_id):
 @discussion_bp.route('/view/<int:discussion_id>', methods=['GET', 'POST'])
 @login_required
 def view_discussion(discussion_id):
+    """
+    Handles the view discussion functionality.
+    """
     discussion = DiscussionThread.query.get_or_404(discussion_id)
     
     if request.method == 'POST':

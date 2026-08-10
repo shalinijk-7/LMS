@@ -9,11 +9,18 @@ instructor_bp = Blueprint('instructor', __name__, url_prefix='/instructor')
 @login_required
 @instructor_required
 def dashboard():
-    from models import CourseCompletion, Enrollment
+    """
+    Handles the dashboard functionality.
+    """
+    from models import CourseCompletion, Enrollment, Payment
     courses = Course.query.filter_by(instructor_id=current_user.id).all()
     
     total_students = sum(len(course.enrollments) for course in courses)
-    total_revenue = sum(course.price * len(course.enrollments) for course in courses if course.price)
+    
+    total_revenue = 0
+    for course in courses:
+        payments = Payment.query.filter_by(course_id=course.id, status='Success').all()
+        total_revenue += sum(p.amount for p in payments)
     
     course_data = []
     for course in courses:
@@ -36,6 +43,9 @@ def dashboard():
 @login_required
 @instructor_required
 def students():
+    """
+    Handles the students functionality.
+    """
     from flask import request
     courses = Course.query.filter_by(instructor_id=current_user.id).all()
     # Sort courses so that courses with enrollments appear first
@@ -72,6 +82,9 @@ def students():
 @login_required
 @instructor_required
 def sessions():
+    """
+    Handles the sessions functionality.
+    """
     from models import LiveSession
     from flask import request, flash, redirect, url_for
     from datetime import datetime
@@ -108,6 +121,9 @@ def sessions():
 @login_required
 @instructor_required
 def create_assignment(course_id):
+    """
+    Handles the create assignment functionality.
+    """
     from flask import request, flash, redirect, url_for
     from models import Assignment
     from datetime import datetime
@@ -132,15 +148,19 @@ def create_assignment(course_id):
             db.session.add(new_assignment)
             
             # Send notification to enrolled students
-            from models import Enrollment, Notification
+            from models import Enrollment
+            from services.notification_service import send_notification
             enrollments = Enrollment.query.filter_by(course_id=course.id).all()
             for enrollment in enrollments:
-                notif = Notification(
+                send_notification(
                     user_id=enrollment.user_id,
                     title="New Assignment",
-                    message=f"A new assignment '{title}' has been added to {course.title}."
+                    message=f"A new assignment '{title}' has been added to {course.title}.",
+                    notification_type='primary',
+                    icon='bi-journal-code',
+                    action_url=f'/course/{course.id}/assignments',
+                    sender_id=current_user.id
                 )
-                db.session.add(notif)
                 
             db.session.commit()
             flash('Assignment created successfully!', 'success')
@@ -154,6 +174,9 @@ def create_assignment(course_id):
 @login_required
 @instructor_required
 def grade_submissions(course_id, assignment_id):
+    """
+    Handles the grade submissions functionality.
+    """
     from flask import request, flash, redirect, url_for
     from models import Assignment, Submission
     
@@ -185,6 +208,9 @@ def grade_submissions(course_id, assignment_id):
 @login_required
 @instructor_required
 def create_quiz(course_id):
+    """
+    Handles the create quiz functionality.
+    """
     from flask import request, flash, redirect, url_for
     from models import Quiz, Question, Answer, Lesson
     import json
@@ -248,15 +274,19 @@ def create_quiz(course_id):
                 return redirect(url_for('instructor.create_quiz', course_id=course.id))
                 
         # Send notification to enrolled students
-        from models import Enrollment, Notification
+        from models import Enrollment
+        from services.notification_service import send_notification
         enrollments = Enrollment.query.filter_by(course_id=course.id).all()
         for enrollment in enrollments:
-            notif = Notification(
+            send_notification(
                 user_id=enrollment.user_id,
                 title="New Quiz",
-                message=f"A new quiz '{title}' has been added to {course.title}."
+                message=f"A new quiz '{title}' has been added to {course.title}.",
+                notification_type='primary',
+                icon='bi-patch-question',
+                action_url=f'/course/{course.id}/quizzes',
+                sender_id=current_user.id
             )
-            db.session.add(notif)
             
         db.session.commit()
         flash('Quiz created successfully!', 'success')
@@ -268,6 +298,9 @@ def create_quiz(course_id):
 @login_required
 @instructor_required
 def quiz_results(course_id, quiz_id):
+    """
+    Handles the quiz results functionality.
+    """
     from models import Quiz, Result
     course = Course.query.filter_by(id=course_id, instructor_id=current_user.id).first_or_404()
     quiz = Quiz.query.filter_by(id=quiz_id, course_id=course.id).first_or_404()

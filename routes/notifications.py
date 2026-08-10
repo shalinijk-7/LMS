@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
-from models import Notification
+from models import Notification, Setting
 from models import db
 
 notifications_bp = Blueprint('notifications', __name__, url_prefix='/notifications')
@@ -8,14 +8,88 @@ notifications_bp = Blueprint('notifications', __name__, url_prefix='/notificatio
 @notifications_bp.route('/')
 @login_required
 def index():
+    """
+    Handles the index functionality.
+    """
     notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
     return render_template('settings/notifications.html', notifications=notifications)
 
-@notifications_bp.route('/mark-read/<int:notif_id>')
+@notifications_bp.route('/test')
+@login_required
+def test_notif():
+    """
+    Handles the test notif functionality.
+    """
+    from services.notification_service import send_notification
+    send_notification(
+        user_id=current_user.id,
+        title="System Update",
+        message="Your real-time notification system is working perfectly!",
+        notification_type="success",
+        icon="bi-check-circle-fill",
+        action_url="/notifications"
+    )
+    return jsonify({"status": "Notification sent! Check your other tabs."})
+
+@notifications_bp.route('/mark-read/<int:notif_id>', methods=['POST', 'GET'])
 @login_required
 def mark_read(notif_id):
+    """
+    Handles the mark read functionality.
+    """
     notif = Notification.query.get_or_404(notif_id)
     if notif.user_id == current_user.id:
         notif.is_read = True
         db.session.commit()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({'status': 'success'})
+        
+    if notif.action_url:
+        return redirect(notif.action_url)
     return redirect(url_for('notifications.index'))
+
+@notifications_bp.route('/mark-all-read', methods=['POST'])
+@login_required
+def mark_all_read():
+    """
+    Handles the mark all read functionality.
+    """
+    Notification.query.filter_by(user_id=current_user.id, is_read=False).update({'is_read': True})
+    db.session.commit()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({'status': 'success'})
+    return redirect(url_for('notifications.index'))
+
+@notifications_bp.route('/clear-all', methods=['POST'])
+@login_required
+def clear_all():
+    """
+    Handles the clear all functionality.
+    """
+    Notification.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({'status': 'success'})
+    return redirect(url_for('notifications.index'))
+
+@notifications_bp.route('/recent')
+@login_required
+def recent():
+    """
+    Handles the recent functionality.
+    """
+    notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).limit(15).all()
+    notifs_data = []
+    for n in notifications:
+        notifs_data.append({
+            'id': n.id,
+            'title': n.title,
+            'message': n.message,
+            'type': n.notification_type,
+            'icon': n.icon,
+            'action_url': n.action_url,
+            'is_read': n.is_read,
+            'created_at': n.created_at.strftime('%Y-%m-%dT%H:%M:%S')
+        })
+    return jsonify({'notifications': notifs_data})

@@ -1,3 +1,4 @@
+<!-- Template for navbar view. -->
 <nav class="navbar navbar-expand-lg sticky-top shadow-sm py-3">
     <div class="container-fluid px-4 px-lg-5 d-flex align-items-center justify-content-between">
         <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('index') }}">
@@ -23,7 +24,109 @@
                 <button class="btn btn-outline-primary btn-sm" type="submit" style="border-radius: 20px;">Search</button>
             </form>
             <div class="d-flex align-items-center gap-2">
+                <!-- Theme Toggle -->
+                <div class="dropdown me-2">
+                    <button class="btn btn-light rounded-circle position-relative d-flex align-items-center justify-content-center" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: 40px; height: 40px; padding: 0; border: 1px solid rgba(0,0,0,0.1);" title="Change Theme">
+                        <i class="bi bi-palette fs-5"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="themeDropdown" style="width: 280px; padding: 1rem;">
+                        <h6 class="dropdown-header px-0 text-dark fw-bold mb-2">Select Theme</h6>
+                        <div class="row g-2">
+                            <!-- Theme Options -->
+                            <div class="col-6">
+                                <div class="theme-option-card rounded p-2 text-center" data-theme-value="light" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                    <span class="theme-preview-circle mb-1" style="background: #4f46e5;"></span>
+                                    <div style="font-size: 0.75rem; color: #0f172a;" class="fw-bold">Light</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="theme-option-card rounded p-2 text-center" data-theme-value="dark" style="background: #1e293b; border: 1px solid #334155;">
+                                    <span class="theme-preview-circle mb-1" style="background: #6366f1;"></span>
+                                    <div style="font-size: 0.75rem; color: #f8fafc;" class="fw-bold">Dark</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="theme-option-card rounded p-2 text-center" data-theme-value="ocean" style="background: #f0f9ff; border: 1px solid #bae6fd;">
+                                    <span class="theme-preview-circle mb-1" style="background: #0ea5e9;"></span>
+                                    <div style="font-size: 0.75rem; color: #0c4a6e;" class="fw-bold">Ocean</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="theme-option-card rounded p-2 text-center" data-theme-value="purple" style="background: #faf5ff; border: 1px solid #e9d5ff;">
+                                    <span class="theme-preview-circle mb-1" style="background: #9333ea;"></span>
+                                    <div style="font-size: 0.75rem; color: #3b0764;" class="fw-bold">Purple</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="theme-option-card rounded p-2 text-center" data-theme-value="green" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                                    <span class="theme-preview-circle mb-1" style="background: #16a34a;"></span>
+                                    <div style="font-size: 0.75rem; color: #14532d;" class="fw-bold">Green</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="theme-option-card rounded p-2 text-center" data-theme-value="sunset" style="background: #fff7ed; border: 1px solid #fed7aa;">
+                                    <span class="theme-preview-circle mb-1" style="background: #ea580c;"></span>
+                                    <div style="font-size: 0.75rem; color: #7c2d12;" class="fw-bold">Sunset</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="theme-option-card rounded p-2 text-center" data-theme-value="rose" style="background: #fff1f2; border: 1px solid #fecdd3;">
+                                    <span class="theme-preview-circle mb-1" style="background: #e11d48;"></span>
+                                    <div style="font-size: 0.75rem; color: #881337;" class="fw-bold">Rose</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="theme-option-card rounded p-2 text-center" data-theme-value="high-contrast" style="background: #000000; border: 1px solid #ffffff;">
+                                    <span class="theme-preview-circle mb-1" style="background: #ffff00;"></span>
+                                    <div style="font-size: 0.75rem; color: #ffffff;" class="fw-bold">Contrast</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {% if current_user.is_authenticated %}
+                    <!-- Notification Bell -->
+                    <div class="dropdown me-2">
+                        <button class="btn btn-light rounded-circle position-relative d-flex align-items-center justify-content-center" type="button" id="notificationBell" data-bs-toggle="dropdown" aria-expanded="false" style="width: 40px; height: 40px; padding: 0; border: 1px solid rgba(0,0,0,0.1);">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {% if unread_notifications_count == 0 %}d-none{% endif %}" style="font-size: 0.65rem;">
+                                {{ unread_notifications_count }}
+                            </span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end notification-dropdown mt-2 shadow-lg" aria-labelledby="notificationBell">
+                            <div class="notification-header">
+                                <h6>Notifications</h6>
+                                <a href="{{ url_for('notifications.index') }}" class="text-primary text-decoration-none" style="font-size: 0.85rem;">View All</a>
+                            </div>
+                            <div class="notification-list" id="notificationDropdownList">
+                                {% set recent_notifs = current_user.notifications|sort(attribute='created_at', reverse=True)|batch(5)|first %}
+                                {% if not recent_notifs %}
+                                <div class="p-4 text-center text-muted empty-notifications">
+                                    <i class="bi bi-bell-slash fs-1 mb-2 d-block"></i>
+                                    <p class="mb-0">No new notifications</p>
+                                </div>
+                                {% else %}
+                                    {% for notif in recent_notifs %}
+                                    <a href="{{ url_for('notifications.mark_read', notif_id=notif.id) }}" class="notification-item {% if not notif.is_read %}unread{% endif %} notif-link" data-id="{{ notif.id }}" data-url="{{ notif.action_url or '#' }}">
+                                        <div class="notification-icon icon-{{ notif.notification_type }}">
+                                            <i class="bi {{ notif.icon }}"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <div class="notification-title">{{ notif.title }}</div>
+                                            <div class="notification-message">{{ notif.message }}</div>
+                                            <div class="notification-time">{{ notif.created_at.strftime('%b %d, %H:%M') }}</div>
+                                        </div>
+                                    </a>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div class="notification-footer">
+                                <a href="#" class="text-muted text-decoration-none d-block w-100" onclick="fetch('{{ url_for('notifications.mark_all_read') }}', {method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(() => window.location.reload()); return false;"><small>Mark all as read</small></a>
+                            </div>
+                        </div>
+                    </div>
+
                     {% if current_user.role.name == 'admin' %}
                         <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-primary">Admin Panel</a>
                     {% elif current_user.role.name == 'instructor' %}

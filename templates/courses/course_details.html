@@ -1,3 +1,4 @@
+<!-- Template for course details view. -->
 {% extends 'dashboard_base.html' if current_user.is_authenticated else 'base.html' %}
 
 {% block extra_css %}
@@ -80,16 +81,30 @@
             {% endif %}
             
             <div class="card-body p-4">
-                <h2 class="fw-bold mb-4">${{ "%.2f"|format(course.price) }}</h2>
+                {% if course.course_type == 'Free' %}
+                    <div class="mb-4">
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-4 py-2 fs-4 rounded-pill">FREE</span>
+                    </div>
+                {% else %}
+                    <h2 class="fw-bold text-dark mb-4">{% if course.currency == 'INR' %}₹{% elif course.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(course.price) }}</h2>
+                {% endif %}
                 
                 {% if is_enrolled %}
                     <a href="{{ url_for('courses.course_start', course_id=course.id) }}" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm">Start Learning</a>
                     <p class="text-center text-success small fw-medium mb-0"><i class="bi bi-check-circle-fill me-1"></i> You are enrolled in this course.</p>
                 {% else %}
                     <form method="POST" action="{{ url_for('courses.enroll', course_id=course.id) }}">
-                        <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold pulse-hover shadow-sm">Enroll Now</button>
+                        {% if course.course_type == 'Free' %}
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold pulse-hover shadow-sm">Enroll Now</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold pulse-hover shadow-sm" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">Buy Now</button>
+                        {% endif %}
                     </form>
-                    <p class="text-center text-muted small mb-0">30-Day Money-Back Guarantee</p>
+                    {% if course.course_type == 'Paid' %}
+                        <p class="text-center text-muted small mb-0"><i class="bi bi-shield-lock-fill me-1"></i> Secure Payment</p>
+                    {% else %}
+                        <p class="text-center text-muted small mb-0">Start learning instantly</p>
+                    {% endif %}
                 {% endif %}
                 
                 <hr class="my-4">

@@ -66,20 +66,24 @@ def check_course_completion(student_id, course_id):
     db.session.commit()
     
     # Notify student
-    from models import Notification
-    notif = Notification(
+    from services.notification_service import send_notification
+    send_notification(
         user_id=student_id,
         title="Course Completed!",
-        message=f"Congratulations! You have successfully completed {course.title}."
+        message=f"Congratulations! You have successfully completed {course.title}.",
+        notification_type='success',
+        icon='bi-trophy-fill',
+        action_url=f'/course/{course.id}'
     )
-    db.session.add(notif)
-    db.session.commit()
     
     return True
 
 @progress_bp.route('/lesson/<int:lesson_id>/complete', methods=['POST'])
 @login_required
 def mark_lesson_complete(lesson_id):
+    """
+    Handles the mark lesson complete functionality.
+    """
     if current_user.role.name != 'student':
         return jsonify({'error': 'Unauthorized'}), 403
         
@@ -137,6 +141,9 @@ def mark_lesson_complete(lesson_id):
 @progress_bp.route('/lesson/<int:lesson_id>/update_time', methods=['POST'])
 @login_required
 def update_learning_time(lesson_id):
+    """
+    Handles the update learning time functionality.
+    """
     if current_user.role.name != 'student':
         return jsonify({'error': 'Unauthorized'}), 403
         

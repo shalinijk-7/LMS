@@ -10,6 +10,9 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
+    """
+    Handles the register functionality.
+    """
     if current_user.is_authenticated:
         return redirect(url_for('index'))
         
@@ -49,6 +52,9 @@ def register():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Handles the login functionality.
+    """
     if current_user.is_authenticated:
         return redirect_user_by_role(current_user)
         
@@ -76,12 +82,18 @@ def login():
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    """
+    Handles the logout functionality.
+    """
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
+    """
+    Handles the forgot password functionality.
+    """
     if request.method == 'POST':
         email = request.form.get('email')
         user = User.query.filter_by(email=email).first()
@@ -104,6 +116,9 @@ def forgot_password():
 
 @auth_bp.route('/verify-otp', methods=['GET', 'POST'])
 def verify_otp():
+    """
+    Handles the verify otp functionality.
+    """
     if 'reset_email' not in session or 'reset_otp' not in session:
         flash('Invalid session. Please request a new password reset.', 'danger')
         return redirect(url_for('auth.forgot_password'))
@@ -136,6 +151,9 @@ def verify_otp():
 
 @auth_bp.route('/reset-password', methods=['GET', 'POST'])
 def reset_password():
+    """
+    Handles the reset password functionality.
+    """
     if not session.get('otp_verified') or 'reset_email' not in session:
         flash('Please verify your OTP first.', 'danger')
         return redirect(url_for('auth.forgot_password'))
@@ -162,6 +180,9 @@ def reset_password():
 
 @auth_bp.route('/login/google')
 def google_login():
+    """
+    Handles the google login functionality.
+    """
     oauth = current_app.extensions.get('authlib.integrations.flask_client')
     if not oauth:
         flash('OAuth is not configured properly.', 'danger')
@@ -172,6 +193,9 @@ def google_login():
 
 @auth_bp.route('/authorize/google')
 def google_authorize():
+    """
+    Handles the google authorize functionality.
+    """
     oauth = current_app.extensions.get('authlib.integrations.flask_client')
     if not oauth:
         flash('OAuth is not configured properly.', 'danger')
@@ -215,6 +239,9 @@ def google_authorize():
     return redirect_user_by_role(user)
 
 def redirect_user_by_role(user):
+    """
+    Handles the redirect user by role functionality.
+    """
     if user.role.name == 'admin':
         return redirect(url_for('admin.dashboard'))
     elif user.role.name == 'instructor':

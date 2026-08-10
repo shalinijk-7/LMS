@@ -8,13 +8,21 @@ courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
 
 @courses_bp.route('/')
 def list_courses():
+    """
+    Handles the list courses functionality.
+    """
     courses = Course.query.all()
     # Get unique instructors from the available courses
     instructors = {course.instructor for course in courses if course.instructor}
-    return render_template('courses/course_list.html', courses=courses, instructors=instructors)
+    # Get unique categories from the available courses
+    categories = {course.category.name for course in courses if course.category}
+    return render_template('courses/course_list.html', courses=courses, instructors=instructors, categories=categories)
 
 @courses_bp.route('/<int:course_id>')
 def course_details(course_id):
+    """
+    Handles the course details functionality.
+    """
     course = Course.query.get_or_404(course_id)
     is_enrolled = False
     if current_user.is_authenticated and current_user.role.name == 'student':
@@ -27,6 +35,9 @@ def course_details(course_id):
 @courses_bp.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
 def enroll(course_id):
+    """
+    Handles the enroll functionality.
+    """
     if current_user.role.name != 'student':
         flash('Only students can enroll in courses.', 'error')
         return redirect(url_for('courses.course_details', course_id=course_id))
@@ -39,9 +50,22 @@ def enroll(course_id):
         flash('You are already enrolled in this course.', 'info')
         return redirect(url_for('student.dashboard'))
         
+    if course.course_type == 'Paid':
+        return redirect(url_for('payment.checkout', course_id=course.id))
+        
     new_enrollment = Enrollment(user_id=current_user.id, course_id=course.id)
     db.session.add(new_enrollment)
     db.session.commit()
+    
+    from services.notification_service import send_notification
+    send_notification(
+        user_id=course.instructor_id,
+        title="New Student Enrollment",
+        message=f"{current_user.name} just enrolled in '{course.title}'.",
+        notification_type="info",
+        icon="bi-person-plus-fill",
+        action_url="/instructor/students"
+    )
     
     flash(f'Successfully enrolled in {course.title}!', 'success')
     return redirect(url_for('student.dashboard'))
@@ -49,6 +73,9 @@ def enroll(course_id):
 @courses_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_course():
+    """
+    Handles the create course functionality.
+    """
     if current_user.role.name != 'instructor':
         flash('Only instructors can create courses.', 'error')
         return redirect(url_for('instructor.dashboard'))
@@ -56,12 +83,19 @@ def create_course():
     if request.method == 'POST':
         title = request.form.get('title')
         description = request.form.get('description')
+        course_type = request.form.get('course_type', 'Free')
+        currency = request.form.get('currency', 'USD')
         price = request.form.get('price', 0.0)
+        
+        if course_type == 'Free':
+            price = 0.0
         
         new_course = Course(
             title=title,
             description=description,
+            course_type=course_type,
             price=float(price),
+            currency=currency,
             instructor_id=current_user.id
         )
         db.session.add(new_course)
@@ -75,6 +109,9 @@ def create_course():
 @courses_bp.route('/<int:course_id>/manage', methods=['GET'])
 @login_required
 def manage_course(course_id):
+    """
+    Handles the manage course functionality.
+    """
     if current_user.role.name != 'instructor':
         flash('Only instructors can manage courses.', 'error')
         return redirect(url_for('student.dashboard'))
@@ -93,6 +130,9 @@ def manage_course(course_id):
 @courses_bp.route('/<int:course_id>/lessons/add', methods=['POST'])
 @login_required
 def add_lesson(course_id):
+    """
+    Handles the add lesson functionality.
+    """
     if current_user.role.name != 'instructor':
         flash('Only instructors can add lessons.', 'error')
         return redirect(url_for('student.dashboard'))
@@ -141,15 +181,19 @@ def add_lesson(course_id):
     db.session.commit()
     
     # Send notification to all enrolled students
-    from models import Enrollment, Notification
+    from models import Enrollment
+    from services.notification_service import send_notification
     enrollments = Enrollment.query.filter_by(course_id=course.id).all()
     for enrollment in enrollments:
-        notif = Notification(
+        send_notification(
             user_id=enrollment.user_id,
             title="New Lesson Added",
-            message=f"A new lesson '{title}' was added to {course.title}."
+            message=f"A new lesson '{title}' was added to {course.title}.",
+            notification_type='info',
+            icon='bi-journal-plus',
+            action_url=f'/course/{course.id}',
+            sender_id=current_user.id
         )
-        db.session.add(notif)
     db.session.commit()
     
     flash('Lesson added successfully!', 'success')
@@ -158,6 +202,9 @@ def add_lesson(course_id):
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/material/upload', methods=['POST'])
 @login_required
 def upload_material(course_id, lesson_id):
+    """
+    Handles the upload material functionality.
+    """
     if current_user.role.name != 'instructor':
         flash('Only instructors can upload materials.', 'error')
         return redirect(url_for('student.dashboard'))
@@ -202,6 +249,9 @@ def upload_material(course_id, lesson_id):
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/material/<int:material_id>/delete', methods=['POST'])
 @login_required
 def delete_material(course_id, lesson_id, material_id):
+    """
+    Handles the delete material functionality.
+    """
     if current_user.role.name != 'instructor':
         flash('Only instructors can manage materials.', 'error')
         return redirect(url_for('student.dashboard'))
@@ -222,6 +272,9 @@ def delete_material(course_id, lesson_id, material_id):
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/video/delete', methods=['POST'])
 @login_required
 def delete_video(course_id, lesson_id):
+    """
+    Handles the delete video functionality.
+    """
     if current_user.role.name != 'instructor':
         flash('Only instructors can manage materials.', 'error')
         return redirect(url_for('student.dashboard'))
@@ -244,6 +297,9 @@ def delete_video(course_id, lesson_id):
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/video/add', methods=['POST'])
 @login_required
 def add_lesson_video(course_id, lesson_id):
+    """
+    Handles the add lesson video functionality.
+    """
     if current_user.role.name != 'instructor':
         flash('Only instructors can manage materials.', 'error')
         return redirect(url_for('student.dashboard'))
@@ -289,6 +345,9 @@ def add_lesson_video(course_id, lesson_id):
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>', methods=['GET'])
 @login_required
 def lesson_view(course_id, lesson_id):
+    """
+    Handles the lesson view functionality.
+    """
     course = Course.query.get_or_404(course_id)
     
     # Check if student is enrolled (or if they are the instructor of the course)
@@ -324,6 +383,9 @@ def lesson_view(course_id, lesson_id):
 @courses_bp.route('/material/<int:material_id>/preview')
 @login_required
 def preview_material(material_id):
+    """
+    Handles the preview material functionality.
+    """
     from models import StudyMaterial
     material = StudyMaterial.query.get_or_404(material_id)
     
@@ -348,6 +410,9 @@ def preview_material(material_id):
 @courses_bp.route('/<int:course_id>/start', methods=['GET'])
 @login_required
 def course_start(course_id):
+    """
+    Handles the course start functionality.
+    """
     course = Course.query.get_or_404(course_id)
     
     # Verify enrollment or instructor status
@@ -376,6 +441,9 @@ def course_start(course_id):
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/complete', methods=['POST'])
 @login_required
 def complete_lesson(course_id, lesson_id):
+    """
+    Handles the complete lesson functionality.
+    """
     if current_user.role.name != 'student':
         flash('Only students can complete lessons.', 'error')
         return redirect(url_for('courses.lesson_view', course_id=course_id, lesson_id=lesson_id))
@@ -424,6 +492,17 @@ def complete_lesson(course_id, lesson_id):
                         file_path=file_path
                     )
                     db.session.add(new_cert)
+                    
+                    from services.notification_service import send_notification
+                    send_notification(
+                        user_id=student.id,
+                        title="Certificate Generated",
+                        message=f"Your certificate for {course.title} is ready!",
+                        notification_type='success',
+                        icon='bi-award-fill',
+                        action_url='/certificate/my_certificates'
+                    )
+                    
                     db.session.commit()
                     flash(f'Congratulations! You have earned a certificate for completing {course.title}.', 'success')
     

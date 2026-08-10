@@ -3,9 +3,18 @@ from flask import redirect, url_for, flash
 from flask_login import current_user
 
 def role_required(*roles):
+    """
+    Handles the role required functionality.
+    """
     def decorator(f):
+        """
+        Handles the decorator functionality.
+        """
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            """
+            Handles the decorated function functionality.
+            """
             if not current_user.is_authenticated:
                 return redirect(url_for('auth.login'))
             if current_user.role.name not in roles:
@@ -22,7 +31,13 @@ def role_required(*roles):
     return decorator
 
 def admin_required(f):
+    """
+    Handles the admin required functionality.
+    """
     return role_required('admin')(f)
 
 def instructor_required(f):
+    """
+    Handles the instructor required functionality.
+    """
     return role_required('instructor', 'admin')(f)

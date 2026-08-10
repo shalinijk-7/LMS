@@ -10,6 +10,9 @@ quiz_bp = Blueprint('quiz', __name__, url_prefix='/quiz')
 @quiz_bp.route('/course/<int:course_id>')
 @login_required
 def list_quizzes(course_id):
+    """
+    Handles the list quizzes functionality.
+    """
     course = Course.query.get_or_404(course_id)
     quizzes = Quiz.query.filter_by(course_id=course.id).all()
     # Check if user already took the quiz
@@ -19,6 +22,9 @@ def list_quizzes(course_id):
 @quiz_bp.route('/take/<int:quiz_id>', methods=['GET', 'POST'])
 @login_required
 def take_quiz(quiz_id):
+    """
+    Handles the take quiz functionality.
+    """
     quiz = Quiz.query.get_or_404(quiz_id)
     
     # Check if already taken
@@ -58,6 +64,9 @@ def take_quiz(quiz_id):
 @quiz_bp.route('/result/<int:quiz_id>')
 @login_required
 def quiz_result(quiz_id):
+    """
+    Handles the quiz result functionality.
+    """
     quiz = Quiz.query.get_or_404(quiz_id)
     result = Result.query.filter_by(quiz_id=quiz.id, student_id=current_user.id).first()
     

@@ -1,0 +1,76 @@
+<!-- Template for student payment history view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Payment History</h2>
+        <p class="text-muted mb-0">View all your course purchases and receipts.</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden" data-aos="fade-up">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-nowrap">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-muted fw-bold small text-uppercase">Course</th>
+                        <th class="py-3 text-muted fw-bold small text-uppercase">Transaction ID</th>
+                        <th class="py-3 text-muted fw-bold small text-uppercase">Date</th>
+                        <th class="py-3 text-muted fw-bold small text-uppercase">Method</th>
+                        <th class="py-3 text-muted fw-bold small text-uppercase">Amount</th>
+                        <th class="py-3 text-muted fw-bold small text-uppercase">Status</th>
+                        <th class="pe-4 py-3 text-muted fw-bold small text-uppercase text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                {% if payment.course.thumbnail %}
+                                    <img src="{{ url_for('static', filename='uploads/' + payment.course.thumbnail) }}" alt="{{ payment.course.title }}" width="48" height="48" class="rounded object-fit-cover">
+                                {% else %}
+                                    <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                        <i class="bi bi-journal-code"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <a href="{{ url_for('courses.course_details', course_id=payment.course_id) }}" class="fw-bold text-dark text-decoration-none">{{ payment.course.title }}</a>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 font-monospace small">{{ payment.transaction_id }}</td>
+                        <td class="py-3">{{ payment.payment_date.strftime('%d %b %Y') }}</td>
+                        <td class="py-3">{{ payment.payment_method }}</td>
+                        <td class="py-3 fw-bold">{% if payment.currency == 'INR' %}₹{% elif payment.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(payment.amount) }}</td>
+                        <td class="py-3">
+                            {% if payment.status == 'Success' %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1"><i class="bi bi-check-circle me-1"></i> Success</span>
+                            {% elif payment.status == 'Failed' %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1"><i class="bi bi-x-circle me-1"></i> Failed</span>
+                            {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-1"><i class="bi bi-clock me-1"></i> Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4 py-3 text-end">
+                            <a href="{{ url_for('payment.success', transaction_id=payment.transaction_id) }}" class="btn btn-sm btn-outline-secondary rounded-pill">View Receipt</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="text-muted mb-3"><i class="bi bi-receipt fs-1"></i></div>
+                            <h5 class="fw-bold">No payments yet</h5>
+                            <p class="text-muted small">When you purchase a course, the receipt will appear here.</p>
+                            <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4">Browse Courses</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

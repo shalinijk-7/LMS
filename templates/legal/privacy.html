@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy - AuraLearn{% endblock %}
+
+{% block content %}
+<div class="container-premium py-5 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+                <!-- Header Background -->
+                <div class="bg-primary text-white p-5 position-relative">
+                    <div class="position-relative z-index-1">
+                        <h1 class="fw-bold mb-2">Privacy Policy</h1>
+                        <p class="mb-0 opacity-75">Last Updated: August 10, 2026</p>
+                    </div>
+                    <!-- Decorative shapes -->
+                    <div class="position-absolute top-0 end-0 h-100 w-50 overflow-hidden" style="opacity: 0.1;">
+                        <div class="bg-white rounded-circle position-absolute" style="width: 300px; height: 300px; top: -100px; right: -100px;"></div>
+                        <div class="bg-white rounded-circle position-absolute" style="width: 150px; height: 150px; bottom: -50px; right: 150px;"></div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-column gap-4">
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">1. Introduction</h3>
+                            <p class="text-muted">AuraLearn values your privacy. This Privacy Policy describes how we collect, use, process, and disclose your information, including personal information, in conjunction with your access to and use of our Learning Management System.</p>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">2. Information We Collect</h3>
+                            <p class="text-muted">We collect information that you voluntarily provide to us when you register on the Service, express an interest in obtaining information about us or our products and Services, when you participate in activities on the Service or otherwise when you contact us.</p>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">3. Account Information</h3>
+                            <p class="text-muted">When you create an account, we collect personal information such as your name, email address, password, and role (Student, Instructor, or Admin). You may also choose to provide additional profile information, such as a profile photograph.</p>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">4. Course and Learning Activity</h3>
+                            <p class="text-muted">When you enroll in and take courses, we collect data regarding your progress, quiz scores, assignment submissions, attendance records, and certificates earned. This information is necessary to provide the core functionality of the LMS.</p>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">5. Communication Information</h3>
+                            <p class="text-muted">We collect information when you use our messaging systems, participate in discussion forums, or communicate with instructors and peers through the platform.</p>
+                        </section>
+
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">6. How Information Is Used</h3>
+                            <p class="text-muted">We use personal information collected via our Service for a variety of business purposes described below:</p>
+                            <ul class="text-muted">
+                                <li>To facilitate account creation and logon process.</li>
+                                <li>To deliver requested courses, track progress, and issue certificates.</li>
+                                <li>To manage user accounts and respond to user inquiries/offer support to users.</li>
+                                <li>To send administrative information to you, such as product, service, and new feature information and/or information about changes to our terms, conditions, and policies.</li>
+                            </ul>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">7. Cookies and Local Storage</h3>
+                            <p class="text-muted">We use Cookies and similar tracking technologies like Local Storage to track the activity on our Service and hold certain information. For example, we use Local Storage to save your preferred UI theme (Light/Dark/etc.) so that it persists across your sessions seamlessly without modifying database records unnecessarily.</p>
+                        </section>
+
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">8. Data Security</h3>
+                            <p class="text-muted">We have implemented appropriate technical and organizational security measures designed to protect the security of any personal information we process. However, please also remember that we cannot guarantee that the internet itself is 100% secure.</p>
+                        </section>
+
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">9. Contact Information</h3>
+                            <p class="text-muted">If you have questions or comments about this policy, you may email us at:</p>
+                            <p class="text-muted fw-medium"><i class="bi bi-envelope-fill me-2 text-primary"></i> privacy@auralearn.com</p>
+                        </section>
+                    </div>
+                    
+                    <div class="mt-5 text-center">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary px-4 rounded-pill">
+                            <i class="bi bi-arrow-left me-2"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

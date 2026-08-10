@@ -1,3 +1,4 @@
+<!-- Template for dashboard base view. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,11 +18,23 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
     {% block extra_css %}{% endblock %}
+    
+    <!-- Initialize Theme before rendering to avoid flash -->
+    <script>
+        (function() {
+            try {
+                var theme = localStorage.getItem('auralearn-theme') || 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {}
+        })();
+    </script>
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body" data-notif-sound="{{ 'true' if current_user.is_authenticated and (not current_user.settings or current_user.settings.notification_sound_enabled) else 'false' }}" data-notif-desktop="{{ 'true' if current_user.is_authenticated and (not current_user.settings or current_user.settings.desktop_notifications_enabled is not false) else 'false' }}" data-notif-realtime="{{ 'true' if current_user.is_authenticated and (not current_user.settings or current_user.settings.real_time_notifications_enabled) else 'false' }}">
     <div class="dashboard-wrapper">
         <!-- Dashboard Sidebar (Full Height) -->
         <aside class="dash-sidebar">
@@ -39,7 +52,7 @@
                 </button>
             </div>
             
-            <div class="collapse d-lg-block" id="sidebarCollapse">
+            <div class="collapse d-lg-flex flex-column" id="sidebarCollapse" style="flex: 1; min-height: 0;">
                 <!-- User Profile Widget -->
                 <div class="px-3 py-3 mx-3 mb-3 rounded-4" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.15);">
                 <div class="d-flex align-items-center gap-3">
@@ -79,17 +92,9 @@
                         <span class="badge bg-danger rounded-pill global-unread-badge {% if not unread_messages_count or unread_messages_count == 0 %}d-none{% endif %}">{{ unread_messages_count or 0 }}</span>
                     </a>
                 </li>
-                <li>
-                    <a href="{{ url_for('notifications.index') }}" class="d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-bell-fill"></i> Notifications</span>
-                        {% set unread_count = current_user.notifications|selectattr('is_read', 'equalto', false)|list|length %}
-                        {% if unread_count > 0 %}
-                            <span class="badge bg-danger rounded-pill">{{ unread_count }}</span>
-                        {% endif %}
-                    </a>
-                </li>
                 <li><a href="#"><i class="bi bi-journal-text"></i> My Notes</a></li>
                 <li><a href="{{ url_for('certificate.my_certificates') }}"><i class="bi bi-award-fill"></i> Certificates</a></li>
+                <li><a href="{{ url_for('student.payment_history') }}"><i class="bi bi-receipt"></i> Payment History</a></li>
                 
                 {% elif current_user.role.name == 'instructor' %}
                 <li><a href="{{ url_for('courses.create_course') }}"><i class="bi bi-plus-circle-fill"></i> Create Course</a></li>
@@ -145,12 +150,80 @@
                 <li><a href="{{ url_for('analytics.index') }}"><i class="bi bi-pie-chart-fill"></i> Analytics</a></li>
                 {% endif %}
                 
+                <li>
+                    <a href="{{ url_for('notifications.index') }}" class="d-flex justify-content-between align-items-center {% if request.endpoint == 'notifications.index' %}active{% endif %}" id="sidebarNotificationsLink">
+                        <span><i class="bi bi-bell-fill"></i> Notifications</span>
+                        <span id="sidebarNotificationBadge" class="badge bg-danger rounded-pill {% if unread_notifications_count == 0 %}d-none{% endif %}">{{ unread_notifications_count }}</span>
+                    </a>
+                </li>
                 <li><a href="{{ url_for('settings.profile') }}"><i class="bi bi-person-fill"></i> My Profile</a></li>
                 <li><a href="{{ url_for('settings.profile') }}"><i class="bi bi-gear-fill"></i> Settings</a></li>
+                <li class="mt-2 px-3">
+                    <!-- Theme Toggle -->
+                    <div class="dropdown w-100">
+                        <button class="btn btn-light w-100 d-flex align-items-center justify-content-center gap-2" type="button" id="themeDropdownDash" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid rgba(0,0,0,0.1);" title="Change Theme">
+                            <i class="bi bi-palette"></i> Theme
+                        </button>
+                        <div class="dropdown-menu shadow-lg" aria-labelledby="themeDropdownDash" style="width: 280px; padding: 1rem; transform: translateY(-100%); bottom: 100%; top: auto;">
+                            <h6 class="dropdown-header px-0 text-dark fw-bold mb-2">Select Theme</h6>
+                            <div class="row g-2">
+                                <!-- Theme Options -->
+                                <div class="col-6">
+                                    <div class="theme-option-card rounded p-2 text-center" data-theme-value="light" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                        <span class="theme-preview-circle mb-1" style="background: #4f46e5;"></span>
+                                        <div style="font-size: 0.75rem; color: #0f172a;" class="fw-bold">Light</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="theme-option-card rounded p-2 text-center" data-theme-value="dark" style="background: #1e293b; border: 1px solid #334155;">
+                                        <span class="theme-preview-circle mb-1" style="background: #6366f1;"></span>
+                                        <div style="font-size: 0.75rem; color: #f8fafc;" class="fw-bold">Dark</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="theme-option-card rounded p-2 text-center" data-theme-value="ocean" style="background: #f0f9ff; border: 1px solid #bae6fd;">
+                                        <span class="theme-preview-circle mb-1" style="background: #0ea5e9;"></span>
+                                        <div style="font-size: 0.75rem; color: #0c4a6e;" class="fw-bold">Ocean</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="theme-option-card rounded p-2 text-center" data-theme-value="purple" style="background: #faf5ff; border: 1px solid #e9d5ff;">
+                                        <span class="theme-preview-circle mb-1" style="background: #9333ea;"></span>
+                                        <div style="font-size: 0.75rem; color: #3b0764;" class="fw-bold">Purple</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="theme-option-card rounded p-2 text-center" data-theme-value="green" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                                        <span class="theme-preview-circle mb-1" style="background: #16a34a;"></span>
+                                        <div style="font-size: 0.75rem; color: #14532d;" class="fw-bold">Green</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="theme-option-card rounded p-2 text-center" data-theme-value="sunset" style="background: #fff7ed; border: 1px solid #fed7aa;">
+                                        <span class="theme-preview-circle mb-1" style="background: #ea580c;"></span>
+                                        <div style="font-size: 0.75rem; color: #7c2d12;" class="fw-bold">Sunset</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="theme-option-card rounded p-2 text-center" data-theme-value="rose" style="background: #fff1f2; border: 1px solid #fecdd3;">
+                                        <span class="theme-preview-circle mb-1" style="background: #e11d48;"></span>
+                                        <div style="font-size: 0.75rem; color: #881337;" class="fw-bold">Rose</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="theme-option-card rounded p-2 text-center" data-theme-value="high-contrast" style="background: #000000; border: 1px solid #ffffff;">
+                                        <span class="theme-preview-circle mb-1" style="background: #ffff00;"></span>
+                                        <div style="font-size: 0.75rem; color: #ffffff;" class="fw-bold">Contrast</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
             </ul>
             
             <div class="dash-menu-bottom">
-                <a href="{{ url_for('auth.logout') }}" class="text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                <a href="{{ url_for('auth.logout') }}" class="text-danger w-100 d-block"><i class="bi bi-box-arrow-right"></i> Logout</a>
             </div>
             </div> <!-- End collapse -->
         </aside>
@@ -167,6 +240,8 @@
     
     <!-- AOS Animation Library JS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init({
@@ -179,6 +254,8 @@
     </script>
     
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

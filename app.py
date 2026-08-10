@@ -1,3 +1,8 @@
+"""
+Main application factory and configuration module for the LMS project.
+Initializes Flask, sets up extensions (Database, Mail, OAuth, SocketIO),
+and registers all application blueprints.
+"""
 import os
 from flask import Flask, render_template
 from flask_login import LoginManager
@@ -29,11 +34,21 @@ from routes.analytics import analytics_bp
 from routes.chat import chat_bp
 from routes.progress import progress_bp
 from routes.attendance import attendance_bp
+from routes.payment import payment_bp
 
 # Import socket events to register them
 import routes.events
 
 def create_app(config_class=Config):
+    """
+    Application factory function.
+    
+    Args:
+        config_class (object): The configuration class to use (defaults to Config).
+        
+    Returns:
+        Flask: The initialized Flask application instance.
+    """
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -62,13 +77,30 @@ def create_app(config_class=Config):
     
     @login_manager.user_loader
     def load_user(user_id):
+        """
+        Flask-Login user loader callback.
+        
+        Args:
+            user_id (str): The ID of the user to load.
+            
+        Returns:
+            User: The User model instance if found, None otherwise.
+        """
         return User.query.get(int(user_id))
 
     @app.context_processor
     def inject_unread_counts():
+        """
+        Context processor to inject unread message and notification counts
+        into all templates for the currently authenticated user.
+        
+        Returns:
+            dict: A dictionary containing 'unread_messages_count' and 
+                  'unread_notifications_count'.
+        """
         from flask_login import current_user
         if current_user.is_authenticated:
-            from models import Message, CourseChatReadStatus, Course
+            from models import Message, CourseChatReadStatus, Course, Notification
             
             dm_unread = Message.query.filter_by(receiver_id=current_user.id, is_read=False).count()
             
@@ -85,8 +117,10 @@ def create_app(config_class=Config):
                 count = Message.query.filter_by(course_id=course.id).filter(Message.id > last_id).count()
                 course_unread += count
                 
-            return dict(unread_messages_count=dm_unread + course_unread)
-        return dict(unread_messages_count=0)
+            notification_unread = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+                
+            return dict(unread_messages_count=dm_unread + course_unread, unread_notifications_count=notification_unread)
+        return dict(unread_messages_count=0, unread_notifications_count=0)
 
     # Register Blueprints
     app.register_blueprint(auth_bp)
@@ -105,15 +139,51 @@ def create_app(config_class=Config):
     app.register_blueprint(chat_bp)
     app.register_blueprint(progress_bp)
     app.register_blueprint(attendance_bp)
+    app.register_blueprint(payment_bp)
 
     # Landing Page Route (since it's small, keeping it here for now)
     @app.route('/')
     def index():
+        """
+        Route for the application's landing page.
+        
+        Returns:
+            str: Rendered HTML template for the landing page.
+        """
         return render_template('landing/index.html')
 
+    @app.route('/terms')
+    def terms():
+        """Route for the Terms of Service page."""
+        return render_template('legal/terms.html')
+
+    @app.route('/privacy')
+    def privacy():
+        """Route for the Privacy Policy page."""
+        return render_template('legal/privacy.html')
+
     from flask import send_from_directory
+    @app.route('/sw.js')
+    def sw():
+        """
+        Route to serve the Service Worker script for PWA support.
+        
+        Returns:
+            Response: The sw.js file from the static directory.
+        """
+        return app.send_static_file('sw.js')
+
     @app.route('/uploads/<path:filename>')
     def uploaded_file(filename):
+        """
+        Route to serve user-uploaded files.
+        
+        Args:
+            filename (str): The requested filename.
+            
+        Returns:
+            Response: The requested file from the uploads directory.
+        """
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
     # Ensure instance folder and upload folders exist
@@ -129,8 +199,8 @@ if __name__ == '__main__':
         db.create_all()
     
     print("\n" + "="*50)
-    print("🚀 App is running! Click the link below to view it:")
-    print("👉 http://127.0.0.1:5000 👈")
+    print("App is running! Click the link below to view it:")
+    print("-> http://127.0.0.1:5000 <-")
     print("="*50 + "\n")
     
     socketio.run(app, debug=True)

@@ -7,6 +7,9 @@ student_bp = Blueprint('student', __name__, url_prefix='/student')
 @student_bp.route('/dashboard')
 @login_required
 def dashboard():
+    """
+    Handles the dashboard functionality.
+    """
     from models import CourseCompletion, StudentProgress, Attendance, Assignment, Quiz
     enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
     
@@ -79,6 +82,9 @@ def dashboard():
 @student_bp.route('/sessions')
 @login_required
 def sessions():
+    """
+    Handles the sessions functionality.
+    """
     if current_user.role.name != 'student':
         from flask import flash, redirect, url_for
         flash('Only students can view this page.', 'error')
@@ -98,6 +104,9 @@ def sessions():
 @student_bp.route('/analytics')
 @login_required
 def analytics():
+    """
+    Handles the analytics functionality.
+    """
     if current_user.role.name != 'student':
         from flask import flash, redirect, url_for
         flash('Only students can view this page.', 'error')
@@ -115,6 +124,9 @@ def analytics():
 @student_bp.route('/attendance')
 @login_required
 def attendance():
+    """
+    Handles the attendance functionality.
+    """
     if current_user.role.name != 'student':
         from flask import flash, redirect, url_for
         flash('Only students can view this page.', 'error')
@@ -147,3 +159,19 @@ def attendance():
                            total_classes=total_classes,
                            attended=attended,
                            attendance_pct=attendance_pct)
+
+@student_bp.route('/payment-history')
+@login_required
+def payment_history():
+    """
+    Handles the payment history functionality.
+    """
+    if current_user.role.name != 'student':
+        from flask import flash, redirect, url_for
+        flash('Only students can view this page.', 'error')
+        return redirect(url_for('main.index'))
+        
+    from models import Payment
+    payments = Payment.query.filter_by(student_id=current_user.id).order_by(Payment.payment_date.desc()).all()
+    
+    return render_template('dashboard/student_payment_history.html', payments=payments)

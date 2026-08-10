@@ -1,18 +1,7 @@
+/*
+ * Styles for the style component/section.
+ */
 :root {
-    /* Color Palette - Premium Modern Light Theme */
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
-    --primary-light: #e0e7ff;
-    --secondary: #ec4899;
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border: #e2e8f0;
-    
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%);
-    
     /* Typography */
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Inter', sans-serif;

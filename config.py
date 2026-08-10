@@ -1,9 +1,17 @@
+"""
+Configuration settings for the LMS application.
+Loads environment variables and defines the configuration class.
+"""
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class Config:
+    """
+    Base configuration class containing application settings for
+    database, mail, OAuth, and file uploads.
+    """
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-fallback-secret-key'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///lms.db'
     

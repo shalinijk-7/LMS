@@ -10,6 +10,9 @@ assignment_bp = Blueprint('assignment', __name__, url_prefix='/assignment')
 @assignment_bp.route('/course/<int:course_id>')
 @login_required
 def list_assignments(course_id):
+    """
+    Handles the list assignments functionality.
+    """
     course = Course.query.get_or_404(course_id)
     assignments = Assignment.query.filter_by(course_id=course.id).all()
     # Check submissions for current user
@@ -19,6 +22,9 @@ def list_assignments(course_id):
 @assignment_bp.route('/view/<int:assignment_id>', methods=['GET', 'POST'])
 @login_required
 def view_assignment(assignment_id):
+    """
+    Handles the view assignment functionality.
+    """
     assignment = Assignment.query.get_or_404(assignment_id)
     existing_submission = Submission.query.filter_by(assignment_id=assignment.id, student_id=current_user.id).first()
     
@@ -50,6 +56,16 @@ def view_assignment(assignment_id):
             )
             db.session.add(new_submission)
             db.session.commit()
+            
+            from services.notification_service import send_notification
+            send_notification(
+                user_id=assignment.course.instructor_id,
+                title="New Assignment Submission",
+                message=f"{current_user.name} submitted an assignment for '{assignment.title}'.",
+                notification_type="info",
+                icon="bi-file-earmark-check-fill",
+                action_url="/instructor/dashboard"
+            )
             flash('Assignment submitted successfully!', 'success')
             return redirect(url_for('assignment.view_assignment', assignment_id=assignment.id))
             

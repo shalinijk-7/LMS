@@ -1,3 +1,8 @@
+"""
+Admin Blueprint
+Handles routing and views for administrative tasks, such as managing users, 
+courses, and viewing platform reports.
+"""
 from flask import Blueprint, render_template
 from flask_login import login_required
 from utils.decorators import admin_required
@@ -9,6 +14,15 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @login_required
 @admin_required
 def dashboard():
+    """
+    Renders the admin dashboard with high-level platform statistics.
+    
+    Retrieves counts for users, courses, enrollments, and completions to
+    display key metrics and calculate the average completion rate.
+    
+    Returns:
+        Rendered HTML template for the admin dashboard.
+    """
     users_count = User.query.count()
     courses_count = Course.query.count()
     
@@ -35,6 +49,12 @@ def dashboard():
 @login_required
 @admin_required
 def users():
+    """
+    Displays a list of all registered users on the platform.
+    
+    Returns:
+        Rendered HTML template for the admin user management page.
+    """
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('dashboard/admin_users.html', users=users)
 
@@ -42,6 +62,12 @@ def users():
 @login_required
 @admin_required
 def courses():
+    """
+    Displays a list of all courses available on the platform.
+    
+    Returns:
+        Rendered HTML template for the admin course management page.
+    """
     courses = Course.query.order_by(Course.created_at.desc()).all()
     return render_template('dashboard/admin_courses.html', courses=courses)
 
@@ -49,23 +75,32 @@ def courses():
 @login_required
 @admin_required
 def reports():
-    total_users = User.query.count()
-    total_courses = Course.query.count()
-    from models import Enrollment, CourseCompletion, StudentProgress, Attendance
-    total_enrollments = Enrollment.query.count()
-    total_completions = CourseCompletion.query.count()
+    """
+    Generates and displays comprehensive reports in a datatable view.
     
-    # Calculate active learners (those with progress > 0 but not 100)
-    active_learners = StudentProgress.query.filter(StudentProgress.progress_percentage > 0, StudentProgress.progress_percentage < 100).group_by(StudentProgress.student_id).count()
+    Returns:
+        Rendered HTML template for the admin reports page.
+    """
+    from models import Enrollment, Payment
     
-    # Calculate revenue (assuming price * enrollments)
-    courses = Course.query.all()
-    total_revenue = sum(course.price * len(course.enrollments) for course in courses if course.price)
+    enrollments = Enrollment.query.order_by(Enrollment.enrolled_at.desc()).all()
     
-    return render_template('dashboard/admin_reports.html', 
-                           total_users=total_users,
-                           total_courses=total_courses,
-                           total_enrollments=total_enrollments,
-                           total_completions=total_completions,
-                           active_learners=active_learners,
-                           total_revenue=total_revenue)
+    report_data = []
+    for enr in enrollments:
+        payment = Payment.query.filter_by(student_id=enr.user_id, course_id=enr.course_id).first()
+        payment_status = payment.status if payment else ('Free' if enr.course.course_type == 'Free' else 'Pending')
+        
+        report_data.append({
+            'student_name': enr.student.name if enr.student else 'Unknown',
+            'course_title': enr.course.title if enr.course else 'Unknown',
+            'instructor_name': enr.course.instructor.name if enr.course and enr.course.instructor else 'Unknown',
+            'course_type': enr.course.course_type if enr.course else 'Free',
+            'enrolled_at': enr.enrolled_at.strftime('%b %d, %Y<br>%I:%M %p') if enr.enrolled_at else 'Unknown',
+            'raw_date': enr.enrolled_at.isoformat() if enr.enrolled_at else '1970-01-01',
+            'payment_status': payment_status,
+            'progress': enr.progress_percent,
+            'amount': payment.amount if payment else 0.0,
+            'completion_status': 'Completed' if enr.progress_percent == 100 else 'In Progress'
+        })
+        
+    return render_template('dashboard/admin_reports.html', report_data=report_data)

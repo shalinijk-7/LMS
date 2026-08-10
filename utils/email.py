@@ -5,6 +5,9 @@ from flask_mail import Message
 
 # Assuming mail is initialized in app.py and imported where needed, or we can use current_app.extensions
 def send_email(subject, recipient, body, html_body=None):
+    """
+    Handles the send email functionality.
+    """
     mail = current_app.extensions.get('mail')
     if not mail:
         print("Mail extension not found. Logging email instead:")
