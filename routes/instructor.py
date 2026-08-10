@@ -1,3 +1,4 @@
+# Handles instructor-specific features and course management.
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 from utils.decorators import instructor_required
@@ -132,15 +133,19 @@ def create_assignment(course_id):
             db.session.add(new_assignment)
             
             # Send notification to enrolled students
-            from models import Enrollment, Notification
+            from models import Enrollment
+            from services.notification_service import send_notification
             enrollments = Enrollment.query.filter_by(course_id=course.id).all()
             for enrollment in enrollments:
-                notif = Notification(
+                send_notification(
                     user_id=enrollment.user_id,
                     title="New Assignment",
-                    message=f"A new assignment '{title}' has been added to {course.title}."
+                    message=f"A new assignment '{title}' has been added to {course.title}.",
+                    notification_type='primary',
+                    icon='bi-journal-code',
+                    action_url=f'/course/{course.id}/assignments',
+                    sender_id=current_user.id
                 )
-                db.session.add(notif)
                 
             db.session.commit()
             flash('Assignment created successfully!', 'success')
@@ -248,15 +253,19 @@ def create_quiz(course_id):
                 return redirect(url_for('instructor.create_quiz', course_id=course.id))
                 
         # Send notification to enrolled students
-        from models import Enrollment, Notification
+        from models import Enrollment
+        from services.notification_service import send_notification
         enrollments = Enrollment.query.filter_by(course_id=course.id).all()
         for enrollment in enrollments:
-            notif = Notification(
+            send_notification(
                 user_id=enrollment.user_id,
                 title="New Quiz",
-                message=f"A new quiz '{title}' has been added to {course.title}."
+                message=f"A new quiz '{title}' has been added to {course.title}.",
+                notification_type='primary',
+                icon='bi-patch-question',
+                action_url=f'/course/{course.id}/quizzes',
+                sender_id=current_user.id
             )
-            db.session.add(notif)
             
         db.session.commit()
         flash('Quiz created successfully!', 'success')
@@ -276,3 +285,35 @@ def quiz_results(course_id, quiz_id):
     results = Result.query.filter_by(quiz_id=quiz.id).order_by(Result.submitted_at.desc()).all()
     
     return render_template('quizzes/quiz_results.html', course=course, quiz=quiz, results=results)
+@instructor_bp.route('/earnings')
+@login_required
+@instructor_required
+def earnings():
+    from models import Enrollment
+    courses = Course.query.filter_by(instructor_id=current_user.id).all()
+
+    total_students = sum(len(course.enrollments) for course in courses)
+    total_revenue = sum((course.price or 0) * len(course.enrollments) for course in courses)
+
+    earnings_data = []
+    for course in courses:
+        students = len(course.enrollments)
+        price = course.price or 0
+        revenue = price * students
+        earnings_data.append({
+            'course': course,
+            'students': students,
+            'price': price,
+            'revenue': revenue
+        })
+
+    # Sort by revenue high to low
+    earnings_data.sort(key=lambda x: x['revenue'], reverse=True)
+
+    return render_template(
+        'dashboard/instructor_earnings.html',
+        earnings_data=earnings_data,
+        total_revenue=total_revenue,
+        total_students=total_students,
+        total_courses=len(courses)
+    )

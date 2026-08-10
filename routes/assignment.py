@@ -1,3 +1,4 @@
+# Handles assignment creation, submission, and evaluation.
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from models import Assignment, Submission, Course, db
@@ -50,6 +51,16 @@ def view_assignment(assignment_id):
             )
             db.session.add(new_submission)
             db.session.commit()
+            
+            from services.notification_service import send_notification
+            send_notification(
+                user_id=assignment.course.instructor_id,
+                title="New Assignment Submission",
+                message=f"{current_user.name} submitted an assignment for '{assignment.title}'.",
+                notification_type="info",
+                icon="bi-file-earmark-check-fill",
+                action_url="/instructor/dashboard"
+            )
             flash('Assignment submitted successfully!', 'success')
             return redirect(url_for('assignment.view_assignment', assignment_id=assignment.id))
             

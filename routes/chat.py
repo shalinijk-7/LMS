@@ -1,3 +1,4 @@
+# Handles real-time messaging between users and course members.
 from flask import Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
 from models import Message, Course, User, db
@@ -84,6 +85,59 @@ def get_chat_history(chat_type, chat_id):
             'sender_name': sender_user.name if sender_user else 'Unknown',
             'content': msg.content,
             'timestamp': msg.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            'file_url': msg.file_url
+            'file_url': msg.file_url,
+            'is_edited': msg.is_edited,
+            'is_deleted': msg.is_deleted,
+            'is_pinned': msg.is_pinned,
+            'is_announcement': msg.is_announcement,
+            'reply_to_id': msg.reply_to_id,
+            'message_type': msg.message_type,
+            'reactions': [{'emoji': r.emoji, 'user_id': r.user_id} for r in getattr(msg, 'reactions', [])]
         })
     return jsonify(results)
+
+import os
+from werkzeug.utils import secure_filename
+
+@chat_bp.route('/upload', methods=['POST'])
+@login_required
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'Empty filename'}), 400
+    
+    # Simple secure filename and save
+    filename = secure_filename(f"{current_user.id}_{file.filename}")
+    upload_folder = current_app.config.get('UPLOAD_FOLDER', 'static/uploads')
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+        
+    file_path = os.path.join(upload_folder, filename)
+    file.save(file_path)
+    
+    file_url = f"/static/uploads/{filename}"
+    return jsonify({'file_url': file_url})
+
+@chat_bp.route('/info/<chat_type>/<int:chat_id>')
+@login_required
+def get_chat_info(chat_type, chat_id):
+    if chat_type == 'course':
+        course = Course.query.get_or_404(chat_id)
+        # Calculate stats
+        total_students = len(course.enrollments)
+        return jsonify({
+            'title': course.title,
+            'instructor': course.instructor.name,
+            'total_students': total_students,
+            'description': getattr(course, 'description', '')
+        })
+    elif chat_type == 'user':
+        user = User.query.get_or_404(chat_id)
+        return jsonify({
+            'name': user.name,
+            'role': user.role.name.capitalize(),
+            'email': user.email
+        })
+    return jsonify({'error': 'Invalid chat type'}), 400

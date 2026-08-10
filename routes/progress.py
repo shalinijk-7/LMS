@@ -1,3 +1,4 @@
+# Tracks and manages student learning progress.
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 from models import db, StudentProgress, CourseCompletion, Lesson, Course, Enrollment, Quiz, Result
@@ -66,14 +67,15 @@ def check_course_completion(student_id, course_id):
     db.session.commit()
     
     # Notify student
-    from models import Notification
-    notif = Notification(
+    from services.notification_service import send_notification
+    send_notification(
         user_id=student_id,
         title="Course Completed!",
-        message=f"Congratulations! You have successfully completed {course.title}."
+        message=f"Congratulations! You have successfully completed {course.title}.",
+        notification_type='success',
+        icon='bi-trophy-fill',
+        action_url=f'/course/{course.id}'
     )
-    db.session.add(notif)
-    db.session.commit()
     
     return True
 

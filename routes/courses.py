@@ -1,18 +1,92 @@
+# Handles course creation, management, and enrollment.
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from models import Course
 from models import Enrollment
 from models import db
+from urllib.parse import urlparse, parse_qs
+
+def youtube_embed_url(url):
+    if not url:
+        return url
+
+    # Already an embed URL
+    if "youtube.com/embed/" in url:
+        return url
+
+    # https://youtu.be/VIDEO_ID
+    if "youtu.be/" in url:
+        video_id = urlparse(url).path.strip("/")
+        return f"https://www.youtube.com/embed/{video_id}"
+
+    # https://www.youtube.com/watch?v=VIDEO_ID
+    if "youtube.com/watch" in url:
+        query = parse_qs(urlparse(url).query)
+        video_id = query.get("v", [""])[0]
+        if video_id:
+            return f"https://www.youtube.com/embed/{video_id}"
+
+    # https://www.youtube.com/shorts/VIDEO_ID
+    if "/shorts/" in url:
+        video_id = url.split("/shorts/")[1].split("?")[0]
+        return f"https://www.youtube.com/embed/{video_id}"
+
+    return url
 
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
 
 @courses_bp.route('/')
 def list_courses():
-    courses = Course.query.all()
-    # Get unique instructors from the available courses
-    instructors = {course.instructor for course in courses if course.instructor}
-    return render_template('courses/course_list.html', courses=courses, instructors=instructors)
+    from models import Category, User
+    from sqlalchemy import or_
 
+    query = Course.query
+
+    # Category filter
+    selected_categories = request.args.getlist('category')
+    if selected_categories:
+        try:
+            cat_ids = [int(c) for c in selected_categories]
+            query = query.filter(Course.category_id.in_(cat_ids))
+        except ValueError:
+            query = query.join(Category).filter(Category.name.in_(selected_categories))
+
+    # Price filter
+    selected_price = request.args.get('price', 'all')
+    if selected_price == 'free':
+        query = query.filter(or_(Course.price == 0, Course.price == None))
+    elif selected_price == 'paid':
+        query = query.filter(Course.price > 0)
+
+    # Instructor filter
+    selected_instructors = request.args.getlist('instructor')
+    if selected_instructors:
+        try:
+            inst_ids = [int(i) for i in selected_instructors]
+            query = query.filter(Course.instructor_id.in_(inst_ids))
+        except ValueError:
+            pass
+
+    courses = query.all()
+
+    # All instructors for sidebar
+    all_courses = Course.query.all()
+    instructors = sorted(
+        {course.instructor for course in all_courses if course.instructor},
+        key=lambda u: u.name or ''
+    )
+
+    categories = Category.query.order_by(Category.name).all()
+
+    return render_template(
+        'courses/course_list.html',
+        courses=courses,
+        instructors=instructors,
+        categories=categories,
+        selected_categories=selected_categories,
+        selected_price=selected_price,
+        selected_instructors=selected_instructors
+    )
 @courses_bp.route('/<int:course_id>')
 def course_details(course_id):
     course = Course.query.get_or_404(course_id)
@@ -42,6 +116,16 @@ def enroll(course_id):
     new_enrollment = Enrollment(user_id=current_user.id, course_id=course.id)
     db.session.add(new_enrollment)
     db.session.commit()
+    
+    from services.notification_service import send_notification
+    send_notification(
+        user_id=course.instructor_id,
+        title="New Student Enrollment",
+        message=f"{current_user.name} just enrolled in '{course.title}'.",
+        notification_type="info",
+        icon="bi-person-plus-fill",
+        action_url="/instructor/students"
+    )
     
     flash(f'Successfully enrolled in {course.title}!', 'success')
     return redirect(url_for('student.dashboard'))
@@ -132,7 +216,7 @@ def add_lesson(course_id):
         video_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
         final_video_url = f"/uploads/{filename}"
     elif video_url:
-        final_video_url = video_url
+        final_video_url = youtube_embed_url(video_url)
         
     if final_video_url:
         new_video = Video(lesson_id=new_lesson.id, url=final_video_url)
@@ -141,15 +225,19 @@ def add_lesson(course_id):
     db.session.commit()
     
     # Send notification to all enrolled students
-    from models import Enrollment, Notification
+    from models import Enrollment
+    from services.notification_service import send_notification
     enrollments = Enrollment.query.filter_by(course_id=course.id).all()
     for enrollment in enrollments:
-        notif = Notification(
+        send_notification(
             user_id=enrollment.user_id,
             title="New Lesson Added",
-            message=f"A new lesson '{title}' was added to {course.title}."
+            message=f"A new lesson '{title}' was added to {course.title}.",
+            notification_type='info',
+            icon='bi-journal-plus',
+            action_url=f'/course/{course.id}',
+            sender_id=current_user.id
         )
-        db.session.add(notif)
     db.session.commit()
     
     flash('Lesson added successfully!', 'success')
@@ -274,7 +362,7 @@ def add_lesson_video(course_id, lesson_id):
         video_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
         final_video_url = f"/uploads/{filename}"
     elif video_url:
-        final_video_url = video_url
+       final_video_url = youtube_embed_url(video_url)
         
     if final_video_url:
         new_video = Video(lesson_id=lesson.id, url=final_video_url)
@@ -424,6 +512,17 @@ def complete_lesson(course_id, lesson_id):
                         file_path=file_path
                     )
                     db.session.add(new_cert)
+                    
+                    from services.notification_service import send_notification
+                    send_notification(
+                        user_id=student.id,
+                        title="Certificate Generated",
+                        message=f"Your certificate for {course.title} is ready!",
+                        notification_type='success',
+                        icon='bi-award-fill',
+                        action_url='/certificate/my_certificates'
+                    )
+                    
                     db.session.commit()
                     flash(f'Congratulations! You have earned a certificate for completing {course.title}.', 'success')
     

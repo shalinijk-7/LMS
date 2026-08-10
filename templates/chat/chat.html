@@ -1,83 +1,198 @@
 {% extends 'dashboard_base.html' %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat_enhanced.css') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.css">
+{% endblock %}
+
 {% block content %}
-<div class="chat-container d-flex" style="height: calc(100vh - 100px); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); background: var(--bg-main);">
-    
-    <!-- Sidebar -->
-    <div class="chat-sidebar" style="width: 300px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: #fafafa;">
-        <div class="p-3 border-bottom">
+<div class="chat-wrapper d-flex">
+    <!-- Left Sidebar: Chat List -->
+    <div class="chat-sidebar d-flex flex-column" id="chatSidebar">
+        <div class="chat-sidebar-header p-4 border-bottom d-flex justify-content-between align-items-center" style="height: 75px;">
             <h5 class="fw-bold mb-0">Messages</h5>
+            <button class="btn btn-light rounded-circle shadow-sm" id="newChatBtn" title="New Chat" style="width: 40px; height: 40px; display:flex; align-items:center; justify-content:center;"><i class="bi bi-pencil-square fs-5"></i></button>
+        </div>
+        <div class="chat-search px-4 py-3 border-bottom bg-light">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0 rounded-end-pill shadow-none py-2" id="globalChatSearch" placeholder="Search chats...">
+            </div>
         </div>
         
-        <div class="chat-list overflow-auto" style="flex: 1;">
+        <!-- Filters -->
+        <div class="chat-filters px-4 py-3 border-bottom d-flex overflow-auto gap-2" style="white-space: nowrap; scrollbar-width: none; -ms-overflow-style: none;">
+            <button class="btn btn-sm btn-primary rounded-pill filter-btn active px-3" data-filter="all">All</button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill filter-btn px-3" data-filter="unread">Unread</button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill filter-btn px-3" data-filter="groups">Groups</button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill filter-btn px-3" data-filter="dms">DMs</button>
+        </div>
+
+        <div class="chat-list flex-grow-1 overflow-auto" id="chatListContainer">
             {% if courses %}
-            <div class="p-2 small fw-bold text-muted text-uppercase">Course Groups</div>
+            <div class="p-2 small fw-bold text-muted text-uppercase mt-2 filterable group-header">Course Groups</div>
             {% for course in courses %}
-            <div class="chat-item chat-item-btn p-3 border-bottom cursor-pointer d-flex align-items-center" data-chat-type="course" data-chat-id="{{ course.id }}" data-chat-title="{{ course.title }}" style="cursor: pointer; transition: background 0.2s;">
-                <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">
+            <div class="chat-item chat-item-btn p-2 cursor-pointer d-flex align-items-center filterable group-item" data-chat-type="course" data-chat-id="{{ course.id }}" data-chat-title="{{ course.title }}">
+                <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 48px; height: 48px; font-weight: bold; flex-shrink: 0; font-size: 1.1rem;">
                     {{ course.title[0] }}
                 </div>
-                <div class="flex-grow-1 overflow-hidden">
-                    <h6 class="mb-0 text-truncate">{{ course.title }}</h6>
-                    <small class="text-muted">Group Chat</small>
+                <div class="flex-grow-1 overflow-hidden me-2">
+                    <h6 class="mb-1 text-truncate fw-bold" style="font-size: 0.95rem;">{{ course.title }}</h6>
+                    <small class="text-muted text-truncate d-block" style="font-size: 0.75rem;">Group Chat</small>
                 </div>
-                <span class="badge bg-danger rounded-pill ms-2 unread-badge {% if not course_unread_counts.get(course.id) %}d-none{% endif %}">{{ course_unread_counts.get(course.id, 0) }}</span>
+                <div class="d-flex align-items-center justify-content-end flex-shrink-0" style="min-width: 25px;">
+                    <span class="badge bg-danger rounded-pill unread-badge {% if not course_unread_counts.get(course.id) %}d-none{% endif %}">{{ course_unread_counts.get(course.id, 0) }}</span>
+                </div>
             </div>
             {% endfor %}
             {% endif %}
 
             {% if users %}
-            <div class="p-2 small fw-bold text-muted text-uppercase mt-2">Direct Messages</div>
+            <div class="p-2 small fw-bold text-muted text-uppercase mt-3 filterable dm-header">Direct Messages</div>
             {% for u in users %}
-            <div class="chat-item chat-item-btn p-3 border-bottom cursor-pointer d-flex align-items-center" data-chat-type="user" data-chat-id="{{ u.id }}" data-chat-title="{{ u.name }}" style="cursor: pointer; transition: background 0.2s;">
-                <div class="avatar bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">
-                    {{ u.name[0] }}
+            <div class="chat-item chat-item-btn p-2 cursor-pointer d-flex align-items-center filterable dm-item" data-chat-type="user" data-chat-id="{{ u.id }}" data-chat-title="{{ u.name }}">
+                <div class="position-relative">
+                    <div class="avatar bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 48px; height: 48px; font-weight: bold; flex-shrink: 0; font-size: 1.1rem;">
+                        {{ u.name[0] }}
+                    </div>
+                    <span class="position-absolute bottom-0 end-0 translate-middle-x p-1 bg-success border border-light rounded-circle online-indicator d-none" data-user-id="{{ u.id }}" style="margin-bottom: 2px; width: 14px; height: 14px;">
+                        <span class="visually-hidden">Online</span>
+                    </span>
                 </div>
-                <div class="flex-grow-1 overflow-hidden">
-                    <h6 class="mb-0 text-truncate">{{ u.name }}</h6>
-                    <small class="text-muted">{{ u.role.name|capitalize }}</small>
+                <div class="flex-grow-1 overflow-hidden me-2">
+                    <h6 class="mb-1 text-truncate fw-bold" style="font-size: 0.95rem;">{{ u.name }}</h6>
+                    <small class="text-muted text-truncate d-block typing-indicator d-none" data-user-id="{{ u.id }}" style="color: var(--bs-primary) !important; font-style: italic; font-size: 0.75rem;">Typing...</small>
+                    <small class="text-muted text-truncate d-block last-msg-preview" style="font-size: 0.75rem;">{{ u.role.name|capitalize }}</small>
                 </div>
-                <span class="badge bg-danger rounded-pill ms-2 unread-badge {% if not unread_counts.get(u.id) %}d-none{% endif %}">{{ unread_counts.get(u.id, 0) }}</span>
+                <div class="d-flex align-items-center justify-content-end flex-shrink-0" style="min-width: 25px;">
+                    <span class="badge bg-danger rounded-pill unread-badge {% if not unread_counts.get(u.id) %}d-none{% endif %}">{{ unread_counts.get(u.id, 0) }}</span>
+                </div>
             </div>
             {% endfor %}
             {% endif %}
         </div>
     </div>
 
-    <!-- Main Chat Window -->
-    <div class="chat-main flex-grow-1 d-flex flex-column bg-white">
+    <!-- Center: Main Chat Area -->
+    <div class="chat-main flex-grow-1 d-flex flex-column position-relative bg-white" id="chatMain">
         <!-- Header -->
-        <div class="chat-header p-3 border-bottom d-flex align-items-center" style="background: #fff; z-index: 10;">
-            <div id="chat-header-avatar" class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 d-none" style="width: 45px; height: 45px; font-weight: bold; font-size: 1.2rem;">
-                #
+        <div class="chat-header px-4 py-0 border-bottom d-flex justify-content-between align-items-center bg-white shadow-sm" style="z-index: 10; height: 75px;">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-light rounded-circle me-3 d-md-none" id="mobileBackBtn"><i class="bi bi-arrow-left"></i></button>
+                <div id="chat-header-avatar" class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 d-none shadow-sm" style="width: 48px; height: 48px; font-weight: bold; font-size: 1.2rem;">
+                    #
+                </div>
+                <div class="chat-header-info">
+                    <h5 id="chat-title" class="fw-bold mb-1">Select a chat</h5>
+                    <small id="chat-subtitle" class="text-muted d-none">
+                        <span class="status-dot bg-success d-inline-block rounded-circle me-1" style="width:8px; height:8px;"></span>Active now
+                    </small>
+                </div>
             </div>
-            <div>
-                <h5 id="chat-title" class="fw-bold mb-0">Select a chat</h5>
-                <small id="chat-subtitle" class="text-muted d-none">Active now</small>
+            <div class="chat-header-actions d-none" id="chatHeaderActions">
+                <button class="btn btn-light rounded-circle me-1" title="Search Messages" id="toggleMessageSearch"><i class="bi bi-search"></i></button>
+                <button class="btn btn-light rounded-circle" title="Toggle Info Panel" id="toggleInfoPanel"><i class="bi bi-layout-sidebar-reverse"></i></button>
             </div>
+        </div>
+
+        <!-- Search Bar (Hidden by default) -->
+        <div class="message-search-bar p-2 bg-light border-bottom d-none" id="messageSearchBar">
+            <div class="input-group input-group-sm">
+                <input type="text" class="form-control" id="messageSearchInput" placeholder="Search in conversation...">
+                <button class="btn btn-outline-secondary" id="closeMessageSearch"><i class="bi bi-x"></i></button>
+            </div>
+        </div>
+        
+        <!-- Pinned Messages Bar -->
+        <div class="pinned-messages-bar bg-warning-subtle border-bottom px-3 py-2 d-none justify-content-between align-items-center" id="pinnedMessagesBar">
+            <div class="d-flex align-items-center overflow-hidden flex-grow-1">
+                <i class="bi bi-pin-angle-fill text-warning me-2 fs-5"></i>
+                <div class="flex-grow-1 overflow-hidden text-truncate">
+                    <small class="fw-bold d-block text-warning-emphasis mb-0">Pinned Message</small>
+                    <span id="pinnedMessageText" class="text-truncate text-muted small"></span>
+                </div>
+            </div>
+            <button class="btn-close btn-close-sm ms-2" id="closePinnedBar"></button>
         </div>
 
         <!-- Messages Area -->
-        <div id="chat-messages" class="flex-grow-1 p-4 overflow-auto d-flex flex-column" style="background: #f8f9fa;">
-            <div class="m-auto text-muted text-center" id="empty-state">
-                <i class="bi bi-chat-dots fs-1 mb-2 d-block"></i>
-                <p>Select a conversation from the sidebar to start chatting.</p>
+        <div id="chat-messages" class="flex-grow-1 p-4 overflow-auto d-flex flex-column chat-messages-bg position-relative">
+            <div class="m-auto text-muted text-center d-flex flex-column align-items-center justify-content-center h-100" id="empty-state">
+                <div class="empty-state-icon bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+                    <i class="bi bi-chat-quote fs-1 text-primary"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Welcome to Messages</h4>
+                <p class="text-muted mb-4" style="max-width: 300px;">Select a conversation from the sidebar to start collaborating with your peers and instructors.</p>
+                <button class="btn btn-primary rounded-pill px-4 py-2" onclick="document.getElementById('globalChatSearch').focus()">Start Conversation</button>
             </div>
+        </div>
+        
+        <!-- Reply Preview Bar -->
+        <div class="reply-preview-bar bg-light border-top px-3 py-2 d-none align-items-center" id="replyPreviewBar">
+            <i class="bi bi-reply-fill fs-5 text-primary me-2"></i>
+            <div class="flex-grow-1 overflow-hidden">
+                <small class="d-block fw-bold text-primary mb-0" id="replyToName">Name</small>
+                <small class="text-muted text-truncate d-block" id="replyToText">Message content</small>
+            </div>
+            <button class="btn-close btn-close-sm ms-2" id="cancelReplyBtn"></button>
         </div>
 
         <!-- Input Area -->
-        <div class="chat-input p-3 border-top" style="background: #fff;">
-            <form id="chat-form" class="d-flex gap-2">
+        <div class="chat-input-wrapper p-3 bg-white border-top shadow-sm position-relative mt-auto">
+            <form id="chat-form" class="d-flex align-items-end gap-3 px-2">
                 <input type="hidden" id="active-chat-type" value="">
                 <input type="hidden" id="active-chat-id" value="">
-                <button type="button" class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" title="Attach File (Not yet implemented)">
-                    <i class="bi bi-paperclip fs-5"></i>
-                </button>
-                <input type="text" id="chat-input-box" class="form-control rounded-pill px-4" placeholder="Type your message here..." disabled>
-                <button type="submit" id="chat-send-btn" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" disabled>
-                    <i class="bi bi-send-fill"></i>
+                <input type="hidden" id="edit-message-id" value="">
+                <input type="hidden" id="reply-to-id" value="">
+                <input type="hidden" id="is-announcement" value="false">
+                
+                <div class="dropdown dropup">
+                    <button type="button" class="btn btn-light rounded-circle d-flex align-items-center justify-content-center action-btn bg-light border" data-bs-toggle="dropdown" aria-expanded="false" title="Attach">
+                        <i class="bi bi-plus-lg fs-5 text-secondary"></i>
+                    </button>
+                    <ul class="dropdown-menu shadow rounded-4 border-0 mb-2 p-2">
+                        <li><a class="dropdown-item rounded d-flex align-items-center py-2" href="#" id="attachImageBtn"><i class="bi bi-image text-primary me-3 fs-5"></i> Photo or Video</a></li>
+                        <li><a class="dropdown-item rounded d-flex align-items-center py-2" href="#" id="attachDocumentBtn"><i class="bi bi-file-earmark-text text-success me-3 fs-5"></i> Document</a></li>
+                        {% if current_user.role.name in ['instructor', 'admin'] %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item rounded d-flex align-items-center fw-bold text-warning py-2" href="#" id="toggleAnnouncementBtn"><i class="bi bi-megaphone-fill me-3 fs-5"></i> Make Announcement</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <input type="file" id="fileUploadInput" class="d-none" accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.zip">
+                
+                <div class="input-container flex-grow-1 position-relative bg-light rounded-pill border d-flex align-items-center px-3 shadow-sm" id="inputContainer">
+                    <button type="button" class="btn btn-sm btn-link text-muted p-2" id="emojiPickerBtn"><i class="bi bi-emoji-smile fs-5"></i></button>
+                    <input type="text" id="chat-input-box" class="form-control bg-transparent border-0 shadow-none px-2 py-3" placeholder="Type a message..." autocomplete="off" disabled>
+                    <button type="button" class="btn btn-sm btn-link text-muted p-2" id="voiceRecordBtn" disabled title="Voice message feature in development"><i class="bi bi-mic fs-5"></i></button>
+                    <!-- Emoji Picker Container (Hidden) -->
+                    <div id="emojiPickerContainer" class="position-absolute bottom-100 start-0 mb-3 d-none shadow-lg rounded-4 overflow-hidden" style="z-index: 1000; width: 320px; height: 400px; background: white; border: 1px solid rgba(0,0,0,0.1);">
+                        <emoji-picker class="w-100 h-100"></emoji-picker>
+                    </div>
+                </div>
+                
+                <button type="submit" id="chat-send-btn" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center action-btn shadow" disabled>
+                    <i class="bi bi-send-fill fs-5" id="sendIcon"></i>
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: Info Panel -->
+    <div class="chat-info-panel border-start bg-light flex-column d-none" id="chatInfoPanel" style="width: 320px; overflow-y: auto;">
+        <div class="p-4 text-center border-bottom bg-white">
+            <div id="infoAvatar" class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" style="width: 80px; height: 80px; font-weight: bold; font-size: 2.5rem;">
+                #
+            </div>
+            <h5 id="infoTitle" class="fw-bold mb-1">Title</h5>
+            <p id="infoSubtitle" class="text-muted small mb-0">Subtitle</p>
+        </div>
+        
+        <div class="p-3" id="infoContent">
+            <!-- Dynamic Content Injected Here -->
+            <div class="text-center text-muted py-5">
+                <div class="spinner-border spinner-border-sm" role="status"></div> Loading...
+            </div>
         </div>
     </div>
 </div>
@@ -86,193 +201,13 @@
 {% block extra_js %}
 <!-- Include Socket.IO client -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<!-- Include Emoji Picker Module -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+
 <script>
-    const socket = io();
-    const currentUserId = {{ current_user.id }};
-    const messagesContainer = document.getElementById('chat-messages');
-    const chatTitle = document.getElementById('chat-title');
-    const chatSubtitle = document.getElementById('chat-subtitle');
-    const headerAvatar = document.getElementById('chat-header-avatar');
-    const chatForm = document.getElementById('chat-form');
-    const inputBox = document.getElementById('chat-input-box');
-    const sendBtn = document.getElementById('chat-send-btn');
-    const activeChatType = document.getElementById('active-chat-type');
-    const activeChatId = document.getElementById('active-chat-id');
-
-    socket.on('connect', () => {
-        console.log('Connected to chat server');
-    });
-
-    document.querySelectorAll('.chat-item-btn').forEach(item => {
-        item.addEventListener('click', function() {
-            const type = this.getAttribute('data-chat-type');
-            const id = this.getAttribute('data-chat-id');
-            const title = this.getAttribute('data-chat-title');
-            loadChat(type, id, title);
-        });
-    });
-
-    socket.on('receive_message', (data) => {
-        // Only append if it belongs to the currently active chat
-        if (activeChatType.value === data.chat_type && parseInt(activeChatId.value) === data.chat_id) {
-            appendMessage(data);
-        } else if (data.chat_type === 'user' && activeChatType.value === 'user' && parseInt(activeChatId.value) === data.sender_id) {
-            // Case where we receive a DM from the person we are chatting with
-            appendMessage(data);
-        } else {
-            showNotification(data.sender_name, data.content);
-            
-            // Increment the individual badge
-            const targetId = data.chat_type === 'user' ? data.sender_id : data.chat_id;
-            const chatItem = document.querySelector(`.chat-item-btn[data-chat-type="${data.chat_type}"][data-chat-id="${targetId}"]`);
-            if (chatItem) {
-                let badge = chatItem.querySelector('.unread-badge');
-                if (!badge) {
-                    badge = document.createElement('span');
-                    badge.className = 'badge bg-danger rounded-pill ms-2 unread-badge';
-                    chatItem.appendChild(badge);
-                    badge.textContent = '0';
-                }
-                badge.textContent = parseInt(badge.textContent || '0') + 1;
-                badge.classList.remove('d-none');
-            }
-            
-            // Increment the global badge
-            document.querySelectorAll('.global-unread-badge').forEach(globalBadge => {
-                globalBadge.textContent = parseInt(globalBadge.textContent || '0') + 1;
-                globalBadge.classList.remove('d-none');
-            });
-        }
-    });
-
-    function showNotification(senderName, content) {
-        const toastHtml = `
-            <div class="toast align-items-center text-bg-primary border-0 show" role="alert" style="margin-bottom: 10px; transition: opacity 0.3s;">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <strong>New message from ${senderName}:</strong> ${content.substring(0, 30)}${content.length > 30 ? '...' : ''}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
-                </div>
-            </div>
-        `;
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'toast-container position-fixed bottom-0 end-0 p-4';
-            container.style.zIndex = '1055';
-            document.body.appendChild(container);
-        }
-        container.insertAdjacentHTML('beforeend', toastHtml);
-        
-        const toasts = container.querySelectorAll('.toast');
-        const lastToast = toasts[toasts.length - 1];
-        setTimeout(() => {
-            if (lastToast && lastToast.parentElement) {
-                lastToast.style.opacity = '0';
-                setTimeout(() => lastToast.remove(), 300);
-            }
-        }, 5000);
-    }
-
-    function loadChat(type, id, title) {
-        // Leave previous course room if applicable
-        if (activeChatType.value === 'course') {
-            socket.emit('leave_course', {course_id: activeChatId.value});
-        }
-
-        activeChatType.value = type;
-        activeChatId.value = id;
-        
-        chatTitle.textContent = title;
-        headerAvatar.textContent = title[0];
-        headerAvatar.classList.remove('d-none');
-        chatSubtitle.classList.remove('d-none');
-        
-        inputBox.disabled = false;
-        sendBtn.disabled = false;
-        inputBox.focus();
-
-        if (type === 'course') {
-            socket.emit('join_course', {course_id: id});
-        }
-        
-        // Clear unread badge for this chat
-        const chatItem = document.querySelector(`.chat-item-btn[data-chat-type="${type}"][data-chat-id="${id}"]`);
-        if (chatItem) {
-            const badge = chatItem.querySelector('.unread-badge');
-            if (badge && !badge.classList.contains('d-none')) {
-                const count = parseInt(badge.textContent || '0');
-                badge.classList.add('d-none');
-                badge.textContent = '0';
-                
-                // Decrement global badges
-                document.querySelectorAll('.global-unread-badge').forEach(globalBadge => {
-                    let newCount = parseInt(globalBadge.textContent || '0') - count;
-                    if (newCount <= 0) {
-                        newCount = 0;
-                        globalBadge.classList.add('d-none');
-                    }
-                    globalBadge.textContent = newCount;
-                });
-            }
-        }
-
-        // Fetch history
-        fetch(`/chat/history/${type}/${id}`)
-            .then(res => res.json())
-            .then(data => {
-                messagesContainer.innerHTML = '';
-                if (data.length === 0) {
-                    messagesContainer.innerHTML = '<div class="m-auto text-muted text-center" id="empty-state">No messages yet. Start the conversation!</div>';
-                } else {
-                    data.forEach(msg => appendMessage(msg));
-                }
-                scrollToBottom();
-            });
-    }
-
-    function appendMessage(msg) {
-        // Remove empty state message if exists
-        const emptyState = document.getElementById('empty-state');
-        if (emptyState) {
-            emptyState.remove();
-        }
-        
-        const isMine = msg.sender_id === currentUserId;
-        const align = isMine ? 'align-self-end text-end' : 'align-self-start';
-        const bg = isMine ? 'bg-primary text-white' : 'bg-white border';
-        
-        const msgHtml = `
-            <div class="d-flex flex-column mb-3 ${align}" style="max-width: 75%;">
-                ${!isMine && activeChatType.value === 'course' ? `<small class="text-muted mb-1 ms-2" style="font-size: 0.75rem;">${msg.sender_name}</small>` : ''}
-                <div class="p-3 rounded-4 shadow-sm ${bg}" style="border-radius: ${isMine ? '1rem 1rem 0 1rem' : '1rem 1rem 1rem 0'};">
-                    ${msg.content}
-                </div>
-                <small class="text-muted mt-1 ${isMine ? 'me-2' : 'ms-2'}" style="font-size: 0.7rem;">${msg.timestamp}</small>
-            </div>
-        `;
-        messagesContainer.insertAdjacentHTML('beforeend', msgHtml);
-        scrollToBottom();
-    }
-
-    function scrollToBottom() {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const content = inputBox.value.trim();
-        if (!content) return;
-        
-        socket.emit('send_message', {
-            type: activeChatType.value,
-            id: activeChatId.value,
-            content: content
-        });
-        
-        inputBox.value = '';
-    });
+    const CURRENT_USER_ID = {{ current_user.id }};
+    const CURRENT_USER_NAME = "{{ current_user.name }}";
+    const CURRENT_USER_ROLE = "{{ current_user.role.name }}";
 </script>
+<script src="{{ url_for('static', filename='js/chat_enhanced.js') }}"></script>
 {% endblock %}

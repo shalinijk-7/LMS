@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from utils.decorators import instructor_required
 from models import db, Course, Lesson, Attendance, Enrollment, User
 from datetime import datetime
-
+# Handles attendance management for students and courses.
 attendance_bp = Blueprint('attendance', __name__, url_prefix='/attendance')
 
 @attendance_bp.route('/course/<int:course_id>/manage', methods=['GET', 'POST'])

@@ -1,3 +1,4 @@
+# Contains helper functions for sending emails.
 import random
 import string
 from flask import current_app

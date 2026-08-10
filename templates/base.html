@@ -17,18 +17,23 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    {% include 'components/navbar.html' %}
-    
-    <div class="container-premium mt-5 pt-5">
+<body data-theme="{{ current_user.settings.theme if current_user.is_authenticated and current_user.settings and current_user.settings.theme else 'default' }}" data-notif-sound="{{ 'true' if current_user.is_authenticated and current_user.settings and current_user.settings.notification_sound_enabled else 'true' }}" data-notif-browser="{{ 'true' if current_user.is_authenticated and current_user.settings and current_user.settings.browser_notifications_enabled else 'false' }}"></body>
+   {% include 'components/navbar.html' %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container-premium" style="margin-top: 1.25rem;">
         {% include 'components/flash_messages.html' %}
     </div>
-    
-    <main class="flex-shrink-0">
-        {% block content %}{% endblock %}
-    </main>
+    {% endif %}
+{% endwith %}
+
+<main class="flex-shrink-0">
+    {% block content %}{% endblock %}
+</main>
     
     {% block footer %}
     {% if not current_user.is_authenticated %}
@@ -41,6 +46,8 @@
     
     <!-- AOS Animation Library JS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init({
@@ -53,6 +60,7 @@
     </script>
     
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

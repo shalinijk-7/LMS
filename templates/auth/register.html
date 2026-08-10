@@ -1,57 +1,320 @@
 {% extends "base.html" %}
 
-{% block title %}Register - LearnSphere AI{% endblock %}
+{% block title %}Sign Up - AuraLearn{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<style>
+    .auth-page {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #faf5ff 0%, #ffffff 50%, #fdf2f8 100%);
+        padding: 1.5rem 0;
+    }
+    .auth-card {
+        background: white;
+        border-radius: 1.25rem;
+        box-shadow: 0 10px 40px rgba(168, 85, 247, 0.1);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+    }
+    .auth-left {
+        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        color: white;
+        padding: 2rem 1.75rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .auth-left::before {
+        content: '';
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        top: -60px;
+        right: -60px;
+    }
+    .auth-right {
+        padding: 1.75rem 1.75rem;
+    }
+    .form-control {
+        border-radius: 0.65rem;
+        padding: 0.65rem 0.9rem;
+        border: 1px solid #e2e8f0;
+        font-size: 0.9rem;
+    }
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+    }
+    .input-group-text {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.65rem 0 0 0.65rem;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+    .password-toggle {
+        cursor: pointer;
+        border-radius: 0 0.65rem 0.65rem 0;
+        background: #f8fafc;
+    }
+    .btn-auth {
+        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        border: none;
+        border-radius: 0.65rem;
+        padding: 0.7rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35);
+        color: white;
+    }
+    .btn-google {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.65rem;
+        padding: 0.6rem;
+        font-weight: 500;
+        background: white;
+        font-size: 0.9rem;
+    }
+    .btn-google:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #94a3b8;
+        font-size: 0.8rem;
+        margin: 1rem 0;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+    }
+    .role-option {
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.6rem 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+    }
+    .role-option:hover {
+        border-color: var(--primary);
+        background: #faf5ff;
+    }
+    .role-option input {
+        display: none;
+    }
+    .role-option:has(input:checked) {
+        border-color: var(--primary);
+        background: #faf5ff;
+        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12);
+    }
+    .role-content i {
+        font-size: 1.2rem;
+        display: block;
+        margin-bottom: 0.2rem;
+        color: var(--primary);
+    }
+    .role-content span {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.7rem;
+        font-size: 0.9rem;
+    }
+    .feature-item i {
+        background: rgba(255,255,255,0.2);
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+    .form-label {
+        font-size: 0.85rem;
+        margin-bottom: 0.3rem;
+    }
+    .mb-2-5 {
+        margin-bottom: 0.75rem !important;
+    }
+    @media (max-width: 767.98px) {
+        .auth-left { display: none !important; }
+        .auth-right { padding: 1.5rem; }
+        .auth-page { padding: 1rem 0; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-premium d-flex justify-content-center align-items-center py-5" style="min-height: 80vh;">
-    <div class="card glass-card p-4 p-md-5" style="max-width: 500px; width: 100%;">
-        <div class="text-center mb-4">
-            <h2 class="fw-bold" style="color: var(--primary);">Join LearnSphere AI</h2>
-            <p class="text-muted">Create an account to unlock your potential.</p>
-        </div>
-        
-        <form method="POST" action="{{ url_for('auth.register') }}">
-            <div class="mb-3">
-                <label for="name" class="form-label fw-medium">Full Name</label>
-                <input type="text" class="form-control form-control-lg" id="name" name="name" placeholder="John Doe" required>
-            </div>
+<div class="auth-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-xl-8">
+                <div class="auth-card">
+                    <div class="row g-0">
+                        <!-- Left Branding Panel -->
+                        <div class="col-md-5 auth-left d-none d-md-flex">
+                            <div style="position: relative; z-index: 1;">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div style="background: white; color: #a855f7; width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-globe"></i>
+                                    </div>
+                                    <span class="fs-5 fw-bold">AuraLearn</span>
+                                </div>
+                                <h3 class="fw-bold mb-2">Start Learning Today</h3>
+                                <p class="mb-3 opacity-90 small">Join thousands of learners and instructors on the most modern platform.</p>
+                                
+                                <div class="feature-item">
+                                    <i class="bi bi-lightning"></i>
+                                    <span>Quick & easy signup</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="bi bi-shield-check"></i>
+                                    <span>Secure & private</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="bi bi-people"></i>
+                                    <span>Join as Student or Instructor</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="bi bi-trophy"></i>
+                                    <span>Earn certificates</span>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="mb-3">
-                <label for="email" class="form-label fw-medium">Email Address</label>
-                <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="name@example.com" required>
+                        <!-- Right Form Panel -->
+                        <div class="col-md-7 auth-right">
+                            <div class="text-center d-md-none mb-3">
+                                <h4 class="fw-bold mb-0" style="color: var(--primary);">AuraLearn</h4>
+                            </div>
+
+                            <h4 class="fw-bold mb-1">Create your account</h4>
+                            <p class="text-muted small mb-3">Fill in the details to get started</p>
+
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ category }} border-0 rounded-3 d-flex align-items-center gap-2 mb-2 py-2">
+                                            <i class="bi bi-{% if category == 'success' %}check-circle{% else %}exclamation-circle{% endif %}-fill"></i>
+                                            <small>{{ message }}</small>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+
+                            <form method="POST" action="{{ url_for('auth.register') }}">
+                                <div class="mb-2-5">
+                                    <label class="form-label fw-medium">Full Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input type="text" name="name" class="form-control" placeholder="John Doe" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2-5">
+                                    <label class="form-label fw-medium">Email Address</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                        <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2-5">
+                                    <label class="form-label fw-medium">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input type="password" name="password" id="password" class="form-control" placeholder="Min. 6 characters" required minlength="6">
+                                        <span class="input-group-text password-toggle" onclick="togglePassword()">
+                                            <i class="bi bi-eye" id="toggleIcon"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium">I want to join as</label>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="role-option w-100">
+                                                <input type="radio" name="role" value="student" checked>
+                                                <div class="role-content">
+                                                    <i class="bi bi-mortarboard"></i>
+                                                    <span>Student</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="role-option w-100">
+                                                <input type="radio" name="role" value="instructor">
+                                                <div class="role-content">
+                                                    <i class="bi bi-person-workspace"></i>
+                                                    <span>Instructor</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-auth w-100 mb-2">
+                                    <i class="bi bi-person-plus me-1"></i> Create Account
+                                </button>
+
+                                <div class="divider">OR</div>
+
+                                <a href="{{ url_for('auth.google_login') }}" class="btn btn-google w-100 d-flex align-items-center justify-content-center gap-2">
+                                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="16" height="16">
+                                    Sign up with Google
+                                </a>
+                            </form>
+
+                            <p class="text-center text-muted mt-3 mb-0 small">
+                                Already have an account?
+                                <a href="{{ url_for('auth.login') }}" class="fw-semibold text-decoration-none" style="color: var(--primary);">Log in</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="mb-3">
-                <label for="password" class="form-label fw-medium">Password</label>
-                <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="Create a strong password" required>
-            </div>
-            
-            <div class="mb-4">
-                <label for="role" class="form-label fw-medium">I want to join as</label>
-                <select class="form-select form-select-lg" id="role" name="role" required>
-                    <option value="student" selected>Student</option>
-                    <option value="instructor">Instructor</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </div>
-            
-            <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">Create Account</button>
-            
-            <div class="d-flex align-items-center my-4">
-                <hr class="flex-grow-1">
-                <span class="mx-3 text-muted small fw-medium">OR</span>
-                <hr class="flex-grow-1">
-            </div>
-            
-            <a href="{{ url_for('auth.google_login') }}" class="btn btn-outline-dark btn-lg w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" width="20" height="20">
-                Sign up with Google
-            </a>
-        </form>
-        
-        <div class="text-center mt-3">
-            <p class="mb-0 text-muted">Already have an account? <a href="{{ url_for('auth.login') }}" class="text-decoration-none fw-medium">Log in</a></p>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePassword() {
+        const password = document.getElementById('password');
+        const icon = document.getElementById('toggleIcon');
+        if (password.type === 'password') {
+            password.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            password.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    }
+</script>
 {% endblock %}

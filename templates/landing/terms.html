@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Service - AuraLearn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .legal-hero {
+        background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 60%);
+        border-radius: 1.5rem;
+        padding: 3rem 2rem;
+        margin-bottom: 2.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .legal-hero::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: var(--primary);
+        opacity: 0.08;
+        border-radius: 50%;
+    }
+    .legal-badge {
+        background: var(--gradient-primary);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 1rem;
+        border-radius: 2rem;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    .legal-card {
+        background: white;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+    }
+    .legal-section {
+        padding: 1.75rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.2s ease;
+    }
+    .legal-section:last-child {
+        border-bottom: none;
+    }
+    .legal-section:hover {
+        background: #fafafa;
+    }
+    .section-number {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+    .legal-section h4 {
+        display: flex;
+        align-items: center;
+        font-size: 1.15rem;
+        margin-bottom: 0.75rem;
+    }
+    .legal-section p, .legal-section ul {
+        color: #64748b;
+        line-height: 1.7;
+        margin-bottom: 0;
+        padding-left: 2.75rem;
+    }
+    .legal-section ul {
+        padding-left: 4rem;
+        margin-top: 0.5rem;
+    }
+    .legal-toc {
+        position: sticky;
+        top: 100px;
+    }
+    .toc-link {
+        display: block;
+        padding: 0.5rem 1rem;
+        color: #64748b;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+    }
+    .toc-link:hover {
+        background: var(--primary-light);
+        color: var(--primary);
+        border-left-color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-3">
+    <div class="container-premium">
+
+        <!-- Hero -->
+        <div class="legal-hero text-center text-md-start" data-aos="fade-up">
+            <span class="legal-badge">Legal</span>
+            <h1 class="display-5 fw-bold text-dark mb-2">Terms of Service</h1>
+            <p class="text-muted mb-0">Last updated: August 10, 2026 · Please read these terms carefully before using AuraLearn.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Table of Contents (Desktop) -->
+            <div class="col-lg-3 d-none d-lg-block" data-aos="fade-right">
+                <div class="legal-toc">
+                    <div class="card border-0 shadow-sm rounded-4 p-3">
+                        <h6 class="fw-bold mb-3 px-2">On this page</h6>
+                        <a href="#section-1" class="toc-link">1. Acceptance of Terms</a>
+                        <a href="#section-2" class="toc-link">2. Description of Service</a>
+                        <a href="#section-3" class="toc-link">3. User Accounts</a>
+                        <a href="#section-4" class="toc-link">4. Roles & Responsibilities</a>
+                        <a href="#section-5" class="toc-link">5. Intellectual Property</a>
+                        <a href="#section-6" class="toc-link">6. Acceptable Use</a>
+                        <a href="#section-7" class="toc-link">7. Limitation of Liability</a>
+                        <a href="#section-8" class="toc-link">8. Changes to Terms</a>
+                        <a href="#section-9" class="toc-link">9. Contact Us</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="col-lg-9" data-aos="fade-up" data-aos-delay="100">
+                <div class="legal-card">
+
+                    <div class="legal-section" id="section-1">
+                        <h4><span class="section-number">1</span> Acceptance of Terms</h4>
+                        <p>By accessing or using AuraLearn ("the Platform", "we", "us", or "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the Platform. These Terms apply to all visitors, users, students, instructors, and others who access or use the Service.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-2">
+                        <h4><span class="section-number">2</span> Description of Service</h4>
+                        <p>AuraLearn is a Learning Management System that enables instructors to create and manage courses, and students to enroll, learn, submit assignments, take quizzes, track progress, and earn certificates. Features include real-time chat, discussions, attendance tracking, analytics, and notifications.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-3">
+                        <h4><span class="section-number">3</span> User Accounts</h4>
+                        <p>To access certain features, you must register for an account. You agree to:</p>
+                        <ul>
+                            <li>Provide accurate, current, and complete information during registration.</li>
+                            <li>Maintain the security of your password and account.</li>
+                            <li>Accept responsibility for all activities that occur under your account.</li>
+                            <li>Notify us immediately of any unauthorized use of your account.</li>
+                        </ul>
+                    </div>
+
+                    <div class="legal-section" id="section-4">
+                        <h4><span class="section-number">4</span> Roles & Responsibilities</h4>
+                        <p><strong>Students</strong> are responsible for completing coursework honestly, respecting deadlines, and not sharing account credentials.</p>
+                        <p class="mt-2"><strong>Instructors</strong> are responsible for the accuracy and quality of their course content, fair grading, and timely feedback.</p>
+                        <p class="mt-2"><strong>Administrators</strong> manage the Platform and may moderate content and user accounts to maintain a safe learning environment.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-5">
+                        <h4><span class="section-number">5</span> Intellectual Property</h4>
+                        <p>The Platform, including its design and original content (excluding user-generated content), is owned by AuraLearn. Users retain ownership of content they upload. By uploading content, you grant AuraLearn a non-exclusive license to host and display that content solely for operating the Platform.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-6">
+                        <h4><span class="section-number">6</span> Acceptable Use</h4>
+                        <p>You agree not to:</p>
+                        <ul>
+                            <li>Use the Platform for any illegal or unauthorized purpose.</li>
+                            <li>Upload content that is harassing, discriminatory, or objectionable.</li>
+                            <li>Attempt to gain unauthorized access to other accounts or systems.</li>
+                            <li>Interfere with or disrupt the Platform.</li>
+                            <li>Share or sell course materials outside the Platform without authorization.</li>
+                        </ul>
+                    </div>
+
+                    <div class="legal-section" id="section-7">
+                        <h4><span class="section-number">7</span> Limitation of Liability</h4>
+                        <p>To the maximum extent permitted by law, AuraLearn shall not be liable for any indirect, incidental, special, or consequential damages, or any loss of profits, data, or goodwill resulting from your use of the Platform.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-8">
+                        <h4><span class="section-number">8</span> Changes to Terms</h4>
+                        <p>We reserve the right to modify these Terms at any time. We will update the "Last updated" date when changes are made. Your continued use of the Platform after changes become effective constitutes acceptance of the revised Terms.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-9">
+                        <h4><span class="section-number">9</span> Contact Us</h4>
+                        <p>If you have any questions about these Terms, please contact us through the Contact page or by emailing the address provided on the Platform.</p>
+                    </div>
+
+                </div>
+
+                <div class="text-center mt-5">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-primary px-4">
+                        <i class="bi bi-arrow-left me-2"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

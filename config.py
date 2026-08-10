@@ -1,5 +1,6 @@
+# Stores all application configuration settings like database, email, Google OAuth, secret key, and file upload settings.
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv#loads env variables in .env file
 
 load_dotenv()
 

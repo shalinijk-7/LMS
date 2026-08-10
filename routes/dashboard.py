@@ -1,3 +1,4 @@
+# Handles dashboard pages and displays user-specific information.
 from flask import Blueprint
 from flask_login import login_required, current_user
 from routes.auth import redirect_user_by_role

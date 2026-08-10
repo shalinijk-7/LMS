@@ -1,3 +1,4 @@
+# Contains helper functions for generating and managing certificates.
 import os
 import uuid
 from datetime import datetime

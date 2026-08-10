@@ -1,11 +1,10 @@
+# Initializes the routes package for the Flask application.
 from . import db
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# ----------------------------------------------------
-# USER & ROLES
-# ----------------------------------------------------
+# Stores different user roles like Admin, Instructor, and Student.
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
@@ -32,7 +31,7 @@ class User(UserMixin, db.Model):
     submissions = db.relationship('Submission', backref='student', lazy=True)
     quiz_results = db.relationship('Result', backref='student', lazy=True)
     certificates = db.relationship('Certificate', backref='student', lazy=True)
-    notifications = db.relationship('Notification', backref='user', lazy=True)
+    notifications = db.relationship('Notification', foreign_keys='Notification.user_id', backref='user', lazy=True)
     activity_logs = db.relationship('ActivityLog', backref='user', lazy=True)
 
     def set_password(self, password):
@@ -48,6 +47,10 @@ class Setting(db.Model):
     theme = db.Column(db.String(20), default='light')
     language = db.Column(db.String(20), default='en')
     notification_prefs = db.Column(db.Boolean, default=True)
+    notification_sound_enabled = db.Column(db.Boolean, default=True)
+    desktop_notifications_enabled = db.Column(db.Boolean, default=False)
+    real_time_notifications_enabled = db.Column(db.Boolean, default=True)
+    email_notifications_enabled = db.Column(db.Boolean, default=True)
 
 class ActivityLog(db.Model):
     __tablename__ = 'activity_logs'
@@ -56,9 +59,7 @@ class ActivityLog(db.Model):
     action = db.Column(db.String(255), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ----------------------------------------------------
-# COURSE & LESSONS
-# ----------------------------------------------------
+# Stores course categories used to organize courses.
 class Category(db.Model):
     __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)
@@ -130,9 +131,8 @@ class StudyMaterial(db.Model):
     file_path = db.Column(db.String(255), nullable=False)
     file_type = db.Column(db.String(20)) # pdf, ppt, etc.
 
-# ----------------------------------------------------
+
 # ASSIGNMENTS & QUIZZES
-# ----------------------------------------------------
 class Assignment(db.Model):
     __tablename__ = 'assignments'
     id = db.Column(db.Integer, primary_key=True)
@@ -192,9 +192,9 @@ class Result(db.Model):
     total = db.Column(db.Integer, nullable=False)
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ----------------------------------------------------
+
 # COMMUNICATION & NOTIFICATIONS
-# ----------------------------------------------------
+
 class DiscussionThread(db.Model):
     __tablename__ = 'discussion_threads'
     id = db.Column(db.Integer, primary_key=True)
@@ -225,10 +225,16 @@ class Notification(db.Model):
     __tablename__ = 'notifications'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     title = db.Column(db.String(255), nullable=False)
     message = db.Column(db.Text, nullable=False)
+    notification_type = db.Column(db.String(50), default='info') # info, success, warning, error
+    icon = db.Column(db.String(50), default='bi-info-circle')
+    action_url = db.Column(db.String(255), nullable=True)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    sender = db.relationship('User', foreign_keys=[sender_id])
     
 class LiveSession(db.Model):
     __tablename__ = 'live_sessions'
@@ -255,6 +261,24 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     is_delivered = db.Column(db.Boolean, default=False)
     is_read = db.Column(db.Boolean, default=False)
+    
+    # Advanced Chat Features
+    is_edited = db.Column(db.Boolean, default=False)
+    is_deleted = db.Column(db.Boolean, default=False)
+    is_pinned = db.Column(db.Boolean, default=False)
+    is_announcement = db.Column(db.Boolean, default=False)
+    reply_to_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=True)
+    message_type = db.Column(db.String(20), default='text') # text, voice, file, image, video
+    
+    # Relationships
+    reactions = db.relationship('MessageReaction', backref='message', lazy=True, cascade='all, delete-orphan')
+
+class MessageReaction(db.Model):
+    __tablename__ = 'message_reactions'
+    id = db.Column(db.Integer, primary_key=True)
+    message_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    emoji = db.Column(db.String(10), nullable=False)
 
 class CourseChatReadStatus(db.Model):
     __tablename__ = 'course_chat_read_status'
@@ -263,9 +287,9 @@ class CourseChatReadStatus(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
     last_read_message_id = db.Column(db.Integer, nullable=False, default=0)
 
-# ----------------------------------------------------
+
 # OTHERS
-# ----------------------------------------------------
+
 class Certificate(db.Model):
     __tablename__ = 'certificates'
     id = db.Column(db.Integer, primary_key=True)

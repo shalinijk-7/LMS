@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - AuraLearn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .legal-hero {
+        background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 60%);
+        border-radius: 1.5rem;
+        padding: 3rem 2rem;
+        margin-bottom: 2.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .legal-hero::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: var(--primary);
+        opacity: 0.08;
+        border-radius: 50%;
+    }
+    .legal-badge {
+        background: var(--gradient-primary);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 1rem;
+        border-radius: 2rem;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    .legal-card {
+        background: white;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+    }
+    .legal-section {
+        padding: 1.75rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.2s ease;
+    }
+    .legal-section:last-child {
+        border-bottom: none;
+    }
+    .legal-section:hover {
+        background: #fafafa;
+    }
+    .section-number {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+    .legal-section h4 {
+        display: flex;
+        align-items: center;
+        font-size: 1.15rem;
+        margin-bottom: 0.75rem;
+    }
+    .legal-section p, .legal-section ul {
+        color: #64748b;
+        line-height: 1.7;
+        margin-bottom: 0;
+        padding-left: 2.75rem;
+    }
+    .legal-section ul {
+        padding-left: 4rem;
+        margin-top: 0.5rem;
+    }
+    .legal-toc {
+        position: sticky;
+        top: 100px;
+    }
+    .toc-link {
+        display: block;
+        padding: 0.5rem 1rem;
+        color: #64748b;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+    }
+    .toc-link:hover {
+        background: var(--primary-light);
+        color: var(--primary);
+        border-left-color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-3">
+    <div class="container-premium">
+
+        <!-- Hero -->
+        <div class="legal-hero text-center text-md-start" data-aos="fade-up">
+            <span class="legal-badge">Legal</span>
+            <h1 class="display-5 fw-bold text-dark mb-2">Privacy Policy</h1>
+            <p class="text-muted mb-0">Last updated: August 10, 2026 · Your privacy matters to us. Learn how we handle your data.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Table of Contents (Desktop) -->
+            <div class="col-lg-3 d-none d-lg-block" data-aos="fade-right">
+                <div class="legal-toc">
+                    <div class="card border-0 shadow-sm rounded-4 p-3">
+                        <h6 class="fw-bold mb-3 px-2">On this page</h6>
+                        <a href="#section-1" class="toc-link">1. Introduction</a>
+                        <a href="#section-2" class="toc-link">2. Information We Collect</a>
+                        <a href="#section-3" class="toc-link">3. How We Use Information</a>
+                        <a href="#section-4" class="toc-link">4. Sharing of Information</a>
+                        <a href="#section-5" class="toc-link">5. Data Security</a>
+                        <a href="#section-6" class="toc-link">6. Your Rights</a>
+                        <a href="#section-7" class="toc-link">7. Changes to This Policy</a>
+                        <a href="#section-8" class="toc-link">8. Contact Us</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="col-lg-9" data-aos="fade-up" data-aos-delay="100">
+                <div class="legal-card">
+
+                    <div class="legal-section" id="section-1">
+                        <h4><span class="section-number">1</span> Introduction</h4>
+                        <p>AuraLearn ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Learning Management System.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-2">
+                        <h4><span class="section-number">2</span> Information We Collect</h4>
+                        <p>We may collect the following types of information:</p>
+                        <ul>
+                            <li><strong>Account Information:</strong> Name, email address, phone number, password (hashed), profile photo, and role.</li>
+                            <li><strong>Learning Data:</strong> Enrollments, progress, assignment submissions, quiz results, attendance, and certificates.</li>
+                            <li><strong>Communication Data:</strong> Messages, discussion posts, and notification preferences.</li>
+                            <li><strong>Technical Data:</strong> IP address, browser type, device information, and usage logs.</li>
+                        </ul>
+                    </div>
+
+                    <div class="legal-section" id="section-3">
+                        <h4><span class="section-number">3</span> How We Use Your Information</h4>
+                        <p>We use the information we collect to:</p>
+                        <ul>
+                            <li>Provide, operate, and maintain the Platform.</li>
+                            <li>Create and manage your account and authenticate you.</li>
+                            <li>Enable course enrollment, progress tracking, grading, and certificates.</li>
+                            <li>Send transactional emails and notifications.</li>
+                            <li>Improve the Platform and ensure security.</li>
+                        </ul>
+                    </div>
+
+                    <div class="legal-section" id="section-4">
+                        <h4><span class="section-number">4</span> Sharing of Information</h4>
+                        <p>We do not sell your personal information. We may share information with instructors (for course progress), trusted service providers, or when required by law.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-5">
+                        <h4><span class="section-number">5</span> Data Security</h4>
+                        <p>We implement reasonable technical and organizational measures (including password hashing and access controls) to protect your information. However, no method of transmission over the Internet is 100% secure.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-6">
+                        <h4><span class="section-number">6</span> Your Rights</h4>
+                        <p>You can access, update, or delete your account information through your profile settings. You may also manage notification preferences and request data deletion by contacting us.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-7">
+                        <h4><span class="section-number">7</span> Changes to This Policy</h4>
+                        <p>We may update this Privacy Policy from time to time. We will post the revised policy on this page and update the "Last updated" date. Continued use of the Platform after changes constitutes acceptance.</p>
+                    </div>
+
+                    <div class="legal-section" id="section-8">
+                        <h4><span class="section-number">8</span> Contact Us</h4>
+                        <p>If you have questions or concerns about this Privacy Policy, please contact us through the Contact page or via the email address listed on the Platform.</p>
+                    </div>
+
+                </div>
+
+                <div class="text-center mt-5">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-primary px-4">
+                        <i class="bi bi-arrow-left me-2"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

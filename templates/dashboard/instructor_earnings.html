@@ -1,0 +1,108 @@
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Earnings</h2>
+        <p class="text-muted mb-0">Track your course revenue and student enrollments.</p>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #ec4899; background: #fce7f3;">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">${{ "%.2f"|format(total_revenue|default(0.00)) }}</h3>
+                <span class="text-muted small fw-medium">Total Revenue</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #8b5cf6; background: #ede9fe;">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ total_students }}</h3>
+                <span class="text-muted small fw-medium">Total Students</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #6366f1; background: #e0e7ff;">
+                <i class="bi bi-camera-video-fill"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ total_courses }}</h3>
+                <span class="text-muted small fw-medium">Total Courses</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Earnings Breakdown -->
+<div class="card border-0 shadow-sm rounded-4" data-aos="fade-up" data-aos-delay="200">
+    <div class="card-header bg-white border-bottom p-4">
+        <h5 class="fw-bold mb-0">Course-wise Earnings</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if earnings_data %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-muted small fw-bold text-uppercase">Course</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase">Price</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase">Students</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in earnings_data %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: #e0e7ff; color: #6366f1;">
+                                    <i class="bi bi-camera-video-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ item.course.title }}</div>
+                                    <small class="text-muted">{{ item.course.description[:60] }}{% if item.course.description and item.course.description|length > 60 %}...{% endif %}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <span class="badge bg-primary-subtle text-primary fw-bold">${{ "%.2f"|format(item.price) }}</span>
+                        </td>
+                        <td class="py-3">
+                            <span class="fw-semibold">{{ item.students }}</span>
+                        </td>
+                        <td class="py-3">
+                            <span class="fw-bold text-success">${{ "%.2f"|format(item.revenue) }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="bg-light">
+                    <tr>
+                        <td class="ps-4 py-3 fw-bold" colspan="3">Total</td>
+                        <td class="py-3 fw-bold text-success fs-5">${{ "%.2f"|format(total_revenue|default(0.00)) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-cash-stack display-4 text-muted mb-3 d-block"></i>
+            <h5 class="fw-bold text-muted">No earnings yet</h5>
+            <p class="text-muted mb-0">Create courses and get students enrolled to start earning.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

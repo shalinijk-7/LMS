@@ -1,140 +1,256 @@
 {% extends 'dashboard_base.html' %}
 
+{% block title %}Analytics - AuraLearn{% endblock %}
+
 {% block content %}
-<div class="dash-header mb-5" data-aos="fade-down">
+<div class="dash-header mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
     <div>
         <h2 class="fw-bold mb-1">Analytics Dashboard</h2>
-        <p class="text-muted mb-0">Track platform engagement, course metrics, and revenue.</p>
+        <p class="text-muted mb-0">Platform engagement, courses, and revenue insights.</p>
     </div>
+    <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
+        <i class="bi bi-clock me-1"></i> Live data
+    </span>
 </div>
 
-<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
-    <!-- Stat Cards -->
-    <div class="col-md-3">
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4 text-center">
-                <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
-                    <i class="bi bi-people-fill"></i>
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:#ede9fe;color:#7c3aed;">
+                        <i class="bi bi-people-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">{{ total_users }}</h4>
+                        <small class="text-muted">Total Users</small>
+                    </div>
                 </div>
-                <h3 class="fw-bold mb-0">{{ total_students + total_instructors }}</h3>
-                <p class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-0">Total Users</p>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4 text-center">
-                <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
-                    <i class="bi bi-journal-bookmark-fill"></i>
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:#dbeafe;color:#2563eb;">
+                        <i class="bi bi-journal-bookmark-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">{{ total_courses }}</h4>
+                        <small class="text-muted">Courses</small>
+                    </div>
                 </div>
-                <h3 class="fw-bold mb-0">{{ total_courses }}</h3>
-                <p class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-0">Courses</p>
             </div>
         </div>
     </div>
-
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4 text-center">
-                <div class="rounded-circle bg-info-subtle text-info d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
-                    <i class="bi bi-mortarboard-fill"></i>
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:#dcfce7;color:#16a34a;">
+                        <i class="bi bi-mortarboard-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">{{ total_enrollments }}</h4>
+                        <small class="text-muted">Enrollments</small>
+                    </div>
                 </div>
-                <h3 class="fw-bold mb-0">{{ total_enrollments }}</h3>
-                <p class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-0">Enrollments</p>
             </div>
         </div>
     </div>
-
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4 text-center">
-                <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
-                    <i class="bi bi-currency-dollar"></i>
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:#fef3c7;color:#d97706;">
+                        <i class="bi bi-currency-dollar fs-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">${{ "%.0f"|format(total_revenue) }}</h4>
+                        <small class="text-muted">Est. Revenue</small>
+                    </div>
                 </div>
-                <h3 class="fw-bold mb-0">${{ "%.2f"|format(total_revenue) }}</h3>
-                <p class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-0">Est. Revenue</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="200">
-    <!-- Charts -->
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h5 class="fw-bold mb-0">User Distribution</h5>
-            </div>
-            <div class="card-body p-4">
-                <canvas id="userChart" height="250"></canvas>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h5 class="fw-bold mb-0">Platform Engagement</h5>
-            </div>
-            <div class="card-body p-4">
-                <canvas id="engagementChart" height="250"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add Chart.js -->
+<!-- Second row stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 text-center">
+                <h5 class="fw-bold text-success mb-0">{{ completion_rate }}%</h5>
+                <small class="text-muted">Completion Rate</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 text-center">
+                <h5 class="fw-bold text-primary mb-0">{{ total_certificates }}</h5>
+                <small class="text-muted">Certificates</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 text-center">
+                <h5 class="fw-bold text-info mb-0">{{ total_submissions }}</h5>
+                <small class="text-muted">Submissions</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 text-center">
+                <h5 class="fw-bold text-warning mb-0">{{ total_quiz_attempts }}</h5>
+                <small class="text-muted">Quiz Attempts</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-3 px-4">
+                <h6 class="fw-bold mb-0">Enrollments (Last 7 Days)</h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <canvas id="enrollmentTrendChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-3 px-4">
+                <h6 class="fw-bold mb-0">User Distribution</h6>
+            </div>
+            <div class="card-body px-4 pb-4 d-flex align-items-center justify-content-center">
+                <canvas id="userChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-3 px-4">
+                <h6 class="fw-bold mb-0">Top Courses by Enrollment</h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <canvas id="topCoursesChart" height="180"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-3 px-4 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">Top Performing Courses</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Course</th>
+                                <th>Enrollments</th>
+                                <th class="pe-4">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in top_courses %}
+                            <tr>
+                                <td class="ps-4 fw-medium">{{ course[0] }}</td>
+                                <td><span class="badge bg-primary-subtle text-primary">{{ course[1] }}</span></td>
+                                <td class="pe-4">${{ "%.0f"|format(course[2] or 0) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">No courses yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="chart-data" type="application/json">{{ chart_data|tojson }}</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Inject the data from backend
-    const chartData = {{ chart_data|tojson }};
-    
-    // User Distribution Doughnut Chart
-    const ctxUser = document.getElementById('userChart').getContext('2d');
-    new Chart(ctxUser, {
-        type: 'doughnut',
+    const data = JSON.parse(document.getElementById('chart-data').textContent);
+    const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#a855f7';
+
+    // Enrollment Trend (Line)
+    new Chart(document.getElementById('enrollmentTrendChart'), {
+        type: 'line',
         data: {
-            labels: chartData.roles,
+            labels: data.enrollment_trend_labels,
             datasets: [{
-                data: chartData.role_counts,
-                backgroundColor: ['#a855f7', '#ec4899'],
-                borderWidth: 0,
-                hoverOffset: 4
+                label: 'Enrollments',
+                data: data.enrollment_trend_data,
+                borderColor: primary,
+                backgroundColor: primary + '22',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: primary
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            },
-            cutout: '70%'
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
         }
     });
 
-    // Engagement Bar Chart
-    const ctxEng = document.getElementById('engagementChart').getContext('2d');
-    new Chart(ctxEng, {
-        type: 'bar',
+    // User Distribution (Doughnut)
+    new Chart(document.getElementById('userChart'), {
+        type: 'doughnut',
         data: {
-            labels: chartData.metrics,
+            labels: data.roles,
             datasets: [{
-                label: 'Count',
-                data: chartData.metric_counts,
-                backgroundColor: 'rgba(168, 85, 247, 0.8)',
-                borderRadius: 8,
+                data: data.role_counts,
+                backgroundColor: [primary, '#ec4899'],
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
+            plugins: { legend: { position: 'bottom' } },
+            cutout: '65%'
+        }
+    });
+
+    // Top Courses (Bar)
+    new Chart(document.getElementById('topCoursesChart'), {
+        type: 'bar',
+        data: {
+            labels: data.top_course_labels,
+            datasets: [{
+                label: 'Enrollments',
+                data: data.top_course_data,
+                backgroundColor: primary,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
             scales: {
-                y: { beginAtZero: true, grid: { display: false } },
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
                 x: { grid: { display: false } }
             }
         }

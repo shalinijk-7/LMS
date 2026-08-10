@@ -1,98 +1,246 @@
 {% extends 'dashboard_base.html' %}
 
+{% block title %}Reports - AuraLearn{% endblock %}
+
 {% block content %}
-<div class="dash-header mb-5" data-aos="fade-down">
+<div class="dash-header mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
     <div>
         <h2 class="fw-bold mb-1">Platform Reports</h2>
-        <p class="text-muted mb-0">Overview of platform metrics and performance.</p>
+        <p class="text-muted mb-0">Overview of metrics, performance, and activity.</p>
     </div>
 </div>
 
-<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
-    <div class="col-md-3">
-        <div class="dash-stat-card border-0 shadow-sm">
-            <div class="icon-container" style="color: #6366f1; background: #e0e7ff;">
-                <i class="bi bi-people-fill"></i>
-            </div>
-            <div>
-                <h3 class="mb-0 fw-bold">{{ total_users }}</h3>
-                <span class="text-muted small fw-medium">Total Users</span>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="dash-stat-card border-0 shadow-sm">
-            <div class="icon-container" style="color: #ec4899; background: #fce7f3;">
-                <i class="bi bi-journal-album"></i>
-            </div>
-            <div>
-                <h3 class="mb-0 fw-bold">{{ total_courses }}</h3>
-                <span class="text-muted small fw-medium">Total Courses</span>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="dash-stat-card border-0 shadow-sm">
-            <div class="icon-container" style="color: #22c55e; background: #dcfce7;">
-                <i class="bi bi-person-check-fill"></i>
-            </div>
-            <div>
-                <h3 class="mb-0 fw-bold">{{ total_enrollments }}</h3>
-                <span class="text-muted small fw-medium">Total Enrollments</span>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="dash-stat-card border-0 shadow-sm">
-            <div class="icon-container" style="color: #f59e0b; background: #fef3c7;">
-                <i class="bi bi-currency-dollar"></i>
-            </div>
-            <div>
-                <h3 class="mb-0 fw-bold">${{ "%.2f"|format(total_revenue) }}</h3>
-                <span class="text-muted small fw-medium">Est. Revenue</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
         <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
-                <h5 class="fw-bold mb-0 text-dark">Course Completions</h5>
+            <div class="card-body p-3 text-center">
+                <div class="rounded-3 d-inline-flex align-items-center justify-content-center mb-2" style="width:40px;height:40px;background:#ede9fe;color:#7c3aed;">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h5 class="fw-bold mb-0">{{ total_users }}</h5>
+                <small class="text-muted">Users</small>
             </div>
-            <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
-                <h2 class="display-1 fw-bold text-primary">{{ total_completions }}</h2>
-                <p class="text-muted fw-bold">Total Course Completions</p>
-                <div class="mt-4 pt-4 border-top">
-                    <h3 class="fw-bold text-info mb-1">{{ active_learners }}</h3>
-                    <p class="text-muted small fw-bold">Active Learners (In Progress)</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 text-center">
+                <div class="rounded-3 d-inline-flex align-items-center justify-content-center mb-2" style="width:40px;height:40px;background:#dbeafe;color:#2563eb;">
+                    <i class="bi bi-journal-album"></i>
+                </div>
+                <h5 class="fw-bold mb-0">{{ total_courses }}</h5>
+                <small class="text-muted">Courses</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 text-center">
+                <div class="rounded-3 d-inline-flex align-items-center justify-content-center mb-2" style="width:40px;height:40px;background:#dcfce7;color:#16a34a;">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+                <h5 class="fw-bold mb-0">{{ total_enrollments }}</h5>
+                <small class="text-muted">Enrollments</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 text-center">
+                <div class="rounded-3 d-inline-flex align-items-center justify-content-center mb-2" style="width:40px;height:40px;background:#fef3c7;color:#d97706;">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+                <h5 class="fw-bold mb-0">{{ total_completions }}</h5>
+                <small class="text-muted">Completions</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 text-center">
+                <div class="rounded-3 d-inline-flex align-items-center justify-content-center mb-2" style="width:40px;height:40px;background:#fce7f3;color:#db2777;">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+                <h5 class="fw-bold mb-0">{{ total_certificates }}</h5>
+                <small class="text-muted">Certificates</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 text-center">
+                <div class="rounded-3 d-inline-flex align-items-center justify-content-center mb-2" style="width:40px;height:40px;background:#ecfdf5;color:#059669;">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <h5 class="fw-bold mb-0">${{ "%.0f"|format(total_revenue) }}</h5>
+                <small class="text-muted">Revenue</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts + Tables -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-3 px-4">
+                <h6 class="fw-bold mb-0">Enrollment Trend (7 Days)</h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <canvas id="trendChart" height="110"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-3 px-4">
+                <h6 class="fw-bold mb-0">Users by Role</h6>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="roleChart" height="180"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-3 px-4">
+                <h6 class="fw-bold mb-0">Top Courses</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Course</th>
+                                <th>Enrolled</th>
+                                <th class="pe-4">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in top_courses %}
+                            <tr>
+                                <td class="ps-4 fw-medium">{{ c[0] }}</td>
+                                <td><span class="badge bg-primary-subtle text-primary">{{ c[1] }}</span></td>
+                                <td class="pe-4">${{ "%.0f"|format(c[2] or 0) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-center text-muted py-4">No data</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+    <div class="col-lg-6">
         <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
-                <h5 class="fw-bold mb-0 text-dark">System Status</h5>
+            <div class="card-header bg-transparent border-0 pt-3 px-4">
+                <h6 class="fw-bold mb-0">Recent Users</h6>
             </div>
-            <div class="card-body p-4">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                        <span class="text-muted"><i class="bi bi-check-circle-fill text-success me-2"></i> Database Connection</span>
-                        <span class="badge bg-success rounded-pill">Online</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                        <span class="text-muted"><i class="bi bi-check-circle-fill text-success me-2"></i> File Storage</span>
-                        <span class="badge bg-success rounded-pill">Online</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                        <span class="text-muted"><i class="bi bi-check-circle-fill text-success me-2"></i> Authentication System</span>
-                        <span class="badge bg-success rounded-pill">Online</span>
-                    </li>
-                </ul>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Name</th>
+                                <th>Role</th>
+                                <th class="pe-4">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in recent_users %}
+                            <tr>
+                                <td class="ps-4 fw-medium">{{ u.name }}</td>
+                                <td><span class="badge bg-secondary-subtle text-secondary text-capitalize">{{ u.role.name }}</span></td>
+                                <td class="pe-4 text-muted small">{{ u.created_at.strftime('%b %d, %Y') if u.created_at else '—' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-center text-muted py-4">No users</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Extra metrics -->
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 text-center">
+                <h3 class="fw-bold text-primary mb-1">{{ completion_rate }}%</h3>
+                <p class="text-muted mb-0 small">Course Completion Rate</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 text-center">
+                <h3 class="fw-bold text-success mb-1">{{ active_learners }}</h3>
+                <p class="text-muted mb-0 small">Active Learners</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 text-center">
+                <h3 class="fw-bold text-info mb-1">{{ total_students }} / {{ total_instructors }}</h3>
+                <p class="text-muted mb-0 small">Students / Instructors</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="chart-data" type="application/json">{{ chart_data|tojson }}</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const data = JSON.parse(document.getElementById('chart-data').textContent);
+    const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#a855f7';
+
+    new Chart(document.getElementById('trendChart'), {
+        type: 'bar',
+        data: {
+            labels: data.trend_labels,
+            datasets: [{
+                label: 'Enrollments',
+                data: data.trend_data,
+                backgroundColor: primary,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('roleChart'), {
+        type: 'doughnut',
+        data: {
+            labels: data.role_labels,
+            datasets: [{
+                data: data.role_data,
+                backgroundColor: [primary, '#ec4899'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } },
+            cutout: '60%'
+        }
+    });
+});
+</script>
 {% endblock %}

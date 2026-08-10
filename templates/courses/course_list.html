@@ -31,52 +31,78 @@
                 </button>
                 <div class="collapse d-lg-block filter-sidebar-content" id="filterSidebar">
                 <div class="card border-0 shadow-sm rounded-4 p-4">
-                    <h5 class="fw-bold mb-4 text-dark">Categories</h5>
-                    
-                    <div class="d-flex flex-column gap-3 mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="cat1" style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="cat1" style="cursor: pointer;">Web Development</label>
+                    <form method="GET" action="{{ url_for('courses.list_courses') }}">
+                        <h5 class="fw-bold mb-4 text-dark">Categories</h5>
+                        
+                        <div class="d-flex flex-column gap-3 mb-4">
+                            {% for cat in categories %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="category" value="{{ cat.id }}" id="cat{{ cat.id }}"
+                                       {% if cat.id|string in selected_categories %}checked{% endif %}
+                                       style="cursor: pointer; border-color: #dee2e6;">
+                                <label class="form-check-label text-muted fw-medium" for="cat{{ cat.id }}" style="cursor: pointer;">{{ cat.name }}</label>
+                            </div>
+                            {% else %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="category" value="Web Development" id="cat1"
+                                       {% if 'Cloud Computing' in selected_categories %}checked{% endif %}
+                                       style="cursor: pointer; border-color: #dee2e6;">
+                                <label class="form-check-label text-muted fw-medium" for="cat1" style="cursor: pointer;">Web Development</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="category" value="Data Science" id="cat2"
+                                       {% if 'AI and Machine Learning' in selected_categories %}checked{% endif %}
+                                       style="cursor: pointer; border-color: #dee2e6;">
+                                <label class="form-check-label text-muted fw-medium" for="cat2" style="cursor: pointer;">Data Science</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="category" value="Design" id="cat3"
+                                       {% if 'python AI' in selected_categories %}checked{% endif %}
+                                       style="cursor: pointer; border-color: #dee2e6;">
+                                <label class="form-check-label text-muted fw-medium" for="cat3" style="cursor: pointer;">Design</label>
+                            </div>
+                            {% endfor %}
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="cat2" style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="cat2" style="cursor: pointer;">Data Science</label>
+                        
+                        <h5 class="fw-bold mb-4 text-dark">Price</h5>
+                        <div class="d-flex flex-column gap-3 mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="price" value="all" id="priceAll"
+                                       {% if selected_price == 'all' or not selected_price %}checked{% endif %}
+                                       style="cursor: pointer; border-color: #dee2e6;">
+                                <label class="form-check-label text-muted fw-medium" for="priceAll" style="cursor: pointer;">All Prices</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="price" value="free" id="priceFree"
+                                       {% if selected_price == 'free' %}checked{% endif %}
+                                       style="cursor: pointer; border-color: #dee2e6;">
+                                <label class="form-check-label text-muted fw-medium" for="priceFree" style="cursor: pointer;">Free Courses</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="price" value="paid" id="pricePaid"
+                                       {% if selected_price == 'paid' %}checked{% endif %}
+                                       style="cursor: pointer; border-color: #dee2e6;">
+                                <label class="form-check-label text-muted fw-medium" for="pricePaid" style="cursor: pointer;">Paid Courses</label>
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="cat3" style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="cat3" style="cursor: pointer;">Design</label>
+                        
+                        <h5 class="fw-bold mb-4 text-dark">Instructors</h5>
+                        <div class="d-flex flex-column gap-3 mb-4">
+                            {% for instructor in instructors %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="instructor" value="{{ instructor.id }}" id="inst{{ instructor.id }}"
+                                       {% if instructor.id|string in selected_instructors %}checked{% endif %}
+                                       style="cursor: pointer; border-color: #dee2e6;">
+                                <label class="form-check-label text-muted fw-medium" for="inst{{ instructor.id }}" style="cursor: pointer;">{{ instructor.name }}</label>
+                            </div>
+                            {% else %}
+                            <p class="text-muted small">No instructors found.</p>
+                            {% endfor %}
                         </div>
-                    </div>
-                    
-                    <h5 class="fw-bold mb-4 text-dark">Price</h5>
-                    <div class="d-flex flex-column gap-3 mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="priceFilter" id="priceAll" checked style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="priceAll" style="cursor: pointer;">All Prices</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="priceFilter" id="priceFree" style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="priceFree" style="cursor: pointer;">Free Courses</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="priceFilter" id="pricePaid" style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="pricePaid" style="cursor: pointer;">Paid Courses</label>
-                        </div>
-                    </div>
-                    
-                    <h5 class="fw-bold mb-4 text-dark">Instructors</h5>
-                    <div class="d-flex flex-column gap-3 mb-4">
-                        {% for instructor in instructors %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="{{ instructor.id }}" id="inst{{ instructor.id }}" style="cursor: pointer; border-color: #dee2e6;">
-                            <label class="form-check-label text-muted fw-medium" for="inst{{ instructor.id }}" style="cursor: pointer;">{{ instructor.name }}</label>
-                        </div>
-                        {% else %}
-                        <p class="text-muted small">No instructors found.</p>
-                        {% endfor %}
-                    </div>
-                    
-                    <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold mt-2 shadow-sm">Apply Filters</button>
+                        
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold mt-2 shadow-sm">Apply Filters</button>
+                        <a href="{{ url_for('courses.list_courses') }}" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold mt-2">Clear Filters</a>
+                    </form>
                 </div>
             </div>
             </div>
