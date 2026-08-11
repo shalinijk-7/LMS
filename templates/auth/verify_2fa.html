@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Two-Step Verification{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width:64px;height:64px;background:#e0e7ff;color:#6366f1;">
+                            <i class="bi bi-shield-lock-fill" style="font-size:1.75rem;"></i>
+                        </div>
+                        <h4 class="fw-bold mb-1">Two-Step Verification</h4>
+                        <p class="text-muted small mb-0">
+                            Enter the 6-digit code we sent to your email.
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('auth.verify_2fa') }}">
+                        <div class="mb-4">
+                            <label for="otp" class="form-label fw-semibold">Verification Code</label>
+                            <input type="text"
+                                   class="form-control form-control-lg text-center tracking-widest"
+                                   id="otp"
+                                   name="otp"
+                                   maxlength="6"
+                                   placeholder="••••••"
+                                   autocomplete="one-time-code"
+                                   required
+                                   autofocus
+                                   style="letter-spacing: 0.4em; font-size: 1.4rem;">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg rounded-pill mb-3">
+                            Verify & Login
+                        </button>
+
+                        <div class="text-center">
+                            <a href="{{ url_for('auth.login') }}" class="text-muted small text-decoration-none">
+                                ← Back to Login
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <p class="text-center text-muted small mt-4 mb-0">
+                Didn't receive the code? Check your spam folder or try logging in again.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

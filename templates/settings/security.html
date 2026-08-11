@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Security Settings - AuraLearn{% endblock %}
+
+{% block content %}
+<div class="container-premium py-5">
+    <div class="row">
+        <!-- Sidebar (same style as Profile page) -->
+        <div class="col-md-3 mb-4">
+            <div class="card glass-card h-100">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img src="{% if current_user.profile_photo == 'default.jpg' %}{{ url_for('static', filename='images/default.jpg') }}{% else %}{{ url_for('uploaded_file', filename=current_user.profile_photo) }}{% endif %}" 
+                             alt="Profile Photo" class="rounded-circle img-thumbnail mb-3" 
+                             style="width: 120px; height: 120px; object-fit: cover;">
+                        <h5 class="fw-bold">{{ current_user.name }}</h5>
+                        <p class="text-muted small text-capitalize">{{ current_user.role.name }}</p>
+                    </div>
+                    <ul class="nav flex-column nav-pills">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('settings.profile') }}">
+                                <i class="bi bi-person me-2"></i> Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('settings.security') }}">
+                                <i class="bi bi-shield-lock me-2"></i> Security
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('settings.profile') }}#notifications">
+                                <i class="bi bi-bell me-2"></i> Notifications
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Content -->
+        <div class="col-md-9">
+            <div class="card glass-card">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                    <h4 class="fw-bold mb-0">Security Settings</h4>
+                    <p class="text-muted small mt-1">Protect your account with extra security.</p>
+                </div>
+                <div class="card-body p-4">
+
+                    <!-- Two-Step Verification -->
+                    <div class="mb-5">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:48px;height:48px;background:#e0e7ff;color:#6366f1;font-size:1.4rem;">
+                                🔒
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold mb-1">Two-Step Verification</h5>
+                                <p class="text-muted small mb-3">
+                                    When enabled, you will receive a 6-digit verification code by email every time you log in.
+                                    This adds an extra layer of security to your account.
+                                </p>
+
+                                <form method="POST" action="{{ url_for('settings.security') }}">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                               id="two_factor_enabled" name="two_factor_enabled"
+                                               {% if current_user.settings and current_user.settings.two_factor_enabled %}checked{% endif %}>
+                                        <label class="form-check-label fw-semibold" for="two_factor_enabled">
+                                            Enable Two-Step Verification (2FA)
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                        Save Security Settings
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Change Password -->
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width:48px;height:48px;background:#fef3c7;color:#d97706;font-size:1.4rem;">
+                            🔑
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Password</h5>
+                            <p class="text-muted small mb-3">
+                                We recommend using a strong password that you don’t use elsewhere.
+                            </p>
+                            <a href="{{ url_for('settings.change_password') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                                 Change Password
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

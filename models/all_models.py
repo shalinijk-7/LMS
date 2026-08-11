@@ -8,8 +8,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False) # admin, instructor, student
+    name = db.Column(db.String(50), unique=True, nullable=False)  # admin, instructor, student
     users = db.relationship('User', backref='role', lazy=True)
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -23,7 +24,7 @@ class User(UserMixin, db.Model):
     profile_photo = db.Column(db.String(255), default='default.jpg')
     is_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     settings = db.relationship('Setting', backref='user', uselist=False, cascade='all, delete-orphan')
     enrollments = db.relationship('Enrollment', backref='student', lazy=True)
@@ -40,6 +41,7 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+
 class Setting(db.Model):
     __tablename__ = 'settings'
     id = db.Column(db.Integer, primary_key=True)
@@ -51,6 +53,9 @@ class Setting(db.Model):
     desktop_notifications_enabled = db.Column(db.Boolean, default=False)
     real_time_notifications_enabled = db.Column(db.Boolean, default=True)
     email_notifications_enabled = db.Column(db.Boolean, default=True)
+    # NEW: 2-step verification toggle
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+
 
 class ActivityLog(db.Model):
     __tablename__ = 'activity_logs'
@@ -59,12 +64,14 @@ class ActivityLog(db.Model):
     action = db.Column(db.String(255), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 # Stores course categories used to organize courses.
 class Category(db.Model):
     __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     courses = db.relationship('Course', backref='category', lazy=True)
+
 
 class Course(db.Model):
     __tablename__ = 'courses'
@@ -76,7 +83,7 @@ class Course(db.Model):
     thumbnail = db.Column(db.String(255))
     banner = db.Column(db.String(255))
     duration = db.Column(db.String(50))
-    difficulty = db.Column(db.String(50)) # Beginner, Intermediate, Advanced
+    difficulty = db.Column(db.String(50))  # Beginner, Intermediate, Advanced
     price = db.Column(db.Float, default=0.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -87,6 +94,7 @@ class Course(db.Model):
     quizzes = db.relationship('Quiz', backref='course', cascade='all, delete-orphan', lazy=True)
     discussion_threads = db.relationship('DiscussionThread', backref='course', cascade='all, delete-orphan', lazy=True)
 
+
 class Enrollment(db.Model):
     __tablename__ = 'enrollments'
     id = db.Column(db.Integer, primary_key=True)
@@ -94,7 +102,8 @@ class Enrollment(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
     enrolled_at = db.Column(db.DateTime, default=datetime.utcnow)
     progress_percent = db.Column(db.Integer, default=0)
-    
+
+
 class Progress(db.Model):
     __tablename__ = 'progress'
     id = db.Column(db.Integer, primary_key=True)
@@ -103,6 +112,7 @@ class Progress(db.Model):
     completed = db.Column(db.Boolean, default=False)
     completed_at = db.Column(db.DateTime)
 
+
 class Lesson(db.Model):
     __tablename__ = 'lessons'
     id = db.Column(db.Integer, primary_key=True)
@@ -110,18 +120,20 @@ class Lesson(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     order_index = db.Column(db.Integer, default=0)
-    
+
     # Material relationships
     video = db.relationship('Video', backref='lesson', uselist=False, cascade='all, delete-orphan')
     materials = db.relationship('StudyMaterial', backref='lesson', cascade='all, delete-orphan', lazy=True)
     quizzes = db.relationship('Quiz', backref='lesson_ref', lazy=True)
+
 
 class Video(db.Model):
     __tablename__ = 'videos'
     id = db.Column(db.Integer, primary_key=True)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=False)
     url = db.Column(db.String(255), nullable=False)
-    duration = db.Column(db.Integer) # in seconds
+    duration = db.Column(db.Integer)  # in seconds
+
 
 class StudyMaterial(db.Model):
     __tablename__ = 'study_materials'
@@ -129,7 +141,7 @@ class StudyMaterial(db.Model):
     lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     file_path = db.Column(db.String(255), nullable=False)
-    file_type = db.Column(db.String(20)) # pdf, ppt, etc.
+    file_type = db.Column(db.String(20))  # pdf, ppt, etc.
 
 
 # ASSIGNMENTS & QUIZZES
@@ -141,8 +153,9 @@ class Assignment(db.Model):
     description = db.Column(db.Text)
     deadline = db.Column(db.DateTime)
     total_marks = db.Column(db.Integer)
-    
+
     submissions = db.relationship('Submission', backref='assignment', cascade='all, delete-orphan', lazy=True)
+
 
 class Submission(db.Model):
     __tablename__ = 'submissions'
@@ -153,7 +166,8 @@ class Submission(db.Model):
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
     marks_obtained = db.Column(db.Integer)
     feedback = db.Column(db.Text)
-    status = db.Column(db.String(50), default='Pending') # Pending, Graded
+    status = db.Column(db.String(50), default='Pending')  # Pending, Graded
+
 
 class Quiz(db.Model):
     __tablename__ = 'quizzes'
@@ -164,17 +178,19 @@ class Quiz(db.Model):
     timer_minutes = db.Column(db.Integer, default=30)
     start_date = db.Column(db.DateTime, nullable=True)
     expiry_date = db.Column(db.DateTime, nullable=True)
-    
+
     questions = db.relationship('Question', backref='quiz', cascade='all, delete-orphan', lazy=True)
     results = db.relationship('Result', backref='quiz', cascade='all, delete-orphan', lazy=True)
+
 
 class Question(db.Model):
     __tablename__ = 'questions'
     id = db.Column(db.Integer, primary_key=True)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quizzes.id'), nullable=False)
     text = db.Column(db.Text, nullable=False)
-    
+
     answers = db.relationship('Answer', backref='question', cascade='all, delete-orphan', lazy=True)
+
 
 class Answer(db.Model):
     __tablename__ = 'answers'
@@ -182,6 +198,7 @@ class Answer(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('questions.id'), nullable=False)
     text = db.Column(db.String(255), nullable=False)
     is_correct = db.Column(db.Boolean, default=False)
+
 
 class Result(db.Model):
     __tablename__ = 'results'
@@ -205,9 +222,10 @@ class DiscussionThread(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_pinned = db.Column(db.Boolean, default=False)
     is_locked = db.Column(db.Boolean, default=False)
-    
+
     user = db.relationship('User', backref='threads')
     replies = db.relationship('DiscussionReply', backref='thread', cascade='all, delete-orphan', lazy=True)
+
 
 class DiscussionReply(db.Model):
     __tablename__ = 'discussion_replies'
@@ -218,8 +236,9 @@ class DiscussionReply(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_best_answer = db.Column(db.Boolean, default=False)
     likes = db.Column(db.Integer, default=0)
-    
+
     user = db.relationship('User', backref='discussion_replies')
+
 
 class Notification(db.Model):
     __tablename__ = 'notifications'
@@ -228,14 +247,15 @@ class Notification(db.Model):
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     title = db.Column(db.String(255), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    notification_type = db.Column(db.String(50), default='info') # info, success, warning, error
+    notification_type = db.Column(db.String(50), default='info')  # info, success, warning, error
     icon = db.Column(db.String(50), default='bi-info-circle')
     action_url = db.Column(db.String(255), nullable=True)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     sender = db.relationship('User', foreign_keys=[sender_id])
-    
+
+
 class LiveSession(db.Model):
     __tablename__ = 'live_sessions'
     id = db.Column(db.Integer, primary_key=True)
@@ -246,32 +266,33 @@ class LiveSession(db.Model):
     scheduled_date = db.Column(db.DateTime, nullable=False)
     is_recurring = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     course = db.relationship('Course', backref='live_sessions')
     instructor = db.relationship('User', backref='live_sessions')
+
 
 class Message(db.Model):
     __tablename__ = 'messages'
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True) # Null for group chats
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True) # Set for group chats
+    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
     content = db.Column(db.Text, nullable=False)
     file_url = db.Column(db.String(512), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     is_delivered = db.Column(db.Boolean, default=False)
     is_read = db.Column(db.Boolean, default=False)
-    
+
     # Advanced Chat Features
     is_edited = db.Column(db.Boolean, default=False)
     is_deleted = db.Column(db.Boolean, default=False)
     is_pinned = db.Column(db.Boolean, default=False)
     is_announcement = db.Column(db.Boolean, default=False)
     reply_to_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=True)
-    message_type = db.Column(db.String(20), default='text') # text, voice, file, image, video
-    
-    # Relationships
+    message_type = db.Column(db.String(20), default='text')  # text, voice, file, image, video
+
     reactions = db.relationship('MessageReaction', backref='message', lazy=True, cascade='all, delete-orphan')
+
 
 class MessageReaction(db.Model):
     __tablename__ = 'message_reactions'
@@ -279,6 +300,7 @@ class MessageReaction(db.Model):
     message_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     emoji = db.Column(db.String(10), nullable=False)
+
 
 class CourseChatReadStatus(db.Model):
     __tablename__ = 'course_chat_read_status'
@@ -298,8 +320,9 @@ class Certificate(db.Model):
     certificate_id = db.Column(db.String(100), unique=True, nullable=False)
     file_path = db.Column(db.String(255))
     issued_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     course = db.relationship('Course', backref='course_certificates', lazy=True)
+
 
 class Attendance(db.Model):
     __tablename__ = 'attendance'
@@ -309,12 +332,13 @@ class Attendance(db.Model):
     lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=True)
     instructor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     attendance_date = db.Column(db.Date, nullable=False)
-    status = db.Column(db.String(20)) # Present, Absent, Late
+    status = db.Column(db.String(20))  # Present, Absent, Late
     remarks = db.Column(db.Text, nullable=True)
 
     student = db.relationship('User', foreign_keys=[student_id])
     course = db.relationship('Course', foreign_keys=[course_id])
     lesson = db.relationship('Lesson', foreign_keys=[lesson_id])
+
 
 class StudentProgress(db.Model):
     __tablename__ = 'student_progress'
@@ -325,13 +349,14 @@ class StudentProgress(db.Model):
     progress_percentage = db.Column(db.Integer, default=0)
     lessons_completed = db.Column(db.Integer, default=0)
     total_lessons = db.Column(db.Integer, default=0)
-    learning_time = db.Column(db.Integer, default=0) # in minutes
+    learning_time = db.Column(db.Integer, default=0)  # in minutes
     last_accessed = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(50), default='Not Started') # Not Started, In Progress, Completed
+    status = db.Column(db.String(50), default='Not Started')  # Not Started, In Progress, Completed
 
     student = db.relationship('User', foreign_keys=[student_id])
     course = db.relationship('Course', foreign_keys=[course_id])
     lesson = db.relationship('Lesson', foreign_keys=[lesson_id])
+
 
 class CourseCompletion(db.Model):
     __tablename__ = 'course_completion'

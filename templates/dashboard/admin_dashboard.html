@@ -1,81 +1,338 @@
 {% extends 'dashboard_base.html' %}
 
 {% block content %}
-<div class="dash-header mb-5" data-aos="fade-down">
-    <div>
-        <h2 class="fw-bold mb-1">Admin Control Panel</h2>
-        <p class="text-muted mb-0">Welcome back, {{ current_user.name.split(' ')[0] }}! Manage users, courses, and platform settings.</p>
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h2 class="fw-bold mb-1">Admin Control Panel</h2>
+            <p class="text-muted mb-0">Welcome back, {{ current_user.name.split(' ')[0] }}! Here's your platform overview.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                <i class="bi bi-people me-1"></i> Manage Users
+            </a>
+            <a href="{{ url_for('admin.courses') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                <i class="bi bi-journal-bookmark me-1"></i> Courses
+            </a>
+            <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                <i class="bi bi-bar-chart me-1"></i> Reports
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- Stats Section -->
-<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
-    <div class="col-md-4">
-        <div class="dash-stat-card">
-            <div class="icon-container" style="color: #6366f1; background: #e0e7ff;">
+<!-- KPI Row -->
+<div class="row g-3 mb-4" data-aos="fade-up" data-aos-delay="50">
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card h-100">
+            <div class="icon-container" style="color:#6366f1;background:#e0e7ff;">
                 <i class="bi bi-people-fill"></i>
             </div>
             <div>
                 <h3 class="mb-0 fw-bold">{{ users_count }}</h3>
                 <span class="text-muted small fw-medium">Total Users</span>
+                <div class="small text-success mt-1"><i class="bi bi-arrow-up-right"></i> +{{ new_users_week }} this week</div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="dash-stat-card">
-            <div class="icon-container" style="color: #ec4899; background: #fce7f3;">
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card h-100">
+            <div class="icon-container" style="color:#ec4899;background:#fce7f3;">
                 <i class="bi bi-journal-album"></i>
             </div>
             <div>
                 <h3 class="mb-0 fw-bold">{{ courses_count }}</h3>
                 <span class="text-muted small fw-medium">Total Courses</span>
+                <div class="small text-muted mt-1">{{ free_courses }} free · {{ paid_courses }} paid</div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="dash-stat-card">
-            <div class="icon-container" style="color: #22c55e; background: #dcfce7;">
-                <i class="bi bi-award-fill"></i>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card h-100">
+            <div class="icon-container" style="color:#22c55e;background:#dcfce7;">
+                <i class="bi bi-person-check-fill"></i>
             </div>
             <div>
-                <h3 class="mb-0 fw-bold">{{ avg_completion_rate }}%</h3>
-                <span class="text-muted small fw-medium">Avg Completion Rate</span>
+                <h3 class="mb-0 fw-bold">{{ total_enrollments }}</h3>
+                <span class="text-muted small fw-medium">Enrollments</span>
+                <div class="small text-success mt-1"><i class="bi bi-arrow-up-right"></i> +{{ new_enrollments_week }} this week</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card h-100">
+            <div class="icon-container" style="color:#f59e0b;background:#fef3c7;">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">${{ '%.0f'|format(total_revenue) }}</h3>
+                <span class="text-muted small fw-medium">Total Revenue</span>
+                <div class="small text-muted mt-1">${{ '%.0f'|format(revenue_month) }} this month</div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Instructor Performances -->
-<div class="mb-5" data-aos="fade-up" data-aos-delay="200">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold mb-0">Instructor Performances</h4>
+<!-- Secondary KPIs -->
+<div class="row g-3 mb-4" data-aos="fade-up" data-aos-delay="80">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:#e0e7ff;color:#6366f1;">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5">{{ students_count }}</div>
+                    <div class="text-muted small">Students</div>
+                </div>
+            </div>
+        </div>
     </div>
-    
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:#fce7f3;color:#ec4899;">
+                    <i class="bi bi-person-workspace"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5">{{ instructors_count }}</div>
+                    <div class="text-muted small">Instructors</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:#dcfce7;color:#22c55e;">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5">{{ avg_completion_rate }}%</div>
+                    <div class="text-muted small">Avg Completion</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:#fef3c7;color:#f59e0b;">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5">{{ total_completions }}</div>
+                    <div class="text-muted small">Completions</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8" data-aos="fade-up" data-aos-delay="100">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Growth Overview</h5>
+                    <span class="badge bg-light text-muted">Last 14 days</span>
+                </div>
+                <div style="position:relative;height:280px;">
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4" data-aos="fade-up" data-aos-delay="120">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">User Distribution</h5>
+                <div style="position:relative;height:220px;">
+                    <canvas id="roleChart"></canvas>
+                </div>
+                <div class="d-flex justify-content-center gap-3 mt-3 flex-wrap">
+                    <span class="small"><span class="d-inline-block rounded-circle me-1" style="width:10px;height:10px;background:#6366f1;"></span> Students</span>
+                    <span class="small"><span class="d-inline-block rounded-circle me-1" style="width:10px;height:10px;background:#ec4899;"></span> Instructors</span>
+                    <span class="small"><span class="d-inline-block rounded-circle me-1" style="width:10px;height:10px;background:#f59e0b;"></span> Admins</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-4" data-aos="fade-up" data-aos-delay="140">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Revenue Trend</h5>
+                <div style="position:relative;height:200px;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4" data-aos="fade-up" data-aos-delay="150">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Course Types</h5>
+                <div style="position:relative;height:200px;">
+                    <canvas id="courseTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4" data-aos="fade-up" data-aos-delay="160">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Recent Payments</h5>
+                {% if recent_payments %}
+                <div class="list-group list-group-flush">
+                    {% for p in recent_payments %}
+                    <div class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 border-bottom">
+                        <div>
+                            <div class="fw-semibold small">{{ p.student.name if p.student else 'Student' }}</div>
+                            <div class="text-muted" style="font-size:0.75rem;">{{ p.course.title if p.course else 'Course' }}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-success small">${{ '%.2f'|format(p.amount) }}</div>
+                            <div class="text-muted" style="font-size:0.7rem;">{{ p.payment_date.strftime('%b %d') if p.payment_date else '' }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted small mb-0">No successful payments yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Courses + Recent Enrollments -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-7" data-aos="fade-up" data-aos-delay="180">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-body p-0">
+                <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-2">
+                    <h5 class="fw-bold mb-0">Top Courses by Enrollment</h5>
+                    <a href="{{ url_for('admin.courses') }}" class="small text-primary text-decoration-none">View all</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Course</th>
+                                <th class="border-0 py-3 text-muted small fw-bold text-uppercase">Instructor</th>
+                                <th class="border-0 py-3 text-muted small fw-bold text-uppercase">Type</th>
+                                <th class="border-0 pe-4 py-3 text-muted small fw-bold text-uppercase text-end">Enrollments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in top_courses %}
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if c.thumbnail %}
+                                        <img src="{{ url_for('static', filename='uploads/thumbnails/' + c.thumbnail) }}" class="rounded-3 object-fit-cover" width="48" height="32" alt="">
+                                        {% else %}
+                                        <div class="rounded-3 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width:48px;height:32px;">
+                                            <i class="bi bi-camera-video" style="font-size:0.85rem;"></i>
+                                        </div>
+                                        {% endif %}
+                                        <span class="fw-semibold small">{{ c.title }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 small text-muted">{{ c.instructor_name }}</td>
+                                <td class="py-3">
+                                    {% if c.course_type == 'Paid' %}
+                                    <span class="badge rounded-pill" style="background:#fef3c7;color:#b45309;">${{ '%.0f'|format(c.price) }}</span>
+                                    {% else %}
+                                    <span class="badge rounded-pill" style="background:#dcfce7;color:#15803d;">Free</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 py-3 text-end fw-bold">{{ c.enroll_count }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center text-muted py-4">No courses yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5" data-aos="fade-up" data-aos-delay="200">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Recent Enrollments</h5>
+                {% if recent_enrollments %}
+                <div class="d-flex flex-column gap-3">
+                    {% for enr in recent_enrollments %}
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width:40px;height:40px;font-size:0.85rem;">
+                            {{ (enr.student.name[0] if enr.student else '?')|upper }}
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold small text-truncate">{{ enr.student.name if enr.student else 'Unknown' }}</div>
+                            <div class="text-muted text-truncate" style="font-size:0.75rem;">{{ enr.course.title if enr.course else 'Course' }}</div>
+                        </div>
+                        <div class="text-muted text-nowrap" style="font-size:0.7rem;">
+                            {{ enr.enrolled_at.strftime('%b %d') if enr.enrolled_at else '' }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted small mb-0">No enrollments yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Instructor Performance -->
+<div class="mb-4" data-aos="fade-up" data-aos-delay="220">
+    <h5 class="fw-bold mb-3">Instructor Performance</h5>
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
                 <thead class="bg-light">
                     <tr>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">ID</th>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Name</th>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Email</th>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Courses Created</th>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Joined</th>
+                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Instructor</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase text-center">Courses</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase text-center">Enrollments</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase text-center">Completions</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase text-center">Rate</th>
+                        <th class="border-0 pe-4 py-3 text-muted small fw-bold text-uppercase text-end">Revenue</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for user in instructors %}
+                    {% for instr in instructors %}
                     <tr>
-                        <td class="px-4 py-3">#{{ user.id }}</td>
-                        <td class="px-4 py-3 fw-bold">{{ user.name }}</td>
-                        <td class="px-4 py-3 text-muted">{{ user.email }}</td>
-                        <td class="px-4 py-3"><span class="badge bg-primary-subtle text-primary">{{ user.courses_taught|length }} Courses</span></td>
-                        <td class="px-4 py-3 text-muted small">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width:38px;height:38px;font-size:0.85rem;">
+                                    {{ instr.name[0]|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-semibold small">{{ instr.name }}</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">{{ instr.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 text-center fw-semibold">{{ instr.course_count }}</td>
+                        <td class="py-3 text-center fw-semibold">{{ instr.enroll_count }}</td>
+                        <td class="py-3 text-center fw-semibold">{{ instr.completion_count }}</td>
+                        <td class="py-3 text-center">
+                            <span class="badge rounded-pill {% if instr.completion_rate >= 70 %}bg-success{% elif instr.completion_rate >= 40 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ instr.completion_rate }}%
+                            </span>
+                        </td>
+                        <td class="pe-4 py-3 text-end fw-bold text-success">${{ '%.0f'|format(instr.revenue) }}</td>
                     </tr>
                     {% else %}
-                    <tr>
-                        <td colspan="5" class="px-4 py-4 text-center text-muted">No instructors found.</td>
-                    </tr>
+                    <tr><td colspan="6" class="text-center text-muted py-4">No instructors yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -83,54 +340,161 @@
     </div>
 </div>
 
-<!-- Student Performances -->
-<div class="mb-5" data-aos="fade-up" data-aos-delay="300">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold mb-0">Student Performances</h4>
-    </div>
-    
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">ID</th>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Name</th>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Email</th>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Enrollments</th>
-                        <th class="border-0 px-4 py-3 text-muted small fw-bold text-uppercase">Joined</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in students %}
-                    <tr>
-                        <td class="px-4 py-3">#{{ user.id }}</td>
-                        <td class="px-4 py-3 fw-bold">{{ user.name }}</td>
-                        <td class="px-4 py-3 text-muted">{{ user.email }}</td>
-                        <td class="px-4 py-3">
-                            <div class="d-flex flex-column">
-                                <span class="badge bg-success-subtle text-success align-self-start">{{ user.enrollments|length }} Courses</span>
-                                {% if user.enrollments %}
-                                    <small class="text-muted mt-1" style="font-size: 0.75rem;">Avg Progress: 
-                                    {% set total_prog = namespace(value=0) %}
-                                    {% for e in user.enrollments %}
-                                        {% set total_prog.value = total_prog.value + e.progress_percent %}
-                                    {% endfor %}
-                                    {{ (total_prog.value / user.enrollments|length)|round(1) }}%
-                                    </small>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 text-muted small">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5" class="px-4 py-4 text-center text-muted">No students found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<!-- Recent Activity -->
+{% if recent_activity %}
+<div class="mb-4" data-aos="fade-up" data-aos-delay="240">
+    <h5 class="fw-bold mb-3">Recent Activity</h5>
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            {% for log in recent_activity %}
+            <div class="d-flex gap-3 mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;">
+                    <i class="bi bi-activity text-primary" style="font-size:0.9rem;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="small fw-semibold">{{ log.user.name if log.user else 'System' }}</div>
+                    <div class="text-muted small">{{ log.action }}</div>
+                </div>
+                <div class="text-muted text-nowrap" style="font-size:0.7rem;">
+                    {{ log.timestamp.strftime('%b %d, %H:%M') if log.timestamp else '' }}
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const labels = {{ chart_labels | tojson }};
+    const userGrowth = {{ user_growth | tojson }};
+    const enrollmentGrowth = {{ enrollment_growth | tojson }};
+    const revenueByDay = {{ revenue_by_day | tojson }};
+    const roleLabels = {{ role_distribution.labels | tojson }};
+    const roleData = {{ role_distribution.data | tojson }};
+    const typeLabels = {{ course_type_split.labels | tojson }};
+    const typeData = {{ course_type_split.data | tojson }};
+
+    const gridColor = 'rgba(0,0,0,0.05)';
+
+    new Chart(document.getElementById('growthChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'New Users',
+                    data: userGrowth,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99,102,241,0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                },
+                {
+                    label: 'Enrollments',
+                    data: enrollmentGrowth,
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34,197,94,0.08)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', labels: { usePointStyle: true, font: { size: 12 } } },
+                tooltip: { backgroundColor: '#1e293b', padding: 12, cornerRadius: 8 }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { precision: 0, font: { size: 11 } } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('roleChart'), {
+        type: 'doughnut',
+        data: {
+            labels: roleLabels,
+            datasets: [{
+                data: roleData,
+                backgroundColor: ['#6366f1', '#ec4899', '#f59e0b'],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: '#1e293b', padding: 10, cornerRadius: 8 }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Revenue ($)',
+                data: revenueByDay,
+                backgroundColor: 'rgba(245,158,11,0.7)',
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1e293b', padding: 10, cornerRadius: 8,
+                    callbacks: { label: ctx => '$' + ctx.parsed.y.toFixed(2) }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { font: { size: 11 } } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('courseTypeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: typeLabels,
+            datasets: [{
+                data: typeData,
+                backgroundColor: ['#22c55e', '#6366f1'],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 12 } } },
+                tooltip: { backgroundColor: '#1e293b', padding: 10, cornerRadius: 8 }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

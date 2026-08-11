@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Settings - LearnSphere AI{% endblock %}
+{% block title %}Settings - AuraLearn{% endblock %}
 
 {% block content %}
 <div class="container-premium py-5">
@@ -10,19 +10,27 @@
             <div class="card glass-card h-100">
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        <img src="{% if current_user.profile_photo == 'default.jpg' %}{{ url_for('static', filename='images/default.jpg') }}{% else %}{{ url_for('uploaded_file', filename=current_user.profile_photo) }}{% endif %}" alt="Profile Photo" class="rounded-circle img-thumbnail mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                        <img src="{% if current_user.profile_photo == 'default.jpg' %}{{ url_for('static', filename='images/default.jpg') }}{% else %}{{ url_for('uploaded_file', filename=current_user.profile_photo) }}{% endif %}" 
+                             alt="Profile Photo" class="rounded-circle img-thumbnail mb-3" 
+                             style="width: 120px; height: 120px; object-fit: cover;">
                         <h5 class="fw-bold">{{ current_user.name }}</h5>
                         <p class="text-muted small text-capitalize">{{ current_user.role.name }}</p>
                     </div>
                     <ul class="nav flex-column nav-pills">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#"><i class="bi bi-person me-2"></i> Profile</a>
+                            <a class="nav-link active" href="{{ url_for('settings.profile') }}">
+                                <i class="bi bi-person me-2"></i> Profile
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="bi bi-lock me-2"></i> Security</a>
+                            <a class="nav-link" href="{{ url_for('settings.security') }}">
+                                <i class="bi bi-shield-lock me-2"></i> Security
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="bi bi-bell me-2"></i> Notifications</a>
+                            <a class="nav-link" href="{{ url_for('settings.profile') }}#notifications">
+                                <i class="bi bi-bell me-2"></i> Notifications
+                            </a>
                         </li>
                     </ul>
                 </div>
@@ -74,7 +82,7 @@
                             <textarea class="form-control" id="bio" name="bio" rows="4">{{ current_user.bio or '' }}</textarea>
                         </div>
                         
-                        <div class="mb-4">
+                        <div class="mb-4" id="notifications">
                             <h5 class="fw-bold mb-3">Preferences</h5>
                             
                             <div class="form-check form-switch mb-3">

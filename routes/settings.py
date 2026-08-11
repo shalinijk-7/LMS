@@ -5,6 +5,7 @@ from models import db, Setting, User
 
 settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
 
+
 @settings_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def profile():
@@ -34,7 +35,7 @@ def profile():
         if not current_user.settings:
             current_user.settings = Setting(user_id=current_user.id)
         
-        # Theme (only allow valid themes)
+        # Theme
         theme = request.form.get('theme', 'default')
         if theme not in ['default', 'dark', 'ocean', 'forest']:
             theme = 'default'
@@ -51,6 +52,23 @@ def profile():
         return redirect(url_for('settings.profile'))
         
     return render_template('settings/profile.html')
+
+
+@settings_bp.route('/security', methods=['GET', 'POST'])
+@login_required
+def security():
+    if request.method == 'POST':
+        if not current_user.settings:
+            current_user.settings = Setting(user_id=current_user.id)
+
+        # 2FA toggle
+        current_user.settings.two_factor_enabled = True if request.form.get('two_factor_enabled') else False
+
+        db.session.commit()
+        flash('Security settings updated successfully.', 'success')
+        return redirect(url_for('settings.security'))
+
+    return render_template('settings/security.html')
 
 
 @settings_bp.route('/update_notif_pref', methods=['POST'])
@@ -85,3 +103,29 @@ def update_theme():
     current_user.settings.theme = theme
     db.session.commit()
     return {'status': 'success', 'theme': theme}
+@settings_bp.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        if not current_user.check_password(current_password):
+            flash('Current password is incorrect.', 'danger')
+            return redirect(url_for('settings.change_password'))
+
+        if new_password != confirm_password:
+            flash('New passwords do not match.', 'danger')
+            return redirect(url_for('settings.change_password'))
+
+        if len(new_password) < 6:
+            flash('New password must be at least 6 characters.', 'danger')
+            return redirect(url_for('settings.change_password'))
+
+        current_user.set_password(new_password)
+        db.session.commit()
+        flash('Password changed successfully!', 'success')
+        return redirect(url_for('settings.security'))
+
+    return render_template('settings/change_password.html')

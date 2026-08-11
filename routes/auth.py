@@ -1,13 +1,14 @@
 # Handles user authentication and account management features.
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
 from flask_login import login_user, logout_user, login_required, current_user
-from models import db, User, Role
+from models import db, User, Role, Setting
 from werkzeug.security import generate_password_hash
 import uuid
 import time
 from utils.email import generate_otp, send_otp_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -18,7 +19,7 @@ def register():
         name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
-        role_name = request.form.get('role', 'student') # Default to student
+        role_name = request.form.get('role', 'student')  # Default to student
         
         # Check if user exists
         if User.query.filter_by(email=email).first():
@@ -42,11 +43,17 @@ def register():
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
+
+        # Create default settings for the new user
+        settings = Setting(user_id=user.id)
+        db.session.add(settings)
+        db.session.commit()
         
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('auth.login'))
         
     return render_template('auth/register.html')
+
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -54,17 +61,42 @@ def login():
         return redirect_user_by_role(current_user)
         
     if request.method == 'POST':
-        email = request.form.get('email')
+        email = request.form.get('email', '').strip().lower()
         password = request.form.get('password')
         remember = True if request.form.get('remember') else False
         
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
+            # Check if 2FA is enabled
+            settings = user.settings
+            two_factor_enabled = settings and getattr(settings, 'two_factor_enabled', False)
+
+            if two_factor_enabled:
+                # Generate OTP
+                otp = generate_otp()
+
+                # Store temporarily in session (separate from password-reset OTP)
+                session['2fa_user_id'] = user.id
+                session['2fa_otp'] = otp
+                session['2fa_expiry'] = time.time() + 600          # 10 minutes
+                session['2fa_attempts'] = 0
+                session['2fa_remember'] = remember
+
+                # Send OTP email
+                try:
+                    send_otp_email(user.email, otp)
+                    flash('A verification code has been sent to your email.', 'info')
+                    return redirect(url_for('auth.verify_2fa'))
+                except Exception as e:
+                    print("2FA Email Error:", e)
+                    flash('Could not send verification code. Please try again.', 'danger')
+                    return redirect(url_for('auth.login'))
+
+            # Normal login (2FA not enabled)
             login_user(user, remember=remember)
             flash('Logged in successfully.', 'success')
             
-            # Redirect to next page or default role dashboard
             next_page = request.args.get('next')
             if next_page:
                 return redirect(next_page)
@@ -74,12 +106,71 @@ def login():
             
     return render_template('auth/login.html')
 
+
+@auth_bp.route('/verify-2fa', methods=['GET', 'POST'])
+def verify_2fa():
+    """2-Step Verification page after password is correct."""
+    if '2fa_user_id' not in session or '2fa_otp' not in session:
+        flash('Session expired. Please login again.', 'warning')
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        otp_input = request.form.get('otp', '').strip()
+
+        # Check expiry
+        if time.time() > session.get('2fa_expiry', 0):
+            session.pop('2fa_user_id', None)
+            session.pop('2fa_otp', None)
+            session.pop('2fa_expiry', None)
+            session.pop('2fa_attempts', None)
+            session.pop('2fa_remember', None)
+            flash('Verification code has expired. Please login again.', 'danger')
+            return redirect(url_for('auth.login'))
+
+        # Check attempts
+        attempts = session.get('2fa_attempts', 0)
+        if attempts >= 5:
+            session.pop('2fa_user_id', None)
+            session.pop('2fa_otp', None)
+            session.pop('2fa_expiry', None)
+            session.pop('2fa_attempts', None)
+            session.pop('2fa_remember', None)
+            flash('Too many failed attempts. Please login again.', 'danger')
+            return redirect(url_for('auth.login'))
+
+        if otp_input == session.get('2fa_otp'):
+            user = User.query.get(session['2fa_user_id'])
+            remember = session.get('2fa_remember', False)
+
+            # Clear 2FA session data
+            session.pop('2fa_user_id', None)
+            session.pop('2fa_otp', None)
+            session.pop('2fa_expiry', None)
+            session.pop('2fa_attempts', None)
+            session.pop('2fa_remember', None)
+
+            if user:
+                login_user(user, remember=remember)
+                flash('Logged in successfully.', 'success')
+                return redirect_user_by_role(user)
+            else:
+                flash('User not found. Please try again.', 'danger')
+                return redirect(url_for('auth.login'))
+        else:
+            session['2fa_attempts'] = attempts + 1
+            remaining = 5 - (attempts + 1)
+            flash(f'Invalid verification code. {remaining} attempts remaining.', 'danger')
+
+    return render_template('auth/verify_2fa.html')
+
+
 @auth_bp.route('/logout')
 @login_required
 def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
+
 
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -102,6 +193,7 @@ def forgot_password():
         else:
             flash('If an account exists with that email, a password reset link has been sent.', 'info')
     return render_template('auth/forgot_password.html')
+
 
 @auth_bp.route('/verify-otp', methods=['GET', 'POST'])
 def verify_otp():
@@ -135,6 +227,7 @@ def verify_otp():
             
     return render_template('auth/otp_verification.html')
 
+
 @auth_bp.route('/reset-password', methods=['GET', 'POST'])
 def reset_password():
     if not session.get('otp_verified') or 'reset_email' not in session:
@@ -159,6 +252,7 @@ def reset_password():
             return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html')
 
+
 # --- Google OAuth Routes ---
 
 @auth_bp.route('/login/google')
@@ -170,6 +264,7 @@ def google_login():
         
     redirect_uri = url_for('auth.google_authorize', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
+
 
 @auth_bp.route('/authorize/google')
 def google_authorize():
@@ -207,13 +302,19 @@ def google_authorize():
             email=email,
             role_id=role.id
         )
-        user.set_password(str(uuid.uuid4())) # Random password
+        user.set_password(str(uuid.uuid4()))  # Random password
         db.session.add(user)
+        db.session.commit()
+
+        # Create default settings
+        settings = Setting(user_id=user.id)
+        db.session.add(settings)
         db.session.commit()
         
     login_user(user)
     flash('Logged in successfully via Google.', 'success')
     return redirect_user_by_role(user)
+
 
 def redirect_user_by_role(user):
     if user.role.name == 'admin':
