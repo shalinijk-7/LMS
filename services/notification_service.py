@@ -36,3 +36,26 @@ def send_notification(user_id, title, message, notification_type='info', icon='b
     socketio.emit('new_notification', notification_data, room=f'user_{user_id}')
     
     return notification
+
+def notify_admins(title, message, notification_type='info', icon='bi-info-circle', action_url=None, sender_id=None):
+    """
+    Sends a notification to all users with the 'admin' role.
+    """
+    from models import Role
+    
+    admin_roles = Role.query.filter(Role.name.ilike('admin')).all()
+    if not admin_roles:
+        return
+        
+    for admin_role in admin_roles:
+        for admin in admin_role.users:
+            send_notification(
+                user_id=admin.id,
+                title=title,
+                message=message,
+                notification_type=notification_type,
+                icon=icon,
+                action_url=action_url,
+                sender_id=sender_id
+            )
+

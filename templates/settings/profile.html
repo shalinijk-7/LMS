@@ -76,6 +76,20 @@
                         </div>
                         
                         <div class="mb-4">
+                            <h5 class="fw-bold mb-3">Security</h5>
+                            
+                            <div class="form-check form-switch mb-4 p-3 bg-light rounded border">
+                                <input class="form-check-input ms-0 mt-1 me-3" type="checkbox" id="two_factor_enabled" name="two_factor_enabled" {% if current_user.two_factor_enabled or current_user.role.name in ['admin', 'instructor'] %}checked{% endif %} {% if current_user.role.name in ['admin', 'instructor'] %}disabled{% endif %}>
+                                <label class="form-check-label fw-bold text-primary" for="two_factor_enabled">Enable Two-Factor Authentication (2FA)</label>
+                                <div class="small text-muted mt-1 ms-5">
+                                    {% if current_user.role.name in ['admin', 'instructor'] %}
+                                        2FA is required and enforced for your role to protect sensitive platform functionality.
+                                    {% else %}
+                                        Adds an extra layer of security to your account by requiring an OTP sent to your email during login.
+                                    {% endif %}
+                                </div>
+                            </div>
+
                             <h5 class="fw-bold mb-3">Preferences</h5>
                             
                             <div class="form-check form-switch mb-3">

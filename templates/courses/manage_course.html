@@ -170,8 +170,60 @@
         </div>
     </div>
     
-    <!-- Right Column: Add Lesson Form -->
+    <!-- Right Column: Demo Video & Add Lesson -->
     <div class="col-lg-5 col-xl-4 mb-4" data-aos="fade-left" data-aos-delay="200">
+        
+        <!-- Manage Demo Video -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-purple-subtle text-purple" style="width: 36px; height: 36px; background-color: rgba(111, 66, 193, 0.1); color: #6f42c1;">
+                        <i class="bi bi-camera-video-fill"></i>
+                    </div>
+                    Demo Video
+                </h5>
+                {% if course.demo_video_url or course.demo_video_file %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">Available</span>
+                {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1">Not Added</span>
+                {% endif %}
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form method="POST" action="{{ url_for('courses.update_demo_video', course_id=course.id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small" style="letter-spacing: 0.5px; text-transform: uppercase;">Demo Title</label>
+                        <input type="text" name="demo_video_title" class="form-control form-control-sm bg-white border-0 shadow-sm rounded-3" value="{{ course.demo_video_title or '' }}" placeholder="e.g. Course Preview">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small" style="letter-spacing: 0.5px; text-transform: uppercase;">Video URL</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-0 shadow-sm border-end-0"><i class="bi bi-link-45deg"></i></span>
+                            <input type="url" name="demo_video_url" class="form-control form-control-sm bg-white border-0 shadow-sm border-start-0 ps-0" value="{{ course.demo_video_url or '' }}" placeholder="YouTube/Vimeo URL">
+                        </div>
+                    </div>
+                    <div class="position-relative mb-3 text-center">
+                        <hr class="text-muted">
+                        <span class="position-absolute top-50 start-50 translate-middle bg-light px-2 small text-muted fw-bold" style="margin-top: -1px;">OR UPLOAD</span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small" style="letter-spacing: 0.5px; text-transform: uppercase;">Upload Video File</label>
+                        <input type="file" name="demo_video_file" accept="video/*" class="form-control form-control-sm bg-white border-0 shadow-sm">
+                        {% if course.demo_video_file %}
+                            <div class="mt-2 small text-muted">
+                                <i class="bi bi-file-earmark-play-fill text-primary"></i> Current file: {{ course.demo_video_file.split('/')[-1] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" name="action" value="update" class="btn btn-primary btn-sm rounded-pill fw-bold flex-grow-1 shadow hover-lift"><i class="bi bi-save me-1"></i> Save Demo</button>
+                        {% if course.demo_video_url or course.demo_video_file %}
+                            <button type="submit" name="action" value="delete" class="btn btn-outline-danger btn-sm rounded-pill fw-bold flex-grow-0 px-3 shadow-sm hover-lift" onclick="return confirm('Are you sure you want to delete the demo video?');"><i class="bi bi-trash-fill"></i></button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card border-0 shadow-sm rounded-4 sticky-top overflow-hidden" style="top: 2rem;">
             <div class="card-header bg-white border-bottom p-4">
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">

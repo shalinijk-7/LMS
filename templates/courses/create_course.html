@@ -13,7 +13,7 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
             <div class="card-body p-4 p-md-5">
-                <form method="POST" action="{{ url_for('courses.create_course') }}">
+                <form method="POST" action="{{ url_for('courses.create_course') }}" enctype="multipart/form-data">
                     <div class="mb-4">
                         <label for="title" class="form-label fw-bold text-dark">Course Title</label>
                         <input type="text" id="title" name="title" class="form-control form-control-lg bg-light border-0" placeholder="e.g. Complete Web Development Bootcamp" required>
@@ -54,6 +54,27 @@
                         <div class="col-md-6 mb-4">
                             <label for="price" class="form-label fw-bold text-dark">Price</label>
                             <input type="number" step="0.01" id="price" name="price" class="form-control form-control-lg bg-light border-0" placeholder="0.00" value="0.00">
+                        </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4 text-muted opacity-25">
+                    
+                    <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-camera-video me-2"></i> Course Demo Video <span class="text-muted small fw-normal">(Optional)</span></h5>
+                    
+                    <div class="mb-3">
+                        <label for="demo_video_title" class="form-label fw-bold text-dark">Demo Video Title</label>
+                        <input type="text" id="demo_video_title" name="demo_video_title" class="form-control bg-light border-0" placeholder="e.g. Course Preview">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="demo_video_url" class="form-label fw-bold text-dark">Video URL (YouTube/Vimeo)</label>
+                            <input type="url" id="demo_video_url" name="demo_video_url" class="form-control bg-light border-0" placeholder="https://...">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="demo_video_file" class="form-label fw-bold text-dark">Or Upload Video File</label>
+                            <input type="file" id="demo_video_file" name="demo_video_file" accept="video/*" class="form-control bg-light border-0">
                         </div>
                     </div>
                     

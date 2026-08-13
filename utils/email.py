@@ -52,3 +52,25 @@ def send_otp_email(recipient, otp):
     """
     
     return send_email(subject, recipient, body, html_body)
+
+def send_2fa_otp_email(recipient, otp):
+    """Send 2FA OTP email to the user."""
+    subject = "Your 2FA Login Code - AuraLearn"
+    body = f"Hello,\n\nYour Two-Factor Authentication code is: {otp}\n\nThis code will expire in 5 minutes.\nIf you did not attempt to log in, please secure your account immediately.\n\nAuraLearn Team"
+    
+    html_body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <h2 style="color: #2563EB;">Two-Factor Authentication</h2>
+        <p>Hello,</p>
+        <p>Use the following One-Time Password (OTP) to complete your login:</p>
+        <div style="background-color: #f3f4f6; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
+            <h1 style="letter-spacing: 5px; color: #1f2937; margin: 0;">{otp}</h1>
+        </div>
+        <p style="color: #ef4444; font-size: 0.9em;">This OTP will expire in 5 minutes.</p>
+        <p>If you did not attempt to log in, please secure your account immediately.</p>
+        <hr style="border: 0; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+        <p style="color: #6b7280; font-size: 0.8em; text-align: center;">AuraLearn Team</p>
+    </div>
+    """
+    
+    return send_email(subject, recipient, body, html_body)

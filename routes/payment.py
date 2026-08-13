@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
+from utils.decorators import student_required
 from models import db, Course, Payment, PurchaseHistory, Enrollment
 from datetime import datetime
 import uuid
@@ -8,14 +9,12 @@ payment_bp = Blueprint('payment', __name__, url_prefix='/payment')
 
 @payment_bp.route('/checkout/<int:course_id>')
 @login_required
+@student_required
 def checkout(course_id):
     """
     Handles the checkout functionality.
     """
-    if current_user.role.name != 'student':
-        flash('Only students can purchase courses.', 'error')
-        return redirect(url_for('courses.course_details', course_id=course_id))
-        
+
     course = Course.query.get_or_404(course_id)
     
     if course.course_type == 'Free':
@@ -35,13 +34,12 @@ def checkout(course_id):
 
 @payment_bp.route('/process/<int:course_id>', methods=['POST'])
 @login_required
+@student_required
 def process_payment(course_id):
     """
     Handles the process payment functionality.
     """
-    if current_user.role.name != 'student':
-        return redirect(url_for('main.index'))
-        
+
     course = Course.query.get_or_404(course_id)
     payment_method = request.form.get('payment_method', 'Card')
     
@@ -87,6 +85,15 @@ def process_payment(course_id):
         action_url="/instructor/dashboard"
     )
     
+    send_notification(
+        user_id=current_user.id,
+        title="Payment Successful",
+        message=f"You have successfully purchased and enrolled in '{course.title}'.",
+        notification_type="success",
+        icon="bi-bag-check-fill",
+        action_url=f"/courses/{course.id}/start"
+    )
+    
     db.session.commit()
     
     flash('Payment successful! You are now enrolled.', 'success')
@@ -94,6 +101,7 @@ def process_payment(course_id):
 
 @payment_bp.route('/success/<transaction_id>')
 @login_required
+@student_required
 def success(transaction_id):
     """
     Handles the success functionality.

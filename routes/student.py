@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
+from utils.decorators import student_required
 from models import db, Enrollment, Result, Submission
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
 
 @student_bp.route('/dashboard')
 @login_required
+@student_required
 def dashboard():
     """
     Handles the dashboard functionality.
@@ -81,15 +83,12 @@ def dashboard():
 
 @student_bp.route('/sessions')
 @login_required
+@student_required
 def sessions():
     """
     Handles the sessions functionality.
     """
-    if current_user.role.name != 'student':
-        from flask import flash, redirect, url_for
-        flash('Only students can view this page.', 'error')
-        return redirect(url_for('dashboard.index'))
-        
+
     from models import LiveSession, Enrollment
     # Get course IDs the student is enrolled in
     enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
@@ -103,15 +102,12 @@ def sessions():
 
 @student_bp.route('/analytics')
 @login_required
+@student_required
 def analytics():
     """
     Handles the analytics functionality.
     """
-    if current_user.role.name != 'student':
-        from flask import flash, redirect, url_for
-        flash('Only students can view this page.', 'error')
-        return redirect(url_for('dashboard.index'))
-        
+
     enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
     quiz_results = Result.query.filter_by(student_id=current_user.id).order_by(Result.submitted_at.desc()).all()
     submissions = Submission.query.filter_by(student_id=current_user.id).order_by(Submission.submitted_at.desc()).all()
@@ -123,15 +119,12 @@ def analytics():
 
 @student_bp.route('/attendance')
 @login_required
+@student_required
 def attendance():
     """
     Handles the attendance functionality.
     """
-    if current_user.role.name != 'student':
-        from flask import flash, redirect, url_for
-        flash('Only students can view this page.', 'error')
-        return redirect(url_for('dashboard.index'))
-        
+
     from models import Attendance, Enrollment, Course
     from flask import request
     
@@ -162,15 +155,12 @@ def attendance():
 
 @student_bp.route('/payment-history')
 @login_required
+@student_required
 def payment_history():
     """
     Handles the payment history functionality.
     """
-    if current_user.role.name != 'student':
-        from flask import flash, redirect, url_for
-        flash('Only students can view this page.', 'error')
-        return redirect(url_for('main.index'))
-        
+
     from models import Payment
     payments = Payment.query.filter_by(student_id=current_user.id).order_by(Payment.payment_date.desc()).all()
     

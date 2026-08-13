@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
+from utils.decorators import admin_required
 from datetime import datetime, timedelta
 from sqlalchemy import func, cast, Date, desc
 
@@ -13,6 +14,7 @@ analytics_bp = Blueprint('analytics', __name__, url_prefix='/analytics')
 
 @analytics_bp.route('/')
 @login_required
+@admin_required
 def index():
     """
     Renders the main analytics dashboard template. Data is fetched via AJAX.
@@ -21,6 +23,7 @@ def index():
 
 @analytics_bp.route('/api/data')
 @login_required
+@admin_required
 def get_analytics_data():
     """
     Returns JSON data for the analytics dashboard charts and KPIs, filtered by date.

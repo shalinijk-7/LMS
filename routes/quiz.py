@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
+from utils.decorators import student_required
 from models import Quiz, Question, Answer, Result
 from models import Course
 from models import db
@@ -21,6 +22,7 @@ def list_quizzes(course_id):
 
 @quiz_bp.route('/take/<int:quiz_id>', methods=['GET', 'POST'])
 @login_required
+@student_required
 def take_quiz(quiz_id):
     """
     Handles the take quiz functionality.
@@ -56,6 +58,17 @@ def take_quiz(quiz_id):
         db.session.add(new_result)
         db.session.commit()
         
+        from services.notification_service import send_notification
+        send_notification(
+            user_id=current_user.id,
+            title="Quiz Completed",
+            message=f"You scored {score} out of {total} in '{quiz.title}'.",
+            notification_type='success',
+            icon='bi-patch-check-fill',
+            action_url=f'/quiz/result/{quiz.id}',
+            sender_id=None
+        )
+        
         flash(f'Quiz submitted! You scored {score} out of {total}!', 'success')
         return redirect(url_for('quiz.quiz_result', quiz_id=quiz.id))
         
@@ -63,6 +76,7 @@ def take_quiz(quiz_id):
 
 @quiz_bp.route('/result/<int:quiz_id>')
 @login_required
+@student_required
 def quiz_result(quiz_id):
     """
     Handles the quiz result functionality.

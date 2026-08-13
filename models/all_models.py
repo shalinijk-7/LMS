@@ -31,6 +31,13 @@ class User(UserMixin, db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # 2FA fields
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    otp_hash = db.Column(db.String(255), nullable=True)
+    otp_expires_at = db.Column(db.DateTime, nullable=True)
+    otp_attempts = db.Column(db.Integer, default=0)
+    otp_last_sent_at = db.Column(db.DateTime, nullable=True)
+    
     # Relationships
     settings = db.relationship('Setting', backref='user', uselist=False, cascade='all, delete-orphan')
     enrollments = db.relationship('Enrollment', backref='student', lazy=True)
@@ -101,6 +108,9 @@ class Course(db.Model):
     course_type = db.Column(db.String(20), default='Free') # Free, Paid
     price = db.Column(db.Float, default=0.0)
     currency = db.Column(db.String(10), default='USD')
+    demo_video_title = db.Column(db.String(200), nullable=True)
+    demo_video_url = db.Column(db.String(255), nullable=True)
+    demo_video_file = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -379,6 +389,8 @@ class Certificate(db.Model):
     certificate_id = db.Column(db.String(100), unique=True, nullable=False)
     file_path = db.Column(db.String(255))
     issued_at = db.Column(db.DateTime, default=datetime.utcnow)
+    email_sent = db.Column(db.Boolean, default=False)
+    email_sent_at = db.Column(db.DateTime, nullable=True)
     
     course = db.relationship('Course', backref='course_certificates', lazy=True)
 

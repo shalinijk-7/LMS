@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
+from utils.decorators import instructor_required, student_required
 from models import Course
 from models import Enrollment
 from models import db
@@ -34,14 +35,11 @@ def course_details(course_id):
 
 @courses_bp.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
+@student_required
 def enroll(course_id):
     """
     Handles the enroll functionality.
     """
-    if current_user.role.name != 'student':
-        flash('Only students can enroll in courses.', 'error')
-        return redirect(url_for('courses.course_details', course_id=course_id))
-        
     course = Course.query.get_or_404(course_id)
     
     # Check if already enrolled
@@ -67,19 +65,25 @@ def enroll(course_id):
         action_url="/instructor/students"
     )
     
+    send_notification(
+        user_id=current_user.id,
+        title="Enrollment Successful",
+        message=f"You have successfully enrolled in '{course.title}'.",
+        notification_type="success",
+        icon="bi-check-circle-fill",
+        action_url=f"/courses/{course.id}/start"
+    )
+    
     flash(f'Successfully enrolled in {course.title}!', 'success')
     return redirect(url_for('student.dashboard'))
 
 @courses_bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@instructor_required
 def create_course():
     """
     Handles the create course functionality.
     """
-    if current_user.role.name != 'instructor':
-        flash('Only instructors can create courses.', 'error')
-        return redirect(url_for('instructor.dashboard'))
-        
     if request.method == 'POST':
         title = request.form.get('title')
         description = request.form.get('description')
@@ -87,8 +91,23 @@ def create_course():
         currency = request.form.get('currency', 'USD')
         price = request.form.get('price', 0.0)
         
+        demo_video_title = request.form.get('demo_video_title')
+        demo_video_url = request.form.get('demo_video_url')
+        demo_video_file = request.files.get('demo_video_file')
+        
         if course_type == 'Free':
             price = 0.0
+            
+        final_demo_video_file = None
+        if demo_video_file and demo_video_file.filename != '':
+            import os
+            import time
+            from werkzeug.utils import secure_filename
+            from flask import current_app
+            filename = secure_filename(demo_video_file.filename)
+            filename = f"{int(time.time())}_{filename}"
+            demo_video_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            final_demo_video_file = f"/uploads/{filename}"
         
         new_course = Course(
             title=title,
@@ -96,26 +115,77 @@ def create_course():
             course_type=course_type,
             price=float(price),
             currency=currency,
-            instructor_id=current_user.id
+            instructor_id=current_user.id,
+            demo_video_title=demo_video_title,
+            demo_video_url=demo_video_url,
+            demo_video_file=final_demo_video_file
         )
         db.session.add(new_course)
         db.session.commit()
+        
+        from services.notification_service import notify_admins
+        notify_admins(
+            title="New Course Created",
+            message=f"Instructor {current_user.name} created a new course '{title}'.",
+            notification_type='info',
+            icon='bi-journal-plus',
+            action_url='/admin/courses'
+        )
         
         flash('Course created successfully!', 'success')
         return redirect(url_for('instructor.dashboard'))
         
     return render_template('courses/create_course.html')
 
+@courses_bp.route('/<int:course_id>/demo_video/update', methods=['POST'])
+@login_required
+@instructor_required
+def update_demo_video(course_id):
+    """
+    Handles the update/delete of a course's demo video.
+    """
+    course = Course.query.get_or_404(course_id)
+    if course.instructor_id != current_user.id:
+        flash('You can only manage your own courses.', 'error')
+        return redirect(url_for('instructor.dashboard'))
+        
+    action = request.form.get('action')
+    
+    if action == 'delete':
+        course.demo_video_title = None
+        course.demo_video_url = None
+        course.demo_video_file = None
+        db.session.commit()
+        flash('Demo video deleted successfully!', 'success')
+    else:
+        demo_video_title = request.form.get('demo_video_title')
+        demo_video_url = request.form.get('demo_video_url')
+        demo_video_file = request.files.get('demo_video_file')
+        
+        if demo_video_file and demo_video_file.filename != '':
+            import os
+            import time
+            from werkzeug.utils import secure_filename
+            from flask import current_app
+            filename = secure_filename(demo_video_file.filename)
+            filename = f"{int(time.time())}_{filename}"
+            demo_video_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            course.demo_video_file = f"/uploads/{filename}"
+            
+        course.demo_video_title = demo_video_title
+        course.demo_video_url = demo_video_url
+        db.session.commit()
+        flash('Demo video updated successfully!', 'success')
+        
+    return redirect(url_for('courses.manage_course', course_id=course.id))
+
 @courses_bp.route('/<int:course_id>/manage', methods=['GET'])
 @login_required
+@instructor_required
 def manage_course(course_id):
     """
     Handles the manage course functionality.
     """
-    if current_user.role.name != 'instructor':
-        flash('Only instructors can manage courses.', 'error')
-        return redirect(url_for('student.dashboard'))
-        
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
@@ -129,14 +199,11 @@ def manage_course(course_id):
 
 @courses_bp.route('/<int:course_id>/lessons/add', methods=['POST'])
 @login_required
+@instructor_required
 def add_lesson(course_id):
     """
     Handles the add lesson functionality.
     """
-    if current_user.role.name != 'instructor':
-        flash('Only instructors can add lessons.', 'error')
-        return redirect(url_for('student.dashboard'))
-        
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
@@ -201,14 +268,11 @@ def add_lesson(course_id):
 
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/material/upload', methods=['POST'])
 @login_required
+@instructor_required
 def upload_material(course_id, lesson_id):
     """
     Handles the upload material functionality.
     """
-    if current_user.role.name != 'instructor':
-        flash('Only instructors can upload materials.', 'error')
-        return redirect(url_for('student.dashboard'))
-        
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
@@ -240,6 +304,22 @@ def upload_material(course_id, lesson_id):
         )
         db.session.add(new_material)
         db.session.commit()
+        
+        # Notify enrolled students
+        from models import Enrollment
+        from services.notification_service import send_notification
+        enrollments = Enrollment.query.filter_by(course_id=course.id).all()
+        for enrollment in enrollments:
+            send_notification(
+                user_id=enrollment.user_id,
+                title="New Study Material",
+                message=f"New material '{title or file.filename}' added to {course.title}.",
+                notification_type='info',
+                icon='bi-file-earmark-text',
+                action_url=f'/courses/{course.id}/lesson/{lesson.id}',
+                sender_id=current_user.id
+            )
+            
         flash('Study material uploaded successfully!', 'success')
     else:
         flash('No file selected.', 'error')
@@ -248,14 +328,11 @@ def upload_material(course_id, lesson_id):
 
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/material/<int:material_id>/delete', methods=['POST'])
 @login_required
+@instructor_required
 def delete_material(course_id, lesson_id, material_id):
     """
     Handles the delete material functionality.
     """
-    if current_user.role.name != 'instructor':
-        flash('Only instructors can manage materials.', 'error')
-        return redirect(url_for('student.dashboard'))
-        
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
@@ -271,14 +348,11 @@ def delete_material(course_id, lesson_id, material_id):
 
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/video/delete', methods=['POST'])
 @login_required
+@instructor_required
 def delete_video(course_id, lesson_id):
     """
     Handles the delete video functionality.
     """
-    if current_user.role.name != 'instructor':
-        flash('Only instructors can manage materials.', 'error')
-        return redirect(url_for('student.dashboard'))
-        
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
@@ -296,14 +370,11 @@ def delete_video(course_id, lesson_id):
 
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/video/add', methods=['POST'])
 @login_required
+@instructor_required
 def add_lesson_video(course_id, lesson_id):
     """
     Handles the add lesson video functionality.
     """
-    if current_user.role.name != 'instructor':
-        flash('Only instructors can manage materials.', 'error')
-        return redirect(url_for('student.dashboard'))
-        
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
@@ -336,6 +407,22 @@ def add_lesson_video(course_id, lesson_id):
         new_video = Video(lesson_id=lesson.id, url=final_video_url)
         db.session.add(new_video)
         db.session.commit()
+        
+        # Notify enrolled students
+        from models import Enrollment
+        from services.notification_service import send_notification
+        enrollments = Enrollment.query.filter_by(course_id=course.id).all()
+        for enrollment in enrollments:
+            send_notification(
+                user_id=enrollment.user_id,
+                title="New Video Added",
+                message=f"A new video was added to '{lesson.title}' in {course.title}.",
+                notification_type='info',
+                icon='bi-play-btn-fill',
+                action_url=f'/courses/{course.id}/lesson/{lesson.id}',
+                sender_id=current_user.id
+            )
+            
         flash('Video added successfully!', 'success')
     else:
         flash('No video link or file provided.', 'error')
@@ -440,14 +527,11 @@ def course_start(course_id):
 
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/complete', methods=['POST'])
 @login_required
+@student_required
 def complete_lesson(course_id, lesson_id):
     """
     Handles the complete lesson functionality.
     """
-    if current_user.role.name != 'student':
-        flash('Only students can complete lessons.', 'error')
-        return redirect(url_for('courses.lesson_view', course_id=course_id, lesson_id=lesson_id))
-    
     from models import Progress
     from datetime import datetime
     
@@ -468,6 +552,8 @@ def complete_lesson(course_id, lesson_id):
     if enrollment:
         total_lessons = Lesson.query.filter_by(course_id=course_id).count()
         if total_lessons > 0:
+            old_percent = enrollment.progress_percent or 0
+            
             completed_lessons = Progress.query.join(Lesson).filter(
                 Progress.user_id == current_user.id,
                 Lesson.course_id == course_id,
@@ -475,6 +561,31 @@ def complete_lesson(course_id, lesson_id):
             ).count()
             enrollment.progress_percent = int((completed_lessons / total_lessons) * 100)
             db.session.commit()
+            
+            # If they just crossed the 100% threshold, send the Course Completed notifications
+            if old_percent < 100 and enrollment.progress_percent == 100:
+                from services.notification_service import send_notification
+                
+                # Notify Student
+                send_notification(
+                    user_id=current_user.id,
+                    title="Course Completed",
+                    message=f"Congratulations! You have completed '{enrollment.course.title}'.",
+                    notification_type='success',
+                    icon='bi-mortarboard-fill',
+                    action_url=f'/courses/{course_id}'
+                )
+                
+                # Notify Instructor
+                send_notification(
+                    user_id=enrollment.course.instructor_id,
+                    title="Course Completed",
+                    message=f"{current_user.name} has completed '{enrollment.course.title}'.",
+                    notification_type='info',
+                    icon='bi-mortarboard-fill',
+                    action_url=f'/instructor/students',
+                    sender_id=current_user.id
+                )
             
             # Check if course is completed and generate certificate if not already present
             if enrollment.progress_percent == 100:
@@ -492,7 +603,17 @@ def complete_lesson(course_id, lesson_id):
                         file_path=file_path
                     )
                     db.session.add(new_cert)
+                    db.session.commit()
                     
+                    from services.email_service import send_certificate_email
+                    from datetime import datetime
+                    email_success = send_certificate_email(student, course, file_path)
+                    
+                    if email_success:
+                        new_cert.email_sent = True
+                        new_cert.email_sent_at = datetime.utcnow()
+                        db.session.commit()
+                        
                     from services.notification_service import send_notification
                     send_notification(
                         user_id=student.id,
@@ -503,7 +624,6 @@ def complete_lesson(course_id, lesson_id):
                         action_url='/certificate/my_certificates'
                     )
                     
-                    db.session.commit()
                     flash(f'Congratulations! You have earned a certificate for completing {course.title}.', 'success')
     
     # Try to find the next lesson

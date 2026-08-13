@@ -109,12 +109,19 @@
                 </div>
                 <h3 class="course-title">{{ course.title }}</h3>
                 <p class="course-desc">{{ course.description[:110] }}...</p>
-                <div class="course-footer">
+                <div class="course-footer d-flex flex-column gap-2">
                     <div class="course-meta-tags">
                         <span class="tag">📚 Self-paced</span>
                         <span class="tag">🏆 Certificate</span>
                     </div>
-                    <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-primary course-btn">View Course →</a>
+                    <div class="d-flex gap-2 w-100">
+                        {% if course.demo_video_url or course.demo_video_file %}
+                        <button type="button" class="btn btn-outline-primary course-btn flex-grow-1 px-1" onclick="openDemoModal('{{ course.demo_video_title or course.title ~ ' Preview' | escape }}', '{{ course.demo_video_url or '' }}', '{{ course.demo_video_file or '' }}', '{{ url_for('courses.course_details', course_id=course.id) }}', '{{ course.title | escape }}')">
+                            ▶ Watch Demo
+                        </button>
+                        {% endif %}
+                        <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-primary course-btn flex-grow-1 px-1">View Course →</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -132,6 +139,33 @@
 {% if not current_user.is_authenticated %}
 </div>
 {% endif %}
+
+<!-- Demo Video Modal -->
+<div class="modal fade" id="demoVideoModal" tabindex="-1" aria-labelledby="demoVideoModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-header bg-white border-bottom p-3">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center" id="demoVideoModalLabel">
+                    <i class="bi bi-play-circle-fill text-primary me-2"></i> Course Preview
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close" onclick="stopDemoVideo()"></button>
+            </div>
+            <div class="modal-body p-0 bg-black position-relative">
+                <div id="demoVideoContainer" class="ratio ratio-16x9">
+                    <!-- Video player will be injected here -->
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0 justify-content-between p-3">
+                <div>
+                    <h6 class="fw-bold mb-1 text-dark" id="demoCourseTitle">Course Title</h6>
+                    <p class="text-muted small mb-0" id="demoVideoTitle">Learn what you will cover...</p>
+                </div>
+                <a href="#" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="enrollNowModalBtn">Enroll Now</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -213,6 +247,52 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+});
+
+// Demo Video Modal Logic
+let demoModalInstance = null;
+
+function openDemoModal(videoTitle, videoUrl, videoFile, courseUrl, courseTitle) {
+    document.getElementById('demoCourseTitle').textContent = courseTitle;
+    document.getElementById('demoVideoTitle').textContent = videoTitle;
+    document.getElementById('enrollNowModalBtn').href = courseUrl;
+    
+    const container = document.getElementById('demoVideoContainer');
+    container.innerHTML = ''; // clear previous
+    
+    if (videoUrl) {
+        // Try to handle YouTube or Vimeo embeds if possible, otherwise use iframe
+        let embedUrl = videoUrl;
+        if (videoUrl.includes('youtube.com/watch?v=')) {
+            const videoId = videoUrl.split('v=')[1].split('&')[0];
+            embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+        } else if (videoUrl.includes('youtu.be/')) {
+            const videoId = videoUrl.split('youtu.be/')[1].split('?')[0];
+            embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+        } else if (videoUrl.includes('vimeo.com/')) {
+            const videoId = videoUrl.split('vimeo.com/')[1];
+            embedUrl = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+        }
+        
+        container.innerHTML = `<iframe src="${embedUrl}" title="Course Preview" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    } else if (videoFile) {
+        container.innerHTML = `<video controls autoplay class="w-100 h-100"><source src="${videoFile}" type="video/mp4">Your browser does not support the video tag.</video>`;
+    }
+    
+    if (!demoModalInstance) {
+        demoModalInstance = new bootstrap.Modal(document.getElementById('demoVideoModal'));
+    }
+    demoModalInstance.show();
+}
+
+function stopDemoVideo() {
+    const container = document.getElementById('demoVideoContainer');
+    container.innerHTML = ''; // Stop video from playing in background
+}
+
+// Ensure video stops when modal is hidden (e.g. clicking outside)
+document.getElementById('demoVideoModal').addEventListener('hidden.bs.modal', function () {
+    stopDemoVideo();
 });
 </script>
 {% endblock %}

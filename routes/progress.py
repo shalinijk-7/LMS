@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
+from utils.decorators import student_required
 from models import db, StudentProgress, CourseCompletion, Lesson, Course, Enrollment, Quiz, Result
 from datetime import datetime
 
@@ -80,13 +81,11 @@ def check_course_completion(student_id, course_id):
 
 @progress_bp.route('/lesson/<int:lesson_id>/complete', methods=['POST'])
 @login_required
+@student_required
 def mark_lesson_complete(lesson_id):
     """
     Handles the mark lesson complete functionality.
     """
-    if current_user.role.name != 'student':
-        return jsonify({'error': 'Unauthorized'}), 403
-        
     lesson = Lesson.query.get_or_404(lesson_id)
     course_id = lesson.course_id
     
@@ -140,13 +139,11 @@ def mark_lesson_complete(lesson_id):
 
 @progress_bp.route('/lesson/<int:lesson_id>/update_time', methods=['POST'])
 @login_required
+@student_required
 def update_learning_time(lesson_id):
     """
     Handles the update learning time functionality.
     """
-    if current_user.role.name != 'student':
-        return jsonify({'error': 'Unauthorized'}), 403
-        
     data = request.get_json()
     time_spent = data.get('time_spent', 0) # in seconds
     

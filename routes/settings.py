@@ -43,6 +43,9 @@ def profile():
         current_user.settings.real_time_notifications_enabled = True if request.form.get('real_time_notifications') else False
         current_user.settings.notification_sound_enabled = True if request.form.get('notification_sound') else False
         
+        if current_user.role.name not in ['admin', 'instructor']:
+            current_user.two_factor_enabled = True if request.form.get('two_factor_enabled') else False
+        
         db.session.commit()
         flash('Settings updated successfully.', 'success')
         return redirect(url_for('settings.profile'))

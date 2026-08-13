@@ -152,6 +152,17 @@ def create_app(config_class=Config):
         """
         return render_template('landing/index.html')
 
+    @app.route('/logout')
+    def logout():
+        """
+        Common route to log out the user.
+        """
+        from flask_login import logout_user
+        from flask import redirect, url_for, flash
+        logout_user()
+        flash('You have been logged out.', 'info')
+        return redirect(url_for('auth.login'))
+
     @app.route('/terms')
     def terms():
         """Route for the Terms of Service page."""

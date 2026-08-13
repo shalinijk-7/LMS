@@ -108,7 +108,23 @@ def sessions():
             )
             db.session.add(new_session)
             db.session.commit()
-            flash('Live session scheduled successfully!', 'success')
+            
+            # Notify enrolled students
+            from models import Enrollment
+            from services.notification_service import send_notification
+            enrollments = Enrollment.query.filter_by(course_id=course_id).all()
+            for enrollment in enrollments:
+                send_notification(
+                    user_id=enrollment.user_id,
+                    title="Live Session Scheduled",
+                    message=f"A new live session '{title}' has been scheduled for '{new_session.course.title}'.",
+                    notification_type='info',
+                    icon='bi-camera-video',
+                    action_url='/student/dashboard',
+                    sender_id=current_user.id
+                )
+                
+            flash('Live session scheduled successfully.', 'success')
             return redirect(url_for('instructor.sessions'))
         except ValueError:
             flash('Invalid date format.', 'error')
@@ -194,6 +210,18 @@ def grade_submissions(course_id, assignment_id):
             submission.feedback = feedback
             submission.status = 'Graded'
             db.session.commit()
+            
+            from services.notification_service import send_notification
+            send_notification(
+                user_id=submission.student_id,
+                title="Assignment Graded",
+                message=f"Your submission for '{assignment.title}' has been graded.",
+                notification_type='success',
+                icon='bi-check-all',
+                action_url=f'/course/{course.id}/assignments',
+                sender_id=current_user.id
+            )
+            
             flash('Submission graded successfully.', 'success')
             
         return redirect(url_for('instructor.grade_submissions', course_id=course.id, assignment_id=assignment.id))

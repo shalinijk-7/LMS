@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, Role
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 import time
-from utils.email import generate_otp, send_otp_email
+from datetime import datetime, timedelta
+from utils.email import generate_otp, send_otp_email, send_2fa_otp_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -45,6 +46,15 @@ def register():
         db.session.add(user)
         db.session.commit()
         
+        from services.notification_service import notify_admins
+        notify_admins(
+            title="New User Registration",
+            message=f"New {role.name} registered: {user.name} ({user.email})",
+            notification_type='info',
+            icon='bi-person-plus-fill',
+            action_url='/admin/users'
+        )
+        
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('auth.login'))
         
@@ -66,6 +76,20 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
+            if user.two_factor_enabled or user.role.name in ['admin', 'instructor']:
+                otp = generate_otp()
+                user.otp_hash = generate_password_hash(otp)
+                user.otp_expires_at = datetime.utcnow() + timedelta(minutes=5)
+                user.otp_attempts = 0
+                user.otp_last_sent_at = datetime.utcnow()
+                db.session.commit()
+                
+                send_2fa_otp_email(user.email, otp)
+                
+                session['pre_2fa_user_id'] = user.id
+                session['remember_me'] = remember
+                return redirect(url_for('auth.verify_2fa'))
+
             login_user(user, remember=remember)
             flash('Logged in successfully.', 'success')
             
@@ -79,15 +103,6 @@ def login():
             
     return render_template('auth/login.html')
 
-@auth_bp.route('/logout')
-@login_required
-def logout():
-    """
-    Handles the logout functionality.
-    """
-    logout_user()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
 
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -175,6 +190,92 @@ def reset_password():
             flash('Your password has been reset successfully.', 'success')
             return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html')
+
+@auth_bp.route('/verify-2fa', methods=['GET', 'POST'])
+def verify_2fa():
+    """
+    Handles the 2FA OTP verification functionality.
+    """
+    user_id = session.get('pre_2fa_user_id')
+    if not user_id:
+        flash('Invalid session. Please log in again.', 'danger')
+        return redirect(url_for('auth.login'))
+        
+    user = User.query.get(user_id)
+    if not user:
+        session.pop('pre_2fa_user_id', None)
+        flash('Invalid user. Please log in again.', 'danger')
+        return redirect(url_for('auth.login'))
+        
+    if request.method == 'POST':
+        otp_input = request.form.get('otp')
+        
+        if user.otp_attempts >= 3:
+            session.pop('pre_2fa_user_id', None)
+            user.otp_hash = None
+            db.session.commit()
+            flash('Too many failed attempts. Please log in again to receive a new OTP.', 'danger')
+            return redirect(url_for('auth.login'))
+            
+        if user.otp_expires_at and datetime.utcnow() > user.otp_expires_at:
+            flash('OTP has expired. Please request a new one.', 'danger')
+            return render_template('auth/verify_2fa.html', expired=True)
+            
+        if user.otp_hash and check_password_hash(user.otp_hash, otp_input):
+            # Success
+            remember = session.get('remember_me', False)
+            login_user(user, remember=remember)
+            
+            # Clean up
+            user.otp_hash = None
+            user.otp_expires_at = None
+            user.otp_attempts = 0
+            db.session.commit()
+            
+            session.pop('pre_2fa_user_id', None)
+            session.pop('remember_me', None)
+            
+            flash('Two-Factor Authentication successful.', 'success')
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            return redirect_user_by_role(user)
+        else:
+            user.otp_attempts += 1
+            db.session.commit()
+            flash('Invalid OTP. Please try again.', 'danger')
+            
+    return render_template('auth/verify_2fa.html', expired=False)
+
+@auth_bp.route('/resend-2fa', methods=['POST'])
+def resend_2fa():
+    """
+    Handles resending the 2FA OTP.
+    """
+    user_id = session.get('pre_2fa_user_id')
+    if not user_id:
+        return redirect(url_for('auth.login'))
+        
+    user = User.query.get(user_id)
+    if not user:
+        return redirect(url_for('auth.login'))
+        
+    # Check cooldown (60 seconds)
+    if user.otp_last_sent_at and (datetime.utcnow() - user.otp_last_sent_at) < timedelta(seconds=60):
+        flash('Please wait before requesting a new OTP.', 'warning')
+        return redirect(url_for('auth.verify_2fa'))
+        
+    otp = generate_otp()
+    user.otp_hash = generate_password_hash(otp)
+    user.otp_expires_at = datetime.utcnow() + timedelta(minutes=5)
+    user.otp_attempts = 0
+    user.otp_last_sent_at = datetime.utcnow()
+    db.session.commit()
+    
+    send_2fa_otp_email(user.email, otp)
+    flash('A new OTP has been sent to your email.', 'info')
+    
+    return redirect(url_for('auth.verify_2fa'))
 
 # --- Google OAuth Routes ---
 

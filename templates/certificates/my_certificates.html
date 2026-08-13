@@ -18,7 +18,15 @@
             <div class="certificate-img">🏆</div>
             <div class="certificate-details">
                 <h3 style="margin-bottom: 0.5rem;">{{ certificate.course.title }}</h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Issued: {{ certificate.issued_at.strftime('%B %d, %Y') }}</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Issued: {{ certificate.issued_at.strftime('%B %d, %Y') }}</p>
+                {% if certificate.email_sent %}
+                <p style="color: green; font-size: 0.9rem; margin-bottom: 1rem;">Email Status: Sent ✓</p>
+                {% else %}
+                <p style="color: red; font-size: 0.9rem; margin-bottom: 0.5rem;">Email Status: Not Sent</p>
+                <form action="{{ url_for('certificate.retry_email', cert_id=certificate.id) }}" method="POST" style="margin-bottom: 1rem;">
+                    <button type="submit" class="btn btn-sm" style="background-color: var(--warning-color); color: #000; width: 100%; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer;">Retry Email</button>
+                </form>
+                {% endif %}
                 <a href="{{ url_for('certificate.view_certificate', cert_id=certificate.id) }}" class="btn btn-primary" style="width: 100%;">View Certificate</a>
             </div>
         </div>
