@@ -10,9 +10,9 @@ from authlib.integrations.flask_client import OAuth
 from flask_socketio import SocketIO
 
 # Initialize extensions
-mail = Mail()          # mails
-oauth = OAuth()        # google login
-socketio = SocketIO(cors_allowed_origins="*")  # for real time chat
+mail = Mail()
+oauth = OAuth()
+socketio = SocketIO(cors_allowed_origins="*")
 
 # Blueprints importing
 from routes.auth import auth_bp
@@ -31,17 +31,14 @@ from routes.analytics import analytics_bp
 from routes.chat import chat_bp
 from routes.progress import progress_bp
 from routes.attendance import attendance_bp
+from routes.payment import payment_bp
 
-# Import socket events to register them
+# Import socket events
 import routes.events
 
 def create_app(config_class=Config):
     """
     Creates and configures the Flask application.
-
-    This function initializes all Flask extensions, registers
-    blueprints, configures authentication, Socket.IO, Google OAuth,
-    context processors, and application routes.
     """
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -73,15 +70,10 @@ def create_app(config_class=Config):
     
     @login_manager.user_loader
     def load_user(user_id):
-        """
-        Loads the logged-in user from the database using their user ID.
-        Flask-Login calls this function automatically to restore the user's session.
-        """
         return User.query.get(int(user_id))
 
     @app.context_processor
     def inject_unread_counts():
-        # Counts unread messages and notifications for the logged-in user
         from flask_login import current_user
         if current_user.is_authenticated:
             from models import Message, CourseChatReadStatus, Course, Notification
@@ -126,6 +118,7 @@ def create_app(config_class=Config):
     app.register_blueprint(chat_bp)
     app.register_blueprint(progress_bp)
     app.register_blueprint(attendance_bp)
+    app.register_blueprint(payment_bp)          # ← Payment blueprint added here
 
     # ====================== LANDING PAGE ROUTES ======================
 
@@ -157,7 +150,6 @@ def create_app(config_class=Config):
                 flash('Please fill in all fields.', 'danger')
                 return render_template('landing/contact.html')
 
-            # Success message
             flash('Thank you! Your message has been received. Our team will get back to you within 24 hours.', 'success')
             return redirect(url_for('contact'))
 
@@ -175,7 +167,7 @@ def create_app(config_class=Config):
     def uploaded_file(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-    # Ensure instance folder and upload folders exist
+    # Ensure folders exist
     os.makedirs(app.instance_path, exist_ok=True)
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
@@ -185,7 +177,6 @@ def create_app(config_class=Config):
 app = create_app()
 
 if __name__ == '__main__':
-    # Create database tables if they do not already exist
     with app.app_context():
         db.create_all()
     
@@ -194,5 +185,4 @@ if __name__ == '__main__':
     print("-> http://127.0.0.1:5000 <-")
     print("="*50 + "\n")
 
-    # Start the Flask application with Socket.IO support
     socketio.run(app, debug=True)

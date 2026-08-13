@@ -53,7 +53,6 @@ class Setting(db.Model):
     desktop_notifications_enabled = db.Column(db.Boolean, default=False)
     real_time_notifications_enabled = db.Column(db.Boolean, default=True)
     email_notifications_enabled = db.Column(db.Boolean, default=True)
-    # NEW: 2-step verification toggle
     two_factor_enabled = db.Column(db.Boolean, default=False)
 
 
@@ -65,7 +64,6 @@ class ActivityLog(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# Stores course categories used to organize courses.
 class Category(db.Model):
     __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)
@@ -85,6 +83,8 @@ class Course(db.Model):
     duration = db.Column(db.String(50))
     difficulty = db.Column(db.String(50))  # Beginner, Intermediate, Advanced
     price = db.Column(db.Float, default=0.0)
+    demo_video_title = db.Column(db.String(200))      # ← NEW
+    demo_video_url = db.Column(db.String(500))        # ← NEW
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -121,7 +121,6 @@ class Lesson(db.Model):
     description = db.Column(db.Text)
     order_index = db.Column(db.Integer, default=0)
 
-    # Material relationships
     video = db.relationship('Video', backref='lesson', uselist=False, cascade='all, delete-orphan')
     materials = db.relationship('StudyMaterial', backref='lesson', cascade='all, delete-orphan', lazy=True)
     quizzes = db.relationship('Quiz', backref='lesson_ref', lazy=True)
@@ -141,10 +140,9 @@ class StudyMaterial(db.Model):
     lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     file_path = db.Column(db.String(255), nullable=False)
-    file_type = db.Column(db.String(20))  # pdf, ppt, etc.
+    file_type = db.Column(db.String(20))
 
 
-# ASSIGNMENTS & QUIZZES
 class Assignment(db.Model):
     __tablename__ = 'assignments'
     id = db.Column(db.Integer, primary_key=True)
@@ -166,7 +164,7 @@ class Submission(db.Model):
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
     marks_obtained = db.Column(db.Integer)
     feedback = db.Column(db.Text)
-    status = db.Column(db.String(50), default='Pending')  # Pending, Graded
+    status = db.Column(db.String(50), default='Pending')
 
 
 class Quiz(db.Model):
@@ -210,8 +208,6 @@ class Result(db.Model):
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# COMMUNICATION & NOTIFICATIONS
-
 class DiscussionThread(db.Model):
     __tablename__ = 'discussion_threads'
     id = db.Column(db.Integer, primary_key=True)
@@ -247,7 +243,7 @@ class Notification(db.Model):
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     title = db.Column(db.String(255), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    notification_type = db.Column(db.String(50), default='info')  # info, success, warning, error
+    notification_type = db.Column(db.String(50), default='info')
     icon = db.Column(db.String(50), default='bi-info-circle')
     action_url = db.Column(db.String(255), nullable=True)
     is_read = db.Column(db.Boolean, default=False)
@@ -283,13 +279,12 @@ class Message(db.Model):
     is_delivered = db.Column(db.Boolean, default=False)
     is_read = db.Column(db.Boolean, default=False)
 
-    # Advanced Chat Features
     is_edited = db.Column(db.Boolean, default=False)
     is_deleted = db.Column(db.Boolean, default=False)
     is_pinned = db.Column(db.Boolean, default=False)
     is_announcement = db.Column(db.Boolean, default=False)
     reply_to_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=True)
-    message_type = db.Column(db.String(20), default='text')  # text, voice, file, image, video
+    message_type = db.Column(db.String(20), default='text')
 
     reactions = db.relationship('MessageReaction', backref='message', lazy=True, cascade='all, delete-orphan')
 
@@ -309,8 +304,6 @@ class CourseChatReadStatus(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
     last_read_message_id = db.Column(db.Integer, nullable=False, default=0)
 
-
-# OTHERS
 
 class Certificate(db.Model):
     __tablename__ = 'certificates'
@@ -332,7 +325,7 @@ class Attendance(db.Model):
     lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=True)
     instructor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     attendance_date = db.Column(db.Date, nullable=False)
-    status = db.Column(db.String(20))  # Present, Absent, Late
+    status = db.Column(db.String(20))
     remarks = db.Column(db.Text, nullable=True)
 
     student = db.relationship('User', foreign_keys=[student_id])
@@ -349,9 +342,9 @@ class StudentProgress(db.Model):
     progress_percentage = db.Column(db.Integer, default=0)
     lessons_completed = db.Column(db.Integer, default=0)
     total_lessons = db.Column(db.Integer, default=0)
-    learning_time = db.Column(db.Integer, default=0)  # in minutes
+    learning_time = db.Column(db.Integer, default=0)
     last_accessed = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(50), default='Not Started')  # Not Started, In Progress, Completed
+    status = db.Column(db.String(50), default='Not Started')
 
     student = db.relationship('User', foreign_keys=[student_id])
     course = db.relationship('Course', foreign_keys=[course_id])
@@ -369,3 +362,20 @@ class CourseCompletion(db.Model):
 
     student = db.relationship('User', foreign_keys=[student_id])
     course = db.relationship('Course', foreign_keys=[course_id])
+
+
+class Payment(db.Model):
+    __tablename__ = 'payments'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    tax = db.Column(db.Float, default=0.0)
+    total_amount = db.Column(db.Float, nullable=False)
+    payment_method = db.Column(db.String(50))
+    transaction_id = db.Column(db.String(100), unique=True)
+    status = db.Column(db.String(30), default='Pending')
+    payment_date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    student = db.relationship('User', foreign_keys=[student_id], backref='payments')
+    course = db.relationship('Course', foreign_keys=[course_id], backref='payments')

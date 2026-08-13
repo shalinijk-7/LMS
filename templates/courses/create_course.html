@@ -25,9 +25,29 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-4">
-                            <label for="price" class="form-label fw-bold text-dark">Price ($)</label>
+                            <label for="price" class="form-label fw-bold text-dark">Price (₹)</label>
                             <input type="number" step="0.01" id="price" name="price" class="form-control form-control-lg bg-light border-0" placeholder="0.00" value="0.00" required>
                         </div>
+                    </div>
+
+                    <!-- Demo Video Section -->
+                    <hr class="my-4 text-muted opacity-25">
+                    <h5 class="fw-bold mb-3">Demo Video (Optional)</h5>
+                    <p class="text-muted small mb-4">Add a short preview video (YouTube or Vimeo) so students can see a sample of your course.</p>
+
+                    <div class="mb-4">
+                        <label for="demo_video_title" class="form-label fw-bold text-dark">Demo Video Title</label>
+                        <input type="text" id="demo_video_title" name="demo_video_title" 
+                               class="form-control form-control-lg bg-light border-0" 
+                               placeholder="e.g. Course Introduction">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="demo_video_url" class="form-label fw-bold text-dark">Demo Video URL</label>
+                        <input type="url" id="demo_video_url" name="demo_video_url" 
+                               class="form-control form-control-lg bg-light border-0" 
+                               placeholder="https://www.youtube.com/watch?v=... or Vimeo link">
+                        <div class="form-text">Paste a full YouTube or Vimeo link</div>
                     </div>
                     
                     <hr class="my-4 text-muted opacity-25">
@@ -49,6 +69,7 @@
                     <li><strong class="text-dark">Catchy Title:</strong> Make sure your title is clear and concise.</li>
                     <li><strong class="text-dark">Detailed Description:</strong> Explain the outcomes and who the course is for.</li>
                     <li><strong class="text-dark">Fair Pricing:</strong> Consider your target audience when setting a price.</li>
+                    <li><strong class="text-dark">Demo Video:</strong> A short preview increases enrollments.</li>
                 </ul>
             </div>
         </div>

@@ -9,13 +9,67 @@
             <p class="text-muted mb-0 fw-medium">Structure your curriculum and manage learning materials.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ url_for('discussion.list_discussions', course_id=course.id) }}" class="btn btn-outline-info rounded-pill px-4 py-2 fw-bold" style="transition: all 0.2s ease;">
+            <a href="{{ url_for('discussion.list_discussions', course_id=course.id) }}" class="btn btn-outline-info rounded-pill px-4 py-2 fw-bold">
                 <i class="bi bi-chat-left-text me-2"></i> Discussions
             </a>
-            <a href="{{ url_for('instructor.dashboard') }}" class="btn btn-white bg-white text-dark border shadow-sm rounded-pill px-4 py-2 fw-bold" style="transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 .125rem .25rem rgba(0,0,0,.075)';">
+            <a href="{{ url_for('instructor.dashboard') }}" class="btn btn-white bg-white text-dark border shadow-sm rounded-pill px-4 py-2 fw-bold">
                 <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
             </a>
         </div>
+    </div>
+</div>
+
+<!-- Demo Video Section -->
+<div class="card border-0 shadow-sm rounded-4 mb-4" data-aos="fade-up">
+    <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center bg-danger-subtle text-danger" style="width: 36px; height: 36px;">
+                <i class="bi bi-play-circle-fill"></i>
+            </div>
+            Course Demo Video
+        </h5>
+        {% if course.demo_video_url %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-bold">
+                <i class="bi bi-check-circle me-1"></i> Demo Added
+            </span>
+        {% endif %}
+    </div>
+    <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('courses.manage_course', course_id=course.id) }}">
+            <input type="hidden" name="action" value="update_demo">
+            
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold text-dark small">Demo Video Title</label>
+                    <input type="text" name="demo_video_title" class="form-control bg-light border-0" 
+                           value="{{ course.demo_video_title or '' }}" 
+                           placeholder="e.g. Course Introduction">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-bold text-dark small">YouTube / Vimeo URL</label>
+                    <input type="url" name="demo_video_url" class="form-control bg-light border-0" 
+                           value="{{ course.demo_video_url or '' }}" 
+                           placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">
+                        Save Demo
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        {% if course.demo_video_url %}
+        <div class="mt-4">
+            <div class="ratio ratio-16x9 rounded-4 overflow-hidden shadow-sm" style="max-width: 640px;">
+                <iframe src="{{ course.demo_video_url }}" 
+                        title="{{ course.demo_video_title or 'Demo Video' }}"
+                        allowfullscreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                </iframe>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -69,7 +123,7 @@
                                     <div class="row g-4">
                                         <!-- Video Section -->
                                         <div class="col-md-6">
-                                            <div class="card border-0 shadow-sm rounded-4 h-100 transition-all">
+                                            <div class="card border-0 shadow-sm rounded-4 h-100">
                                                 <div class="card-body p-4">
                                                     <h6 class="fw-bold mb-3 text-dark d-flex align-items-center pb-2 border-bottom">
                                                         <div class="rounded p-1 bg-danger-subtle text-danger me-2"><i class="bi bi-camera-video-fill"></i></div> Lesson Video
@@ -77,11 +131,11 @@
                                                     
                                                     {% if lesson.video %}
                                                     <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3 border">
-                                                        <a href="{{ lesson.video.url }}" target="_blank" class="text-decoration-none fw-bold text-dark d-flex align-items-center hover-primary">
+                                                        <a href="{{ lesson.video.url }}" target="_blank" class="text-decoration-none fw-bold text-dark d-flex align-items-center">
                                                             <i class="bi bi-play-btn-fill text-danger fs-3 me-2"></i> View Video
                                                         </a>
                                                         <form method="POST" action="{{ url_for('courses.delete_video', course_id=course.id, lesson_id=lesson.id) }}" class="m-0" onsubmit="return confirm('Delete this video?');">
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Delete Video"><i class="bi bi-trash-fill"></i></button>
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="bi bi-trash-fill"></i></button>
                                                         </form>
                                                     </div>
                                                     {% else %}
@@ -94,7 +148,7 @@
                                                         </div>
                                                         <div class="position-relative mb-3 text-center">
                                                             <hr class="text-muted">
-                                                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted fw-bold" style="margin-top: -1px;">OR UPLOAD</span>
+                                                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted fw-bold">OR UPLOAD</span>
                                                         </div>
                                                         <div class="mb-3">
                                                             <input type="file" name="video_file" accept="video/*" class="form-control form-control-sm bg-light">
@@ -108,7 +162,7 @@
 
                                         <!-- Materials Section -->
                                         <div class="col-md-6">
-                                            <div class="card border-0 shadow-sm rounded-4 h-100 transition-all">
+                                            <div class="card border-0 shadow-sm rounded-4 h-100">
                                                 <div class="card-body p-4 d-flex flex-column">
                                                     <h6 class="fw-bold mb-3 text-dark d-flex align-items-center pb-2 border-bottom">
                                                         <div class="rounded p-1 bg-info-subtle text-info me-2"><i class="bi bi-file-earmark-text-fill"></i></div> Study Materials
@@ -123,11 +177,11 @@
                                                                     <span class="small fw-bold text-dark">{{ material.title }}</span>
                                                                 </div>
                                                                 <div class="d-flex gap-2">
-                                                                    <a href="{{ url_for('courses.preview_material', material_id=material.id) }}" target="_blank" class="btn btn-sm btn-white bg-white border text-primary rounded-circle p-1 d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;" title="Preview">
+                                                                    <a href="{{ url_for('courses.preview_material', material_id=material.id) }}" target="_blank" class="btn btn-sm btn-white bg-white border text-primary rounded-circle p-1 d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;">
                                                                         <i class="bi bi-eye-fill"></i>
                                                                     </a>
                                                                     <form method="POST" action="{{ url_for('courses.delete_material', course_id=course.id, lesson_id=lesson.id, material_id=material.id) }}" class="m-0" onsubmit="return confirm('Delete this material?');">
-                                                                        <button type="submit" class="btn btn-sm btn-white bg-white border text-danger rounded-circle p-1 d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                                                                        <button type="submit" class="btn btn-sm btn-white bg-white border text-danger rounded-circle p-1 d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;"><i class="bi bi-trash-fill"></i></button>
                                                                     </form>
                                                                 </div>
                                                             </div>
@@ -143,7 +197,7 @@
                                                         <div class="mb-3">
                                                             <input type="file" name="material_file" class="form-control form-control-sm bg-light" required>
                                                         </div>
-                                                        <button type="submit" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-bold bg-white shadow-sm hover-lift">
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-bold bg-white shadow-sm">
                                                             <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload File
                                                         </button>
                                                     </form>
@@ -157,7 +211,7 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center p-5 text-muted bg-light" style="border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
+                    <div class="text-center p-5 text-muted bg-light">
                         <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm mb-3" style="width: 80px; height: 80px;">
                             <i class="bi bi-journal-x fs-1 text-primary"></i>
                         </div>
@@ -180,7 +234,7 @@
                     Add New Lesson
                 </h5>
             </div>
-            <div class="card-body p-4 bg-light" style="border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
+            <div class="card-body p-4 bg-light">
                 <form method="POST" action="{{ url_for('courses.add_lesson', course_id=course.id) }}" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark small" style="letter-spacing: 0.5px; text-transform: uppercase;">Lesson Title</label>
@@ -204,7 +258,7 @@
                             </div>
                             <div class="position-relative mb-3 text-center">
                                 <hr class="text-muted">
-                                <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted fw-bold" style="margin-top: -1px;">OR UPLOAD</span>
+                                <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted fw-bold">OR UPLOAD</span>
                             </div>
                             <div>
                                 <input type="file" name="video_file" accept="video/*" class="form-control form-control-sm bg-light">
@@ -212,7 +266,7 @@
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow hover-lift" style="transition: all 0.2s ease;">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow">
                         <i class="bi bi-plus-lg me-1"></i> Create Lesson
                     </button>
                 </form>
@@ -226,17 +280,12 @@
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
     }
-    .hover-primary:hover {
-        color: var(--primary) !important;
-    }
     .accordion-button:not(.collapsed) {
         color: var(--primary);
         background-color: #fff;
-        box-shadow: inset 0 calc(-1 * var(--bs-accordion-border-width)) 0 var(--bs-accordion-border-color);
     }
     .accordion-button:focus {
-        border-color: rgba(99, 102, 241, 0.2);
         box-shadow: none;
     }
 </style>
-{% endblock %}
+{% endblock %}  

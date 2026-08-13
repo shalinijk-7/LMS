@@ -39,6 +39,24 @@
                         <div class="fs-6 fw-bold text-dark mt-1">{{ course.created_at.strftime('%B %Y') }}</div>
                     </div>
                 </div>
+
+                <!-- Demo Video Section -->
+                {% if course.demo_video_url %}
+                <div class="mb-5">
+                    <h3 class="fw-bold mb-3">
+                        <i class="bi bi-play-circle-fill text-primary me-2"></i>
+                        {{ course.demo_video_title or 'Course Preview' }}
+                    </h3>
+                    <div class="ratio ratio-16x9 rounded-4 overflow-hidden shadow-sm">
+                        <iframe 
+                            src="{{ course.demo_video_url }}" 
+                            title="{{ course.demo_video_title or 'Demo Video' }}"
+                            allowfullscreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                        </iframe>
+                    </div>
+                </div>
+                {% endif %}
                 
                 <h3 class="fw-bold mb-4">What you'll learn</h3>
                 <div class="row g-3">
@@ -70,7 +88,6 @@
     <!-- Enrollment Card (Right) -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-sticky" style="top: 2rem;">
-            <!-- Thumbnail Image instead of gradient box -->
             {% if course.thumbnail %}
                 <img src="{{ url_for('static', filename='uploads/' + course.thumbnail) }}" alt="{{ course.title }}" class="img-fluid w-100" style="height: 220px; object-fit: cover;">
             {% else %}
@@ -80,15 +97,31 @@
             {% endif %}
             
             <div class="card-body p-4">
-                <h2 class="fw-bold mb-4">${{ "%.2f"|format(course.price) }}</h2>
+                {% if course.price and course.price > 0 %}
+                    <h2 class="fw-bold mb-4">₹{{ "%.2f"|format(course.price) }}</h2>
+                {% else %}
+                    <h2 class="fw-bold mb-4 text-success">Free</h2>
+                {% endif %}
                 
                 {% if is_enrolled %}
-                    <a href="{{ url_for('courses.course_start', course_id=course.id) }}" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm">Start Learning</a>
-                    <p class="text-center text-success small fw-medium mb-0"><i class="bi bi-check-circle-fill me-1"></i> You are enrolled in this course.</p>
+                    <a href="{{ url_for('courses.course_start', course_id=course.id) }}" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm">
+                        Start Learning
+                    </a>
+                    <p class="text-center text-success small fw-medium mb-0">
+                        <i class="bi bi-check-circle-fill me-1"></i> You are enrolled in this course.
+                    </p>
                 {% else %}
-                    <form method="POST" action="{{ url_for('courses.enroll', course_id=course.id) }}">
-                        <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold pulse-hover shadow-sm">Enroll Now</button>
-                    </form>
+                    {% if course.price and course.price > 0 %}
+                        <a href="{{ url_for('payment.checkout', course_id=course.id) }}" 
+                           class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold pulse-hover shadow-sm">
+                            Buy Now – ₹{{ "%.0f"|format(course.price) }}
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('payment.checkout', course_id=course.id) }}" 
+                           class="btn btn-success btn-lg rounded-pill w-100 mb-3 fw-bold pulse-hover shadow-sm">
+                            Enroll for Free
+                        </a>
+                    {% endif %}
                     <p class="text-center text-muted small mb-0">30-Day Money-Back Guarantee</p>
                 {% endif %}
                 

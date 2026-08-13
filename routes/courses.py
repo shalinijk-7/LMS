@@ -1,48 +1,46 @@
 # Handles course creation, management, and enrollment.
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
-from models import Course
-from models import Enrollment
-from models import db
+from models import Course, Enrollment, db
 from urllib.parse import urlparse, parse_qs
+import os
+from datetime import datetime
+
 
 def youtube_embed_url(url):
     if not url:
         return url
 
-    # Already an embed URL
     if "youtube.com/embed/" in url:
         return url
 
-    # https://youtu.be/VIDEO_ID
     if "youtu.be/" in url:
         video_id = urlparse(url).path.strip("/")
         return f"https://www.youtube.com/embed/{video_id}"
 
-    # https://www.youtube.com/watch?v=VIDEO_ID
     if "youtube.com/watch" in url:
         query = parse_qs(urlparse(url).query)
         video_id = query.get("v", [""])[0]
         if video_id:
             return f"https://www.youtube.com/embed/{video_id}"
 
-    # https://www.youtube.com/shorts/VIDEO_ID
     if "/shorts/" in url:
         video_id = url.split("/shorts/")[1].split("?")[0]
         return f"https://www.youtube.com/embed/{video_id}"
 
     return url
 
+
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
+
 
 @courses_bp.route('/')
 def list_courses():
-    from models import Category, User
+    from models import Category
     from sqlalchemy import or_
 
     query = Course.query
 
-    # Category filter
     selected_categories = request.args.getlist('category')
     if selected_categories:
         try:
@@ -51,14 +49,12 @@ def list_courses():
         except ValueError:
             query = query.join(Category).filter(Category.name.in_(selected_categories))
 
-    # Price filter
     selected_price = request.args.get('price', 'all')
     if selected_price == 'free':
         query = query.filter(or_(Course.price == 0, Course.price == None))
     elif selected_price == 'paid':
         query = query.filter(Course.price > 0)
 
-    # Instructor filter
     selected_instructors = request.args.getlist('instructor')
     if selected_instructors:
         try:
@@ -69,7 +65,6 @@ def list_courses():
 
     courses = query.all()
 
-    # All instructors for sidebar
     all_courses = Course.query.all()
     instructors = sorted(
         {course.instructor for course in all_courses if course.instructor},
@@ -87,6 +82,8 @@ def list_courses():
         selected_price=selected_price,
         selected_instructors=selected_instructors
     )
+
+
 @courses_bp.route('/<int:course_id>')
 def course_details(course_id):
     course = Course.query.get_or_404(course_id)
@@ -98,6 +95,7 @@ def course_details(course_id):
             
     return render_template('courses/course_details.html', course=course, is_enrolled=is_enrolled)
 
+
 @courses_bp.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
 def enroll(course_id):
@@ -107,7 +105,6 @@ def enroll(course_id):
         
     course = Course.query.get_or_404(course_id)
     
-    # Check if already enrolled
     existing = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
     if existing:
         flash('You are already enrolled in this course.', 'info')
@@ -130,6 +127,7 @@ def enroll(course_id):
     flash(f'Successfully enrolled in {course.title}!', 'success')
     return redirect(url_for('student.dashboard'))
 
+
 @courses_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_course():
@@ -141,12 +139,19 @@ def create_course():
         title = request.form.get('title')
         description = request.form.get('description')
         price = request.form.get('price', 0.0)
+        demo_video_title = request.form.get('demo_video_title')
+        demo_video_url = request.form.get('demo_video_url')
+
+        if demo_video_url:
+            demo_video_url = youtube_embed_url(demo_video_url)
         
         new_course = Course(
             title=title,
             description=description,
-            price=float(price),
-            instructor_id=current_user.id
+            price=float(price) if price else 0.0,
+            instructor_id=current_user.id,
+            demo_video_title=demo_video_title,
+            demo_video_url=demo_video_url
         )
         db.session.add(new_course)
         db.session.commit()
@@ -156,7 +161,8 @@ def create_course():
         
     return render_template('courses/create_course.html')
 
-@courses_bp.route('/<int:course_id>/manage', methods=['GET'])
+
+@courses_bp.route('/<int:course_id>/manage', methods=['GET', 'POST'])
 @login_required
 def manage_course(course_id):
     if current_user.role.name != 'instructor':
@@ -167,12 +173,27 @@ def manage_course(course_id):
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
         return redirect(url_for('instructor.dashboard'))
+
+    # Handle Demo Video update
+    if request.method == 'POST' and request.form.get('action') == 'update_demo':
+        demo_video_title = request.form.get('demo_video_title')
+        demo_video_url = request.form.get('demo_video_url')
+
+        if demo_video_url:
+            demo_video_url = youtube_embed_url(demo_video_url)
+
+        course.demo_video_title = demo_video_title
+        course.demo_video_url = demo_video_url
+        db.session.commit()
+
+        flash('Demo video updated successfully!', 'success')
+        return redirect(url_for('courses.manage_course', course_id=course.id))
         
-    # We will need the Lesson model to fetch lessons here
     from models import Lesson
     lessons = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).all()
     
     return render_template('courses/manage_course.html', course=course, lessons=lessons)
+
 
 @courses_bp.route('/<int:course_id>/lessons/add', methods=['POST'])
 @login_required
@@ -192,7 +213,6 @@ def add_lesson(course_id):
     video_file = request.files.get('video_file')
     
     from models import Lesson, Video
-    # Get current max order
     max_order_lesson = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index.desc()).first()
     new_order = (max_order_lesson.order_index + 1) if max_order_lesson else 1
     
@@ -203,14 +223,12 @@ def add_lesson(course_id):
         order_index=new_order
     )
     db.session.add(new_lesson)
-    db.session.flush() # get new_lesson.id
+    db.session.flush()
     
     final_video_url = None
     if video_file and video_file.filename != '':
-        import os
         import time
         from werkzeug.utils import secure_filename
-        from flask import current_app
         filename = secure_filename(video_file.filename)
         filename = f"{int(time.time())}_{filename}"
         video_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
@@ -224,7 +242,6 @@ def add_lesson(course_id):
         
     db.session.commit()
     
-    # Send notification to all enrolled students
     from models import Enrollment
     from services.notification_service import send_notification
     enrollments = Enrollment.query.filter_by(course_id=course.id).all()
@@ -242,6 +259,7 @@ def add_lesson(course_id):
     
     flash('Lesson added successfully!', 'success')
     return redirect(url_for('courses.manage_course', course_id=course.id))
+
 
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/material/upload', methods=['POST'])
 @login_required
@@ -262,10 +280,8 @@ def upload_material(course_id, lesson_id):
     title = request.form.get('title')
     
     if file and file.filename != '':
-        import os
         import time
         from werkzeug.utils import secure_filename
-        from flask import current_app
         
         filename = secure_filename(file.filename)
         filename = f"{int(time.time())}_{filename}"
@@ -287,6 +303,7 @@ def upload_material(course_id, lesson_id):
         
     return redirect(url_for('courses.manage_course', course_id=course.id))
 
+
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/material/<int:material_id>/delete', methods=['POST'])
 @login_required
 def delete_material(course_id, lesson_id, material_id):
@@ -306,6 +323,7 @@ def delete_material(course_id, lesson_id, material_id):
     db.session.commit()
     flash('Material deleted successfully!', 'success')
     return redirect(url_for('courses.manage_course', course_id=course.id))
+
 
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/video/delete', methods=['POST'])
 @login_required
@@ -328,6 +346,7 @@ def delete_video(course_id, lesson_id):
         flash('Video deleted successfully!', 'success')
         
     return redirect(url_for('courses.manage_course', course_id=course.id))
+
 
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/video/add', methods=['POST'])
 @login_required
@@ -353,16 +372,14 @@ def add_lesson_video(course_id, lesson_id):
     
     final_video_url = None
     if video_file and video_file.filename != '':
-        import os
         import time
         from werkzeug.utils import secure_filename
-        from flask import current_app
         filename = secure_filename(video_file.filename)
         filename = f"{int(time.time())}_{filename}"
         video_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
         final_video_url = f"/uploads/{filename}"
     elif video_url:
-       final_video_url = youtube_embed_url(video_url)
+        final_video_url = youtube_embed_url(video_url)
         
     if final_video_url:
         new_video = Video(lesson_id=lesson.id, url=final_video_url)
@@ -374,12 +391,12 @@ def add_lesson_video(course_id, lesson_id):
         
     return redirect(url_for('courses.manage_course', course_id=course.id))
 
+
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>', methods=['GET'])
 @login_required
 def lesson_view(course_id, lesson_id):
     course = Course.query.get_or_404(course_id)
     
-    # Check if student is enrolled (or if they are the instructor of the course)
     has_access = False
     if current_user.role.name == 'instructor' and course.instructor_id == current_user.id:
         has_access = True
@@ -396,7 +413,6 @@ def lesson_view(course_id, lesson_id):
     from models import Lesson, Result
     lesson = Lesson.query.filter_by(id=lesson_id, course_id=course.id).first_or_404()
     
-    # Fetch user results for any quizzes attached to this lesson
     user_results = {}
     if current_user.is_authenticated and current_user.role.name == 'student':
         for quiz in lesson.quizzes:
@@ -404,10 +420,10 @@ def lesson_view(course_id, lesson_id):
             if res:
                 user_results[quiz.id] = res
     
-    # Get all lessons for navigation sidebar
     all_lessons = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).all()
     
     return render_template('courses/lesson.html', course=course, lesson=lesson, all_lessons=all_lessons, user_results=user_results)
+
 
 @courses_bp.route('/material/<int:material_id>/preview')
 @login_required
@@ -415,7 +431,6 @@ def preview_material(material_id):
     from models import StudyMaterial
     material = StudyMaterial.query.get_or_404(material_id)
     
-    # Check if the user is enrolled or is the instructor
     course = material.lesson.course
     has_access = False
     
@@ -433,12 +448,12 @@ def preview_material(material_id):
         
     return render_template('courses/preview.html', material=material, course=course)
 
+
 @courses_bp.route('/<int:course_id>/start', methods=['GET'])
 @login_required
 def course_start(course_id):
     course = Course.query.get_or_404(course_id)
     
-    # Verify enrollment or instructor status
     has_access = False
     if current_user.role.name == 'instructor' and course.instructor_id == current_user.id:
         has_access = True
@@ -461,6 +476,7 @@ def course_start(course_id):
         
     return redirect(url_for('courses.lesson_view', course_id=course.id, lesson_id=first_lesson.id))
 
+
 @courses_bp.route('/<int:course_id>/lesson/<int:lesson_id>/complete', methods=['POST'])
 @login_required
 def complete_lesson(course_id, lesson_id):
@@ -468,23 +484,31 @@ def complete_lesson(course_id, lesson_id):
         flash('Only students can complete lessons.', 'error')
         return redirect(url_for('courses.lesson_view', course_id=course_id, lesson_id=lesson_id))
     
-    from models import Progress
-    from datetime import datetime
-    
+    from models import Progress, Enrollment, Lesson, Certificate
+    from utils.certificate import generate_certificate
+    from services.notification_service import send_notification
+    from utils.email import send_certificate_email
+
+    # Mark lesson as complete
     progress = Progress.query.filter_by(user_id=current_user.id, lesson_id=lesson_id).first()
     if not progress:
-        progress = Progress(user_id=current_user.id, lesson_id=lesson_id, completed=True, completed_at=datetime.utcnow())
+        progress = Progress(
+            user_id=current_user.id,
+            lesson_id=lesson_id,
+            completed=True,
+            completed_at=datetime.utcnow()
+        )
         db.session.add(progress)
     else:
         progress.completed = True
         progress.completed_at = datetime.utcnow()
-        
-    db.session.commit()
     
-    # Update course enrollment progress_percent
-    from models import Enrollment, Lesson, Certificate
-    from utils.certificate import generate_certificate
+    db.session.commit()
+
     enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course_id).first()
+    course_completed = False
+    certificate_generated = False
+
     if enrollment:
         total_lessons = Lesson.query.filter_by(course_id=course_id).count()
         if total_lessons > 0:
@@ -493,18 +517,23 @@ def complete_lesson(course_id, lesson_id):
                 Lesson.course_id == course_id,
                 Progress.completed == True
             ).count()
+            
             enrollment.progress_percent = int((completed_lessons / total_lessons) * 100)
             db.session.commit()
-            
-            # Check if course is completed and generate certificate if not already present
+
+            # Course fully completed
             if enrollment.progress_percent == 100:
-                existing_cert = Certificate.query.filter_by(student_id=current_user.id, course_id=course_id).first()
+                course_completed = True
+                existing_cert = Certificate.query.filter_by(
+                    student_id=current_user.id,
+                    course_id=course_id
+                ).first()
+
                 if not existing_cert:
-                    # Generate certificate
                     course = enrollment.course
                     student = current_user
                     cert_id, file_path = generate_certificate(student.name, course.title)
-                    
+
                     new_cert = Certificate(
                         student_id=student.id,
                         course_id=course.id,
@@ -512,28 +541,82 @@ def complete_lesson(course_id, lesson_id):
                         file_path=file_path
                     )
                     db.session.add(new_cert)
-                    
-                    from services.notification_service import send_notification
+                    db.session.commit()
+                    certificate_generated = True
+
+                    # In-app notification
                     send_notification(
                         user_id=student.id,
-                        title="Certificate Generated",
-                        message=f"Your certificate for {course.title} is ready!",
+                        title="Certificate Sent to Your Email!",
+                        message=f"Congratulations! Your certificate for '{course.title}' has been generated and sent to your email.",
                         notification_type='success',
                         icon='bi-award-fill',
                         action_url='/certificate/my_certificates'
                     )
-                    
-                    db.session.commit()
-                    flash(f'Congratulations! You have earned a certificate for completing {course.title}.', 'success')
-    
-    # Try to find the next lesson
+
+                    # Send professional email with PDF
+                    try:
+                        pdf_full_path = None
+                        if file_path:
+                            if file_path.startswith('/'):
+                                pdf_full_path = os.path.join(current_app.root_path, file_path.lstrip('/'))
+                            else:
+                                pdf_full_path = os.path.join(
+                                    current_app.config.get('UPLOAD_FOLDER', 'static/uploads'),
+                                    file_path
+                                )
+
+                            if not os.path.exists(pdf_full_path):
+                                possible_paths = [
+                                    os.path.join(current_app.root_path, 'static', 'certificates', os.path.basename(file_path)),
+                                    os.path.join(current_app.root_path, 'static', 'uploads', os.path.basename(file_path)),
+                                    os.path.join(current_app.config.get('UPLOAD_FOLDER', ''), os.path.basename(file_path)),
+                                    file_path
+                                ]
+                                for p in possible_paths:
+                                    if os.path.exists(p):
+                                        pdf_full_path = p
+                                        break
+
+                        download_url = url_for('certificate.my_certificates', _external=True)
+                        completion_date = datetime.utcnow().strftime('%d %B %Y')
+
+                        send_certificate_email(
+                            recipient=student.email,
+                            student_name=student.name,
+                            course_title=course.title,
+                            certificate_id=cert_id,
+                            instructor_name=course.instructor.name if course.instructor else None,
+                            completion_date=completion_date,
+                            download_url=download_url,
+                            pdf_path=pdf_full_path
+                        )
+                    except Exception as e:
+                        print(f"Failed to send certificate email: {e}")
+
+    # Decide which single clean message to show
     current_lesson = Lesson.query.get_or_404(lesson_id)
-    next_lesson = Lesson.query.filter(Lesson.course_id == course_id, Lesson.order_index > current_lesson.order_index).order_by(Lesson.order_index).first()
-    
-    flash('Lesson marked as complete!', 'success')
-    
-    if next_lesson:
-        return redirect(url_for('courses.lesson_view', course_id=course_id, lesson_id=next_lesson.id))
-    else:
-        flash('Congratulations! You have completed all lessons in this course.', 'success')
+    next_lesson = Lesson.query.filter(
+        Lesson.course_id == course_id,
+        Lesson.order_index > current_lesson.order_index
+    ).order_by(Lesson.order_index).first()
+
+    if certificate_generated:
+        # Only ONE clean professional message
+        flash(
+            '🎉 Congratulations! You have completed the course and your certificate has been sent to your email.',
+            'success'
+        )
         return redirect(url_for('student.dashboard'))
+
+    elif course_completed:
+        flash('🎉 Congratulations! You have completed all lessons in this course.', 'success')
+        return redirect(url_for('student.dashboard'))
+
+    else:
+        # Normal lesson completion
+        flash('Lesson marked as complete!', 'success')
+        if next_lesson:
+            return redirect(url_for('courses.lesson_view', course_id=course_id, lesson_id=next_lesson.id))
+        else:
+            return redirect(url_for('student.dashboard'))
