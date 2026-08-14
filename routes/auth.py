@@ -88,6 +88,7 @@ def login():
                 
                 session['pre_2fa_user_id'] = user.id
                 session['remember_me'] = remember
+                session.modified = True
                 return redirect(url_for('auth.verify_2fa'))
 
             login_user(user, remember=remember)
@@ -334,6 +335,21 @@ def google_authorize():
         user.set_password(str(uuid.uuid4())) # Random password
         db.session.add(user)
         db.session.commit()
+        
+    if user.two_factor_enabled or user.role.name in ['admin', 'instructor']:
+        otp = generate_otp()
+        user.otp_hash = generate_password_hash(otp)
+        user.otp_expires_at = datetime.utcnow() + timedelta(minutes=5)
+        user.otp_attempts = 0
+        user.otp_last_sent_at = datetime.utcnow()
+        db.session.commit()
+        
+        send_2fa_otp_email(user.email, otp)
+        
+        session['pre_2fa_user_id'] = user.id
+        session['remember_me'] = False
+        session.modified = True
+        return redirect(url_for('auth.verify_2fa'))
         
     login_user(user)
     flash('Logged in successfully via Google.', 'success')

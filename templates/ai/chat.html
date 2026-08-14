@@ -1,0 +1,219 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}AI Chatbot - AuraLearn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 120px);
+        background: var(--bg-color, #ffffff);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    
+    /* Markdown Styles */
+    .message.model {
+        align-self: flex-start;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--text-color, #333);
+        border-bottom-left-radius: 4px;
+        overflow-x: auto;
+    }
+    .message.model p { margin-bottom: 0.5rem; }
+    .message.model pre { background: #1e1e1e; color: #fff; padding: 10px; border-radius: 6px; overflow-x: auto; }
+    .message.model code { font-family: monospace; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
+    .message.model ul, .message.model ol { margin-left: 1.5rem; margin-bottom: 0.5rem; }
+    
+    .chat-header {
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .message {
+        max-width: 80%;
+        padding: 1rem;
+        border-radius: 12px;
+        line-height: 1.5;
+        font-size: 0.95rem;
+        flex-shrink: 0; /* Prevent messages from being squished */
+    }
+    .message.user {
+        align-self: flex-end;
+        background: var(--primary);
+        color: white;
+        border-bottom-right-radius: 4px;
+        white-space: pre-wrap; /* Preserve line breaks for user messages */
+    }
+    .chat-input-area {
+        padding: 1rem;
+        background: var(--bg-color, #ffffff);
+        border-top: 1px solid rgba(0,0,0,0.1);
+        display: flex;
+        gap: 10px;
+    }
+    .chat-input-area textarea {
+        flex: 1;
+        resize: none;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(0,0,0,0.1);
+        font-family: inherit;
+    }
+    .chat-input-area textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+    .btn-send {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0 1.5rem;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+    .btn-send:hover {
+        background: var(--secondary);
+    }
+    .typing-indicator {
+        display: none;
+        align-self: flex-start;
+        background: rgba(99, 102, 241, 0.1);
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        border-bottom-left-radius: 4px;
+        color: var(--text-color, #333);
+        font-style: italic;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="chat-container">
+        <div class="chat-header">
+            <i class="bi bi-robot fs-4"></i>
+            <div>
+                <div class="fs-5">AuraLearn AI Assistant</div>
+                <div style="font-size: 0.8rem; opacity: 0.8;">Ask me anything about your courses</div>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            {% if history|length == 0 %}
+            <div class="text-center text-muted my-5">
+                <i class="bi bi-chat-square-dots fs-1"></i>
+                <p class="mt-3">No messages yet. Say hello to start!</p>
+            </div>
+            {% else %}
+                {% for msg in history %}
+                {% if msg.role == 'model' %}
+                <div class="message {{ msg.role }}" data-content="{{ msg.message | escape }}"></div>
+                {% else %}
+                <div class="message {{ msg.role }}">{{ msg.message }}</div>
+                {% endif %}
+                {% endfor %}
+            {% endif %}
+            <div class="typing-indicator" id="typingIndicator">
+                AI is typing...
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <textarea id="chatInput" rows="2" placeholder="Type your message here..." onkeydown="if(event.keyCode==13 && !event.shiftKey){event.preventDefault(); sendMessage();}"></textarea>
+            <button class="btn-send" onclick="sendMessage()">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const typingIndicator = document.getElementById('typingIndicator');
+    
+    // Parse existing model messages as markdown
+    document.querySelectorAll('.message.model').forEach(el => {
+        el.innerHTML = marked.parse(el.getAttribute('data-content') || '');
+    });
+    
+    // Scroll to bottom on load
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    function appendMessage(role, text) {
+        // Remove empty state message if exists
+        const emptyState = document.querySelector('.text-center.text-muted.my-5');
+        if (emptyState) emptyState.remove();
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${role}`;
+        
+        if (role === 'model') {
+            msgDiv.innerHTML = marked.parse(text);
+        } else {
+            msgDiv.innerText = text;
+        }
+        
+        chatMessages.insertBefore(msgDiv, typingIndicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+        
+        // Append user message
+        appendMessage('user', message);
+        chatInput.value = '';
+        chatInput.disabled = true;
+        
+        // Show typing indicator
+        typingIndicator.style.display = 'block';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        try {
+            const response = await fetch("{{ url_for('ai.api_chat') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const data = await response.json();
+            typingIndicator.style.display = 'none';
+            chatInput.disabled = false;
+            chatInput.focus();
+            
+            if (data.success) {
+                appendMessage('model', data.reply);
+            } else {
+                appendMessage('model', 'Error: ' + (data.error || 'Something went wrong.'));
+            }
+        } catch (error) {
+            typingIndicator.style.display = 'none';
+            chatInput.disabled = false;
+            appendMessage('model', 'Network error. Please try again later.');
+        }
+    }
+</script>
+{% endblock %}

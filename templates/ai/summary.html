@@ -1,0 +1,168 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}AI Summarizer - AuraLearn{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-text text-primary me-2"></i>AI Summarizer</h2>
+    </div>
+    
+    <div class="row">
+        <!-- Upload Section -->
+        <div class="col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Upload Study Material</h5>
+                    <p class="text-muted small mb-4">Upload a PDF, DOCX, or TXT file to get an AI-generated summary.</p>
+                    
+                    <form id="summaryForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Select File</label>
+                            <input class="form-control" type="file" id="fileInput" name="file" accept=".pdf,.docx,.txt" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Summary Detail Level</label>
+                            <select class="form-select" id="summaryType" name="summary_type">
+                                <option value="Short">Short (Brief overview)</option>
+                                <option value="Medium" selected>Medium (Balanced)</option>
+                                <option value="Detailed">Detailed (In-depth analysis)</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSummarize">
+                            <i class="bi bi-magic me-2"></i> Generate Summary
+                        </button>
+                    </form>
+                    
+                    <!-- Loading State -->
+                    <div id="loadingState" class="text-center mt-4 d-none">
+                        <div class="spinner-border text-primary mb-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted small">Extracting text and generating summary. This may take a moment...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <h5 class="fw-bold mb-3">Summary Result</h5>
+                    
+                    <div id="resultArea" class="flex-grow-1" style="background: rgba(0,0,0,0.02); border-radius: 8px; padding: 1.5rem; overflow-y: auto; max-height: 500px;">
+                        <div class="text-center text-muted mt-5">
+                            <i class="bi bi-file-text fs-1"></i>
+                            <p class="mt-2">Upload a file to see the summary here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Saved Summaries -->
+    <h4 class="fw-bold mt-4 mb-3 text-dark">Saved Summaries</h4>
+    <div class="row">
+        {% if summaries %}
+            {% for summary in summaries %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold text-truncate" title="{{ summary.filename }}"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>{{ summary.filename }}</h6>
+                            <span class="badge bg-light text-dark border">{{ summary.summary_type }}</span>
+                        </div>
+                        <p class="text-muted small mb-3">{{ summary.created_at.strftime('%b %d, %Y %I:%M %p') }}</p>
+                        <p class="small" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ summary.summary_text }}
+                        </p>
+                        <button class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="viewSummary({{ summary.id }})">View Full Summary</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="p-4 bg-light rounded text-center text-muted">
+                    <p class="mb-0">You haven't generated any summaries yet.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal for viewing full summary -->
+<div class="modal fade" id="viewSummaryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Summary Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalSummaryContent" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6;">
+        Loading...
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('summaryForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        const btn = document.getElementById('btnSummarize');
+        const loading = document.getElementById('loadingState');
+        const resultArea = document.getElementById('resultArea');
+        
+        btn.disabled = true;
+        loading.classList.remove('d-none');
+        resultArea.innerHTML = '';
+        
+        try {
+            const response = await fetch("{{ url_for('ai.summary') }}", {
+                method: "POST",
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            loading.classList.add('d-none');
+            btn.disabled = false;
+            
+            if (data.success) {
+                resultArea.innerHTML = `<div style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6;">${data.summary_text}</div>`;
+                // Reload page after a short delay to update saved summaries list
+                setTimeout(() => window.location.reload(), 3000);
+            } else {
+                resultArea.innerHTML = `<div class="alert alert-danger">${data.error || 'Failed to generate summary.'}</div>`;
+            }
+        } catch (error) {
+            loading.classList.add('d-none');
+            btn.disabled = false;
+            resultArea.innerHTML = `<div class="alert alert-danger">Network error. Please try again.</div>`;
+        }
+    });
+
+    // Mock function to view existing summary since we just want to display it.
+    // In a full implementation, we could fetch it via API or pass it in a template.
+    // We'll just redirect to the get_summary route or fetch it via AJAX.
+    async function viewSummary(id) {
+        const modal = new bootstrap.Modal(document.getElementById('viewSummaryModal'));
+        modal.show();
+        
+        // Wait, we need an endpoint to fetch a single summary. I'll just reload the page for now.
+        // Or better yet, we can fetch the HTML from the /summary/<id> route if we create it.
+        // Let's just fetch the raw data or we can pass the data in a data attribute.
+        window.location.href = "{{ url_for('ai.summary') }}/" + id;
+    }
+</script>
+{% endblock %}

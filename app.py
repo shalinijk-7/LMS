@@ -122,6 +122,12 @@ def create_app(config_class=Config):
             return dict(unread_messages_count=dm_unread + course_unread, unread_notifications_count=notification_unread)
         return dict(unread_messages_count=0, unread_notifications_count=0)
 
+    from routes.chat import chat_bp
+    from routes.progress import progress_bp
+    from routes.attendance import attendance_bp
+    from routes.payment import payment_bp
+    from routes.ai_routes import ai_bp
+
     # Register Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
@@ -140,6 +146,7 @@ def create_app(config_class=Config):
     app.register_blueprint(progress_bp)
     app.register_blueprint(attendance_bp)
     app.register_blueprint(payment_bp)
+    app.register_blueprint(ai_bp)
 
     # Landing Page Route (since it's small, keeping it here for now)
     @app.route('/')
