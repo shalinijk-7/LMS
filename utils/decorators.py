@@ -4,16 +4,23 @@ from flask_login import current_user, logout_user
 
 def role_required(*roles):
     """
-    Handles the role required functionality.
+    Decorator factory to restrict access to routes based on user role.
+    
+    Args:
+        *roles: A variable length list of role names allowed to access the route.
+        
+    Returns:
+        function: The actual decorator function.
     """
     def decorator(f):
         """
-        Handles the decorator functionality.
+        The actual decorator that wraps the view function.
         """
         @wraps(f)
         def decorated_function(*args, **kwargs):
             """
-            Handles the decorated function functionality.
+            Wrapper function that checks user authentication and authorization.
+            Redirects to login if unauthorized.
             """
             if not current_user.is_authenticated:
                 return redirect(url_for('auth.login'))
@@ -26,18 +33,18 @@ def role_required(*roles):
 
 def admin_required(f):
     """
-    Handles the admin required functionality.
+    Decorator to enforce that the current user has the 'admin' role.
     """
     return role_required('admin')(f)
 
 def instructor_required(f):
     """
-    Handles the instructor required functionality.
+    Decorator to enforce that the current user has the 'instructor' role.
     """
     return role_required('instructor')(f)
 
 def student_required(f):
     """
-    Handles the student required functionality.
+    Decorator to enforce that the current user has the 'student' role.
     """
     return role_required('student')(f)

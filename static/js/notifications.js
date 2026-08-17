@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Register Service Worker
     if ('serviceWorker' in navigator) {
+        /**
+         * Registers the service worker for background sync and push notifications.
+         */
         navigator.serviceWorker.register('/sw.js').then(function(registration) {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
         }).catch(function(err) {
@@ -50,13 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
             let notifModal = new bootstrap.Modal(document.getElementById('notificationPermissionModal'));
             notifModal.show();
 
+            /**
+             * Click event handler to allow notifications.
+             * Requests browser permission and updates user preferences via API.
+             */
             document.getElementById('btnAllowNotif').addEventListener('click', () => {
                 Notification.requestPermission().then(permission => {
                     notifModal.hide();
                     if (permission === 'granted') {
                         document.body.dataset.notifDesktop = 'true';
                     }
-                    // Optionally send to backend to update settings
+                    /**
+                     * API Request: Update notification preference to true.
+                     */
                     fetch('/settings/update_notif_pref', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -65,6 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
+            /**
+             * Click event handler to deny notifications.
+             * Updates user preferences via API to false.
+             */
             document.getElementById('btnDenyNotif').addEventListener('click', () => {
                 notifModal.hide();
                 fetch('/settings/update_notif_pref', {
@@ -79,6 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Audio for notification sound
     const notifSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3');
     
+    /**
+     * Socket.IO event handler for 'new_notification'.
+     * Plays sound, shows desktop notification, updates UI badges, and displays a toast.
+     */
     socket.on('new_notification', (data) => {
         console.log("RECEIVED NEW NOTIFICATION:", data);
         
@@ -169,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /**
-     * Handles the showToast functionality.
+     * UI Update: Handles the showToast functionality to display real-time notifications.
      */
     function showToast(data) {
         const toastId = 'toast-' + data.id;
@@ -208,7 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Handle clicking notification links via AJAX
+    /**
+     * Click event listener for notification links via AJAX.
+     * Marks the notification as read via API request and updates UI badges.
+     */
     document.addEventListener('click', function(e) {
         const link = e.target.closest('.notif-link');
         if (link) {
@@ -216,6 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = link.dataset.id;
             const url = link.dataset.url;
             
+            /**
+             * API Request: Mark the specific notification as read.
+             */
             fetch(`/notifications/mark-read/${id}`, {
                 method: 'POST',
                 headers: {

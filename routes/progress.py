@@ -85,6 +85,8 @@ def check_course_completion(student_id, course_id):
 def mark_lesson_complete(lesson_id):
     """
     Handles the mark lesson complete functionality.
+    Updates a student's progress for a specific lesson to 'Completed'.
+    Recalculates overall course progress and checks if the course is now fully completed.
     """
     lesson = Lesson.query.get_or_404(lesson_id)
     course_id = lesson.course_id
@@ -143,6 +145,8 @@ def mark_lesson_complete(lesson_id):
 def update_learning_time(lesson_id):
     """
     Handles the update learning time functionality.
+    Accumulates the total time a student spends on a specific lesson.
+    Called periodically from the frontend while the student is active on the lesson page.
     """
     data = request.get_json()
     time_spent = data.get('time_spent', 0) # in seconds

@@ -1,9 +1,16 @@
+"""
+Email Service Module
+
+Provides functionality for sending transactional emails, such as course 
+completion certificates, to users. Utilizes Flask-Mail for SMTP operations.
+"""
 import os
 import logging
 from flask import current_app
 from flask_mail import Message
 from app import mail
 
+# Initialize logger for email-related activities
 logger = logging.getLogger(__name__)
 
 def send_certificate_email(student, course, file_path):
@@ -21,7 +28,7 @@ def send_certificate_email(student, course, file_path):
     try:
         subject = f"Congratulations! You Completed {course.title}"
         
-        # Need to fetch the latest certificate for the issue date
+        # Find the specific certificate record for this course to get the issue date
         certificate_issued_at = "N/A"
         if student.certificates:
             for cert in student.certificates:
@@ -142,9 +149,9 @@ AuraLearn Team
         msg.body = body
         msg.html = html_body
         
-        # Resolve absolute path for the attachment
+        # Resolve absolute path for the PDF attachment based on the app's upload folder
         if file_path.startswith('/'):
-            file_path = file_path[1:] # remove leading slash
+            file_path = file_path[1:] # strip leading slash for correct os.path.join behavior
         
         # The file_path is something like 'uploads/certificates/cert_ID.pdf'
         base_dir = os.path.dirname(os.path.abspath(current_app.config['UPLOAD_FOLDER']))

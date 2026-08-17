@@ -11,6 +11,8 @@ discussion_bp = Blueprint('discussion', __name__, url_prefix='/discussion')
 def list_discussions(course_id):
     """
     Handles the list discussions functionality.
+    Retrieves and displays all discussions for a specific course,
+    and allows users to create new discussion threads.
     """
     course = Course.query.get_or_404(course_id)
     
@@ -31,6 +33,8 @@ def list_discussions(course_id):
 def view_discussion(discussion_id):
     """
     Handles the view discussion functionality.
+    Displays a specific discussion thread and its replies,
+    and allows users to post new replies.
     """
     discussion = DiscussionThread.query.get_or_404(discussion_id)
     

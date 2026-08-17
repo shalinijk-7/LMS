@@ -36,6 +36,7 @@
 </head>
 <body class="dashboard-body" data-notif-sound="{{ 'true' if current_user.is_authenticated and (not current_user.settings or current_user.settings.notification_sound_enabled) else 'false' }}" data-notif-desktop="{{ 'true' if current_user.is_authenticated and (not current_user.settings or current_user.settings.desktop_notifications_enabled is not false) else 'false' }}" data-notif-realtime="{{ 'true' if current_user.is_authenticated and (not current_user.settings or current_user.settings.real_time_notifications_enabled) else 'false' }}">
     <div class="dashboard-wrapper">
+        <!-- START: Dashboard Sidebar Component - Contains navigation links and user profile widget -->
         <!-- Dashboard Sidebar (Full Height) -->
         <aside class="dash-sidebar">
             <div class="dash-sidebar-header d-flex justify-content-between align-items-center mb-3">
@@ -101,6 +102,7 @@
                     <ul class="collapse list-unstyled mb-0" id="aiToolsSubmenu" style="background: rgba(0,0,0,0.02); border-left: 2px solid var(--primary-light); margin-left: 1.2rem;">
                         <li><a href="{{ url_for('ai.chat') }}" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-chat-square-dots me-2" style="font-size: 0.75rem;"></i> AI Chatbot</a></li>
                         <li><a href="{{ url_for('ai.summary') }}" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-file-earmark-text me-2" style="font-size: 0.75rem;"></i> AI Summarizer</a></li>
+                        <li><a href="{{ url_for('ai.practice_form') }}" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="bi bi-magic me-2" style="font-size: 0.75rem;"></i> Practice Questions</a></li>
                     </ul>
                 </li>
                 
@@ -239,14 +241,18 @@
             </div>
             </div> <!-- End collapse -->
         </aside>
+        <!-- END: Dashboard Sidebar Component -->
 
+        <!-- START: Main Dashboard Content Area - Where specific dashboard views are rendered -->
         <!-- Main Content (Scrollable) -->
         <main class="dash-main">
             {% include 'components/flash_messages.html' %}
             {% block content %}{% endblock %}
         </main>
+        <!-- END: Main Dashboard Content Area -->
     </div>
 
+    <!-- START: Global Scripts & Initialization -->
     <!-- Bootstrap 5 JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -269,5 +275,6 @@
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     {% block extra_js %}{% endblock %}
+    <!-- END: Global Scripts & Initialization -->
 </body>
 </html>

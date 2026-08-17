@@ -9,6 +9,7 @@ settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
 def profile():
     """
     Handles the profile functionality.
+    Allows users to view and update their profile information, including photo, basic details, and notification preferences.
     """
     if request.method == 'POST':
         # Handle profile photo upload
@@ -61,6 +62,7 @@ def profile():
 def update_notif_pref():
     """
     Handles the update notif pref functionality.
+    An API endpoint used to asynchronously update desktop notification preferences for the logged-in user.
     """
     data = request.get_json()
     if not current_user.settings:

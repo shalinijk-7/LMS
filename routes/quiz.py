@@ -13,9 +13,10 @@ quiz_bp = Blueprint('quiz', __name__, url_prefix='/quiz')
 def list_quizzes(course_id):
     """
     Handles the list quizzes functionality.
+    Displays all quizzes available for a specific course, including the student's past results.
     """
     course = Course.query.get_or_404(course_id)
-    quizzes = Quiz.query.filter_by(course_id=course.id).all()
+    quizzes = Quiz.query.filter_by(course_id=course.id, is_ai_generated=False).all()
     # Check if user already took the quiz
     user_results = {res.quiz_id: res for res in Result.query.filter_by(student_id=current_user.id).all()}
     return render_template('quizzes/quiz_list.html', course=course, quizzes=quizzes, user_results=user_results)
@@ -26,14 +27,15 @@ def list_quizzes(course_id):
 def take_quiz(quiz_id):
     """
     Handles the take quiz functionality.
+    Renders the quiz form and processes the submission, calculating the score and saving the result.
     """
     quiz = Quiz.query.get_or_404(quiz_id)
     
     # Check if already taken
     existing_result = Result.query.filter_by(quiz_id=quiz.id, student_id=current_user.id).first()
     if existing_result:
-        flash(f'You have already taken this quiz. Your score: {existing_result.score}/{existing_result.total}', 'info')
-        return redirect(url_for('quiz.list_quizzes', course_id=quiz.course_id))
+        flash(f'You have already taken this quiz. Here are your results.', 'info')
+        return redirect(url_for('quiz.quiz_result', quiz_id=quiz.id))
         
     if request.method == 'POST':
         score = 0
@@ -80,6 +82,7 @@ def take_quiz(quiz_id):
 def quiz_result(quiz_id):
     """
     Handles the quiz result functionality.
+    Shows the student their score and details for a previously completed quiz.
     """
     quiz = Quiz.query.get_or_404(quiz_id)
     result = Result.query.filter_by(quiz_id=quiz.id, student_id=current_user.id).first()

@@ -91,6 +91,7 @@
                 
                 {% if is_enrolled %}
                     <a href="{{ url_for('courses.course_start', course_id=course.id) }}" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm">Start Learning</a>
+                    <a href="{{ url_for('ai.chat', course_id=course.id) }}" class="btn btn-outline-info btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm"><i class="bi bi-robot me-2"></i>Ask AI about this Course</a>
                     <p class="text-center text-success small fw-medium mb-0"><i class="bi bi-check-circle-fill me-1"></i> You are enrolled in this course.</p>
                 {% else %}
                     {% if course.demo_video_url or course.demo_video_file %}

@@ -6,7 +6,16 @@ from flask_mail import Message
 # Assuming mail is initialized in app.py and imported where needed, or we can use current_app.extensions
 def send_email(subject, recipient, body, html_body=None):
     """
-    Handles the send email functionality.
+    Sends an email using the Flask-Mail extension.
+    
+    Args:
+        subject (str): The subject line of the email.
+        recipient (str): The primary email address of the recipient.
+        body (str): The plain text body of the email.
+        html_body (str, optional): The HTML formatted body of the email. Defaults to None.
+        
+    Returns:
+        bool: True if the email was sent successfully, False otherwise.
     """
     mail = current_app.extensions.get('mail')
     if not mail:
@@ -29,12 +38,29 @@ def send_email(subject, recipient, body, html_body=None):
         return False
 
 def generate_otp(length=6):
-    """Generate a secure 6-digit OTP."""
+    """
+    Generate a secure random numeric One-Time Password (OTP).
+    
+    Args:
+        length (int): The number of digits for the OTP. Defaults to 6.
+        
+    Returns:
+        str: A string containing the generated numeric OTP.
+    """
     digits = string.digits
     return ''.join(secrets.choice(digits) for i in range(length))
 
 def send_otp_email(recipient, otp):
-    """Send OTP email to the user."""
+    """
+    Send a password reset OTP email to the user.
+    
+    Args:
+        recipient (str): The email address of the user requesting the reset.
+        otp (str): The generated One-Time Password.
+        
+    Returns:
+        bool: True if sent successfully, False otherwise.
+    """
     subject = "Your Password Reset OTP - LearnSphere AI"
     body = f"Hello,\n\nYour OTP for password reset is: {otp}\n\nThis OTP will expire in 10 minutes.\nIf you did not request this, please ignore this email.\n\nLearnSphere AI Team"
     
@@ -56,7 +82,16 @@ def send_otp_email(recipient, otp):
     return send_email(subject, recipient, body, html_body)
 
 def send_2fa_otp_email(recipient, otp):
-    """Send 2FA OTP email to the user."""
+    """
+    Send a Two-Factor Authentication (2FA) OTP email to the user.
+    
+    Args:
+        recipient (str): The email address of the user attempting to log in.
+        otp (str): The generated One-Time Password.
+        
+    Returns:
+        bool: True if sent successfully, False otherwise.
+    """
     subject = "Your 2FA Login Code - AuraLearn"
     body = f"Hello,\n\nYour Two-Factor Authentication code is: {otp}\n\nThis code will expire in 5 minutes.\nIf you did not attempt to log in, please secure your account immediately.\n\nAuraLearn Team"
     

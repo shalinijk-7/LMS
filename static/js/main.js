@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Flash message close functionality
     const flashMessages = document.querySelectorAll('.flash-message');
     if (flashMessages.length > 0) {
+        /**
+         * UI Update: Fades out and removes flash messages after 5 seconds.
+         */
         setTimeout(() => {
             flashMessages.forEach(msg => {
                 msg.style.opacity = '0';
@@ -17,6 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Navbar scroll effect
     const navbar = document.querySelector('.navbar');
     if (navbar) {
+        /**
+         * Scroll event listener to apply a shadow and background opacity to the navbar 
+         * when the user scrolls down the page.
+         */
         window.addEventListener('scroll', () => {
             if (window.scrollY > 50) {
                 navbar.style.boxShadow = 'var(--shadow-md)';

@@ -9,14 +9,24 @@ from flask import current_app
 
 def generate_certificate(student_name, course_name, issue_date=None):
     """
-    Generates a PDF certificate and returns the certificate_id and relative file path.
+    Generates a PDF certificate of completion for a student and saves it to the uploads directory.
+    
+    Args:
+        student_name (str): The full name of the student receiving the certificate.
+        course_name (str): The title of the course completed.
+        issue_date (datetime, optional): The date the certificate is issued. Defaults to current UTC time.
+        
+    Returns:
+        tuple: A tuple containing the unique certificate_id (str) and the relative file path (str) to the generated PDF.
     """
     if issue_date is None:
         issue_date = datetime.utcnow()
         
+    # Generate a unique 12-character alphanumeric ID for the certificate
     certificate_id = str(uuid.uuid4().hex)[:12].upper()
     filename = f"cert_{certificate_id}.pdf"
     
+    # Ensure the certificates subdirectory exists within the main upload folder
     cert_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'certificates')
     os.makedirs(cert_dir, exist_ok=True)
     
@@ -68,7 +78,9 @@ def generate_certificate(student_name, course_name, issue_date=None):
     c.line(width - 250, 100, width - 100, 100)
     c.drawCentredString(width - 175, 75, "Course Instructor")
     
+    # Save the PDF document to the filesystem
     c.save()
     
+    # Construct the relative path to be stored in the database or served to the user
     relative_path = f"/uploads/certificates/{filename}"
     return certificate_id, relative_path

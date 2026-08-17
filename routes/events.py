@@ -7,6 +7,8 @@ from services.notification_service import send_notification
 def get_room_name(chat_type, chat_id):
     """
     Handles the get room name functionality.
+    Generates a standardized room name string based on the chat type and ID.
+    Used for routing WebSocket events to specific course or user rooms.
     """
     if chat_type == 'course':
         return f'course_{chat_id}'
@@ -17,11 +19,16 @@ def get_room_name(chat_type, chat_id):
 def register_events(socketio):
     """
     Handles the register events functionality.
+    Registers all WebSocket event handlers for real-time chat and notifications.
+    Includes connecting, disconnecting, joining/leaving rooms, typing indicators,
+    and message actions (send, edit, delete, react, pin).
     """
     @socketio.on('connect')
     def handle_connect():
         """
         Handles the handle connect functionality.
+        Triggered when a user connects via WebSocket. Joins the user to their personal room
+        and broadcasts their 'online' status to others.
         """
         if current_user.is_authenticated:
             join_room(f'user_{current_user.id}')
@@ -34,6 +41,7 @@ def register_events(socketio):
     def handle_disconnect():
         """
         Handles the handle disconnect functionality.
+        Triggered when a user disconnects. Broadcasts their 'offline' status to others.
         """
         if current_user.is_authenticated:
             print(f"DEBUG: User {current_user.id} DISCONNECTED")
@@ -43,6 +51,7 @@ def register_events(socketio):
     def handle_join_course(data):
         """
         Handles the handle join course functionality.
+        Allows a user to join a specific course's WebSocket room to receive real-time course messages.
         """
         course_id = data.get('course_id')
         if course_id:
@@ -52,6 +61,7 @@ def register_events(socketio):
     def handle_leave_course(data):
         """
         Handles the handle leave course functionality.
+        Allows a user to leave a specific course's WebSocket room.
         """
         course_id = data.get('course_id')
         if course_id:
@@ -61,6 +71,7 @@ def register_events(socketio):
     def handle_typing(data):
         """
         Handles the handle typing functionality.
+        Broadcasts a 'typing' indicator to the appropriate room when a user starts typing.
         """
         if not current_user.is_authenticated: return
         room = get_room_name(data.get('type'), data.get('id'))
@@ -71,6 +82,7 @@ def register_events(socketio):
     def handle_stop_typing(data):
         """
         Handles the handle stop typing functionality.
+        Broadcasts a 'stop typing' indicator to the appropriate room when a user stops typing.
         """
         if not current_user.is_authenticated: return
         room = get_room_name(data.get('type'), data.get('id'))
@@ -81,6 +93,8 @@ def register_events(socketio):
     def handle_send_message(data):
         """
         Handles the handle send message functionality.
+        Processes incoming messages, saves them to the database, broadcasts them to the room,
+        and triggers notifications for recipients.
         """
         print(f"DEBUG: handle_send_message TRIGGERED by user {current_user.id if current_user.is_authenticated else 'Anonymous'}: {data}")
         if not current_user.is_authenticated: return
@@ -193,6 +207,7 @@ def register_events(socketio):
     def handle_edit_message(data):
         """
         Handles the handle edit message functionality.
+        Updates an existing message in the database and broadcasts the edited content to the room.
         """
         if not current_user.is_authenticated: return
         msg = Message.query.get(data.get('message_id'))
@@ -213,6 +228,7 @@ def register_events(socketio):
     def handle_delete_message(data):
         """
         Handles the handle delete message functionality.
+        Marks a message as deleted in the database and notifies the room to update the UI.
         """
         if not current_user.is_authenticated: return
         msg = Message.query.get(data.get('message_id'))
@@ -234,6 +250,7 @@ def register_events(socketio):
     def handle_react_message(data):
         """
         Handles the handle react message functionality.
+        Adds or removes an emoji reaction for a message and broadcasts the update.
         """
         if not current_user.is_authenticated: return
         msg_id = data.get('message_id')
@@ -266,6 +283,7 @@ def register_events(socketio):
     def handle_pin_message(data):
         """
         Handles the handle pin message functionality.
+        Toggles the pinned status of a message and broadcasts the change.
         """
         if not current_user.is_authenticated: return
         msg_id = data.get('message_id')

@@ -16,7 +16,10 @@ window.initTheme = function() {
 document.addEventListener('DOMContentLoaded', function() {
     const currentTheme = localStorage.getItem('auralearn-theme') || 'light';
     
-    // Function to apply a theme
+    /**
+     * Applies the chosen theme by updating the DOM, saving to localStorage, 
+     * and dispatching a custom event for other components to react.
+     */
     window.setTheme = function(themeName) {
         // Set attribute on HTML root
         document.documentElement.setAttribute('data-theme', themeName);
@@ -43,7 +46,9 @@ document.addEventListener('DOMContentLoaded', function() {
             card.classList.add('active');
         }
         
-        // Add click listener
+        /**
+         * Click event listener to set the selected theme when a theme card is clicked.
+         */
         card.addEventListener('click', function(e) {
             e.preventDefault();
             setTheme(this.dataset.themeValue);

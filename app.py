@@ -50,16 +50,20 @@ def create_app(config_class=Config):
         Flask: The initialized Flask application instance.
     """
     app = Flask(__name__)
+    # Load configuration settings from the provided config_class
     app.config.from_object(config_class)
 
-    # Initialize extensions
-    db.init_app(app)
-    migrate = Migrate(app, db)
-    mail.init_app(app)
-    oauth.init_app(app)
-    socketio.init_app(app)
+    # Initialize Flask extensions with the app instance
+    db.init_app(app)                     # Initialize SQLAlchemy database
+    migrate = Migrate(app, db)           # Initialize Flask-Migrate for database migrations
+    mail.init_app(app)                   # Initialize Flask-Mail for sending emails
+    oauth.init_app(app)                  # Initialize Authlib OAuth client for SSO
+    socketio.init_app(app)               # Initialize Flask-SocketIO for real-time communication
+    
+    # Register custom WebSocket events
     routes.events.register_events(socketio)
     
+    # Register Google as an OAuth provider using configurations from app context
     oauth.register(
         name='google',
         client_id=app.config.get('GOOGLE_CLIENT_ID'),
@@ -71,8 +75,9 @@ def create_app(config_class=Config):
         }
     )
     
+    # Configure Flask-Login for session management
     login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'auth.login' # Redirect unauthorized users to the login route
     login_manager.init_app(app)
     
     @login_manager.user_loader
@@ -128,7 +133,7 @@ def create_app(config_class=Config):
     from routes.payment import payment_bp
     from routes.ai_routes import ai_bp
 
-    # Register Blueprints
+    # Register all modular Blueprints with the main application
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(instructor_bp)

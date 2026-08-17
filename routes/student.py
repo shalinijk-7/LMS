@@ -10,7 +10,8 @@ student_bp = Blueprint('student', __name__, url_prefix='/student')
 @student_required
 def dashboard():
     """
-    Handles the dashboard functionality.
+    Route to render the student dashboard.
+    Aggregates data on enrolled courses, progress, learning time, attendance, and upcoming assignments.
     """
     from models import CourseCompletion, StudentProgress, Attendance, Assignment, Quiz
     enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
@@ -86,7 +87,8 @@ def dashboard():
 @student_required
 def sessions():
     """
-    Handles the sessions functionality.
+    Route to list upcoming live sessions for the student.
+    Fetches scheduled live sessions for the courses the student is currently enrolled in.
     """
 
     from models import LiveSession, Enrollment
@@ -105,7 +107,8 @@ def sessions():
 @student_required
 def analytics():
     """
-    Handles the analytics functionality.
+    Route to display learning analytics for the student.
+    Shows the student's enrollments, recent quiz results, and assignment submissions.
     """
 
     enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
@@ -122,7 +125,8 @@ def analytics():
 @student_required
 def attendance():
     """
-    Handles the attendance functionality.
+    Route to display the student's attendance records.
+    Allows filtering attendance by course and calculates overall attendance percentage.
     """
 
     from models import Attendance, Enrollment, Course
@@ -158,7 +162,8 @@ def attendance():
 @student_required
 def payment_history():
     """
-    Handles the payment history functionality.
+    Route to display the student's payment history.
+    Retrieves all past payments made by the student, ordered by date.
     """
 
     from models import Payment

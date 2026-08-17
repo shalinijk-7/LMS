@@ -10,6 +10,7 @@ notifications_bp = Blueprint('notifications', __name__, url_prefix='/notificatio
 def index():
     """
     Handles the index functionality.
+    Retrieves and displays a paginated list of all notifications for the current user.
     """
     notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
     return render_template('settings/notifications.html', notifications=notifications)
@@ -19,6 +20,7 @@ def index():
 def test_notif():
     """
     Handles the test notif functionality.
+    Sends a test system notification to the current user to verify real-time functionality.
     """
     from services.notification_service import send_notification
     send_notification(
@@ -36,6 +38,7 @@ def test_notif():
 def mark_read(notif_id):
     """
     Handles the mark read functionality.
+    Marks a specific notification as read and redirects the user to the notification's action URL.
     """
     notif = Notification.query.get_or_404(notif_id)
     if notif.user_id == current_user.id:
@@ -54,6 +57,7 @@ def mark_read(notif_id):
 def mark_all_read():
     """
     Handles the mark all read functionality.
+    Updates all unread notifications for the current user to read status.
     """
     Notification.query.filter_by(user_id=current_user.id, is_read=False).update({'is_read': True})
     db.session.commit()
@@ -66,6 +70,7 @@ def mark_all_read():
 def clear_all():
     """
     Handles the clear all functionality.
+    Permanently deletes all notifications for the current user.
     """
     Notification.query.filter_by(user_id=current_user.id).delete()
     db.session.commit()
@@ -78,6 +83,8 @@ def clear_all():
 def recent():
     """
     Handles the recent functionality.
+    Fetches the 15 most recent notifications for the current user as JSON data.
+    Used for the notification dropdown in the navigation bar.
     """
     notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).limit(15).all()
     notifs_data = []

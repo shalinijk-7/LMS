@@ -56,6 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isTyping = false;
 
     // --- Core Chat Initialization ---
+    /**
+     * Click event listeners for chat items in the sidebar.
+     * Updates active chat UI and joins the appropriate Socket.IO room.
+     */
     chatItems.forEach(item => {
         item.addEventListener('click', () => {
             const chatType = item.getAttribute('data-chat-type');
@@ -86,6 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Join Room
             if (chatType === 'course') {
+                /**
+                 * Socket.IO event: Join the specified course chat room.
+                 */
                 socket.emit('join_course', { course_id: chatId });
                 chatSubtitle.innerHTML = 'Group Chat';
             } else {
@@ -101,12 +108,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    /**
+     * Click event handler to show the chat sidebar on mobile devices.
+     */
     mobileBackBtn.addEventListener('click', () => {
         chatSidebar.classList.remove('hide-mobile');
     });
 
     // --- Loading Data ---
     /**
+     * API Request: Fetches chat history for the active chat and renders it.
      * Handles the loadChatHistory functionality.
      */
     function loadChatHistory(type, id) {
@@ -156,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * API Request: Fetches info about the course or user for the right panel.
      * Handles the loadInfoPanel functionality.
      */
     function loadInfoPanel(type, id) {
@@ -197,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Message Rendering ---
     /**
+     * UI Update: Generates HTML structure for a single chat message.
      * Handles the createMessageHTML functionality.
      */
     function createMessageHTML(msg) {
@@ -317,6 +330,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Sending & Input Logic ---
+    /**
+     * Input event listener for the chat input box.
+     * Controls the send button state and emits typing indicators via Socket.IO.
+     */
     chatInputBox.addEventListener('input', () => {
         chatSendBtn.disabled = chatInputBox.value.trim().length === 0;
         
@@ -332,6 +349,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     });
 
+    /**
+     * Submit event listener for the chat form.
+     * Handles editing messages, file uploads, and sending new messages.
+     */
     chatForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const content = chatInputBox.value.trim();
@@ -345,6 +366,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (editId) {
             // Send Edit Request
+            /**
+             * Socket.IO event: Send an edit request for a message.
+             */
             socket.emit('edit_message', { message_id: editId, new_content: content });
             cancelEditOrReply();
             return;
@@ -355,6 +379,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('file', fileUploadInput.files[0]);
             
+            /**
+             * API Request: Upload a file attachment for the chat.
+             */
             fetch('/chat/upload', { method: 'POST', body: formData })
                 .then(res => res.json())
                 .then(data => {
@@ -371,6 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /**
+     * Socket.IO event: Sends a message payload to the server.
      * Handles the sendMessageObj functionality.
      */
     function sendMessageObj(type, id, content, fileUrl, replyId, isAnnouncement) {
@@ -396,6 +424,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.deleteMessage = function(id) {
         if(confirm("Are you sure you want to delete this message?")) {
+            /**
+             * Socket.IO event: Request deletion of a message.
+             */
             socket.emit('delete_message', { message_id: id });
         }
     }
@@ -425,10 +456,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.togglePin = function(id) {
+        /**
+         * Socket.IO event: Toggle the pinned status of a message.
+         */
         socket.emit('pin_message', { message_id: id });
     }
 
     // --- Socket Event Listeners ---
+    /**
+     * Socket.IO event handler for 'receive_message'.
+     * Updates the chat UI with the incoming message and handles unread badges.
+     */
     socket.on('receive_message', (msg) => {
         // If message belongs to active chat, render it
         if ((msg.chat_type === activeChatTypeInput.value && msg.chat_id == activeChatIdInput.value) || 
@@ -454,6 +492,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /**
+     * Socket.IO event handler for 'message_edited'.
+     * Updates the edited message's content in the UI.
+     */
     socket.on('message_edited', (data) => {
         if ((data.chat_type === activeChatTypeInput.value && data.chat_id == activeChatIdInput.value)) {
             const msgRow = document.getElementById(`msg-${data.message_id}`);
@@ -464,6 +506,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /**
+     * Socket.IO event handler for 'message_deleted'.
+     * Updates the UI to show a deleted placeholder instead of the original message.
+     */
     socket.on('message_deleted', (data) => {
         if ((data.chat_type === activeChatTypeInput.value && data.chat_id == activeChatIdInput.value)) {
             const msgRow = document.getElementById(`msg-${data.message_id}`);
@@ -484,6 +530,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /**
+     * Socket.IO event handler for 'message_pinned'.
+     * Reloads the chat history to display updated pin status.
+     */
     socket.on('message_pinned', (data) => {
         if ((data.chat_type === activeChatTypeInput.value && data.chat_id == activeChatIdInput.value)) {
             // Reload history to ensure accurate pinned state, or just fetch pinned manually
@@ -492,6 +542,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /**
+     * Socket.IO event handler for 'message_reacted'.
+     * Triggers a history reload to sync reaction states in the UI.
+     */
     socket.on('message_reacted', (data) => {
         if ((data.chat_type === activeChatTypeInput.value && data.chat_id == activeChatIdInput.value)) {
             // Realtime reaction update without full reload
@@ -504,6 +558,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /**
+     * Socket.IO event handler for 'status_change'.
+     * Updates online/offline indicators across the UI.
+     */
     socket.on('status_change', (data) => {
         const indicators = document.querySelectorAll(`.online-indicator[data-user-id="${data.user_id}"]`);
         indicators.forEach(ind => {
@@ -521,6 +579,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /**
+     * Socket.IO event handler for 'user_typing'.
+     * Displays a typing indicator for the active chat.
+     */
     socket.on('user_typing', (data) => {
         if (activeChatTypeInput.value === data.chat_type && activeChatIdInput.value == data.chat_id) {
             const typingIndicator = document.querySelector(`.typing-indicator[data-user-id="${data.user_id}"]`);
@@ -534,6 +596,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /**
+     * Socket.IO event handler for 'user_stop_typing'.
+     * Removes the typing indicator from the active chat UI.
+     */
     socket.on('user_stop_typing', (data) => {
         if (activeChatTypeInput.value === data.chat_type && activeChatIdInput.value == data.chat_id) {
             const typingIndicator = document.querySelector(`.typing-indicator[data-user-id="${data.user_id}"]`);
@@ -570,10 +636,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Emoji Picker ---
+    /**
+     * Click event listener to toggle the emoji picker UI.
+     */
     emojiPickerBtn.addEventListener('click', () => {
         emojiPickerContainer.classList.toggle('d-none');
     });
     
+    /**
+     * Custom 'emoji-click' event listener from the emoji-picker component.
+     * Appends the selected emoji to the chat input box.
+     */
     document.querySelector('emoji-picker').addEventListener('emoji-click', event => {
         chatInputBox.value += event.detail.unicode;
         chatSendBtn.disabled = false;
@@ -590,6 +663,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Reactions Picker (Simplified) ---
     window.toggleReaction = function(msgId, emoji) {
+        /**
+         * Socket.IO event: Toggle a reaction on a message.
+         */
         socket.emit('react_message', { message_id: msgId, emoji: emoji });
     }
     
@@ -610,6 +686,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Attachment Handling ---
+    /**
+     * Click event listeners for attachment buttons.
+     * Triggers the hidden file input with specific accept types.
+     */
     attachImageBtn.addEventListener('click', (e) => { e.preventDefault(); fileUploadInput.accept = "image/*,video/*"; fileUploadInput.click(); });
     attachDocumentBtn.addEventListener('click', (e) => { e.preventDefault(); fileUploadInput.accept = ".pdf,.doc,.docx,.ppt,.pptx,.zip"; fileUploadInput.click(); });
     
@@ -622,6 +702,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /**
+     * Change event listener for the file input.
+     * Updates the chat input placeholder to reflect the attached file.
+     */
     fileUploadInput.addEventListener('change', () => {
         if(fileUploadInput.files.length > 0) {
             chatInputBox.placeholder = `File attached: ${fileUploadInput.files[0].name}`;
@@ -630,6 +714,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Right Panel Toggle ---
+    /**
+     * Click event listener to toggle the visibility of the info panel.
+     */
     toggleInfoPanelBtn.addEventListener('click', () => {
         chatInfoPanel.classList.toggle('show');
         chatInfoPanel.classList.toggle('d-none');
@@ -637,17 +724,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Search & Filters ---
+    /**
+     * Click event listener to toggle the message search bar within the active chat.
+     */
     toggleMessageSearch.addEventListener('click', () => {
         messageSearchBar.classList.toggle('d-none');
         if(!messageSearchBar.classList.contains('d-none')) messageSearchInput.focus();
     });
     
+    /**
+     * Click event listener to close the message search bar.
+     */
     closeMessageSearch.addEventListener('click', () => {
         messageSearchBar.classList.add('d-none');
         messageSearchInput.value = '';
         // reset highlighting here if implemented
     });
 
+    /**
+     * Input event listener for the global chat search bar.
+     * Filters the chat list items by title in real-time.
+     */
     globalChatSearch.addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         document.querySelectorAll('.chat-item').forEach(item => {
@@ -656,6 +753,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    /**
+     * Click event listeners for sidebar filter buttons (e.g., All, Unread, Groups, DMs).
+     * Filters the visibility of chat items in the sidebar.
+     */
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active', 'btn-primary'));

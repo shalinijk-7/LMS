@@ -1,0 +1,266 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}AI Practice Questions - AuraLearn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .practice-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    .practice-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    .practice-body {
+        padding: 2.5rem;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+    .form-select, .form-control {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border-color: #cbd5e1;
+    }
+    .form-select:focus, .form-control:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    .btn-generate {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.8rem 2rem;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s;
+    }
+    .btn-generate:hover {
+        background: #4338ca;
+        transform: translateY(-2px);
+    }
+    .loading-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255,255,255,0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 10;
+        border-radius: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card practice-card position-relative">
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 class="mt-3 fw-bold text-primary">Generating AI Quiz...</h5>
+                    <p class="text-muted">This might take a few seconds.</p>
+                </div>
+                
+                <div class="practice-header">
+                    <i class="bi bi-lightbulb text-warning" style="font-size: 3rem;"></i>
+                    <h2 class="fw-bold mb-1 mt-2">AI Practice Questions</h2>
+                    <p class="mb-0 text-white-50">Generate personalized quizzes based on your course material.</p>
+                </div>
+                <div class="practice-body">
+                    <form id="practiceForm">
+                        <div class="mb-4">
+                            <label class="form-label">1. Select Course</label>
+                            <select class="form-select" id="courseSelect" required>
+                                <option value="" disabled selected>Choose a course...</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}">{{ course.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4" id="lessonContainer" style="display: none;">
+                            <label class="form-label">2. Select Lesson (Optional)</label>
+                            <select class="form-select" id="lessonSelect">
+                                <option value="">Entire Course</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4" id="materialContainer" style="display: none;">
+                            <label class="form-label">3. Select Study Material (Optional)</label>
+                            <select class="form-select" id="materialSelect">
+                                <option value="">No specific material</option>
+                            </select>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Difficulty</label>
+                                <select class="form-select" id="difficultySelect">
+                                    <option value="Easy">Easy</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="Hard">Hard</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label">Number of Questions</label>
+                                <input type="number" class="form-control" id="numQuestions" value="3" min="1" max="10">
+                            </div>
+                        </div>
+                        
+                        <div id="errorAlert" class="alert alert-danger d-none"></div>
+                        
+                        <button type="submit" class="btn-generate">
+                            <i class="bi bi-magic me-2"></i> Generate Practice Quiz
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            {% if past_quizzes %}
+            <div class="mt-5">
+                <h4 class="fw-bold mb-4">Your Past AI Quizzes</h4>
+                <div class="row">
+                    {% for quiz in past_quizzes %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-primary">{{ quiz.title }}</h6>
+                                <p class="text-muted small mb-3">Course: {{ quiz.course.title }}</p>
+                                <a href="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-play-fill"></i> View Result / Take
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let courseData = {};
+
+    document.getElementById('courseSelect').addEventListener('change', async function() {
+        const courseId = this.value;
+        const lessonContainer = document.getElementById('lessonContainer');
+        const lessonSelect = document.getElementById('lessonSelect');
+        const materialContainer = document.getElementById('materialContainer');
+        const materialSelect = document.getElementById('materialSelect');
+        
+        lessonSelect.innerHTML = '<option value="">Entire Course</option>';
+        materialSelect.innerHTML = '<option value="">No specific material</option>';
+        materialContainer.style.display = 'none';
+        
+        if (!courseId) {
+            lessonContainer.style.display = 'none';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/ai/api/course_content/${courseId}`);
+            const data = await response.json();
+            
+            if (data.success && data.lessons.length > 0) {
+                courseData = {}; // reset
+                data.lessons.forEach(lesson => {
+                    courseData[lesson.id] = lesson.materials;
+                    const option = document.createElement('option');
+                    option.value = lesson.id;
+                    option.textContent = lesson.title;
+                    lessonSelect.appendChild(option);
+                });
+                lessonContainer.style.display = 'block';
+            } else {
+                lessonContainer.style.display = 'none';
+            }
+        } catch (error) {
+            console.error("Error fetching course content:", error);
+        }
+    });
+
+    document.getElementById('lessonSelect').addEventListener('change', function() {
+        const lessonId = this.value;
+        const materialContainer = document.getElementById('materialContainer');
+        const materialSelect = document.getElementById('materialSelect');
+        
+        materialSelect.innerHTML = '<option value="">No specific material</option>';
+        
+        if (!lessonId || !courseData[lessonId] || courseData[lessonId].length === 0) {
+            materialContainer.style.display = 'none';
+            return;
+        }
+        
+        courseData[lessonId].forEach(material => {
+            const option = document.createElement('option');
+            option.value = material.id;
+            option.textContent = material.title;
+            materialSelect.appendChild(option);
+        });
+        materialContainer.style.display = 'block';
+    });
+
+    document.getElementById('practiceForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const courseId = document.getElementById('courseSelect').value;
+        const lessonId = document.getElementById('lessonSelect').value;
+        const materialId = document.getElementById('materialSelect').value;
+        const difficulty = document.getElementById('difficultySelect').value;
+        const numQuestions = document.getElementById('numQuestions').value;
+        
+        const errorAlert = document.getElementById('errorAlert');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        
+        errorAlert.classList.add('d-none');
+        loadingOverlay.style.display = 'flex';
+        
+        try {
+            const response = await fetch("{{ url_for('ai.api_practice_generate') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_id: lessonId || null,
+                    material_id: materialId || null,
+                    difficulty: difficulty,
+                    num_questions: numQuestions
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                loadingOverlay.style.display = 'none';
+                errorAlert.textContent = data.error || 'Failed to generate quiz.';
+                errorAlert.classList.remove('d-none');
+            }
+        } catch (error) {
+            loadingOverlay.style.display = 'none';
+            errorAlert.textContent = 'A network error occurred. Please try again.';
+            errorAlert.classList.remove('d-none');
+        }
+    });
+</script>
+{% endblock %}

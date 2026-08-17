@@ -10,7 +10,8 @@ instructor_bp = Blueprint('instructor', __name__, url_prefix='/instructor')
 @instructor_required
 def dashboard():
     """
-    Handles the dashboard functionality.
+    Route to render the instructor's dashboard.
+    Calculates total students, revenue, and course completion rates to display analytics.
     """
     from models import CourseCompletion, Enrollment, Payment
     courses = Course.query.filter_by(instructor_id=current_user.id).all()
@@ -44,7 +45,8 @@ def dashboard():
 @instructor_required
 def students():
     """
-    Handles the students functionality.
+    Route to list students enrolled in the instructor's courses.
+    Allows filtering by progress (completed, in progress, not started) and displays completion status.
     """
     from flask import request
     courses = Course.query.filter_by(instructor_id=current_user.id).all()
@@ -83,7 +85,9 @@ def students():
 @instructor_required
 def sessions():
     """
-    Handles the sessions functionality.
+    Route to manage live sessions.
+    Accepts GET requests to list scheduled live sessions.
+    Accepts POST requests to schedule a new live session and notify enrolled students.
     """
     from models import LiveSession
     from flask import request, flash, redirect, url_for
@@ -138,7 +142,8 @@ def sessions():
 @instructor_required
 def create_assignment(course_id):
     """
-    Handles the create assignment functionality.
+    Route to create a new assignment for a course.
+    Accepts form data to create an assignment and sends notifications to enrolled students.
     """
     from flask import request, flash, redirect, url_for
     from models import Assignment
@@ -191,7 +196,9 @@ def create_assignment(course_id):
 @instructor_required
 def grade_submissions(course_id, assignment_id):
     """
-    Handles the grade submissions functionality.
+    Route to grade student submissions for an assignment.
+    Displays submissions from students and allows the instructor to assign marks and provide feedback.
+    Notifies the student once their submission is graded.
     """
     from flask import request, flash, redirect, url_for
     from models import Assignment, Submission
@@ -237,7 +244,8 @@ def grade_submissions(course_id, assignment_id):
 @instructor_required
 def create_quiz(course_id):
     """
-    Handles the create quiz functionality.
+    Route to create a new quiz for a course.
+    Parses JSON data containing quiz questions and answers, saves them, and notifies students.
     """
     from flask import request, flash, redirect, url_for
     from models import Quiz, Question, Answer, Lesson
@@ -327,7 +335,8 @@ def create_quiz(course_id):
 @instructor_required
 def quiz_results(course_id, quiz_id):
     """
-    Handles the quiz results functionality.
+    Route to view student results for a specific quiz.
+    Retrieves and displays all quiz submissions ordered by their submission time.
     """
     from models import Quiz, Result
     course = Course.query.filter_by(id=course_id, instructor_id=current_user.id).first_or_404()

@@ -13,6 +13,8 @@ payment_bp = Blueprint('payment', __name__, url_prefix='/payment')
 def checkout(course_id):
     """
     Handles the checkout functionality.
+    Prepares the checkout page for a specific course, including tax calculation.
+    Directly enrolls the student if the course is free.
     """
 
     course = Course.query.get_or_404(course_id)
@@ -38,6 +40,8 @@ def checkout(course_id):
 def process_payment(course_id):
     """
     Handles the process payment functionality.
+    Simulates payment processing, creates payment and purchase history records,
+    enrolls the student in the course, and sends notifications.
     """
 
     course = Course.query.get_or_404(course_id)
@@ -105,6 +109,7 @@ def process_payment(course_id):
 def success(transaction_id):
     """
     Handles the success functionality.
+    Displays a success page and receipt details for a completed payment transaction.
     """
     payment = Payment.query.filter_by(transaction_id=transaction_id).first_or_404()
     

@@ -16,6 +16,9 @@
                         <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#aiExplainModal">
                             <i class="bi bi-magic me-1"></i> Explain with AI
                         </button>
+                        <a href="{{ url_for('ai.chat', course_id=course.id) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-bold" title="Ask AI about this course">
+                            <i class="bi bi-robot me-1"></i> Ask AI
+                        </a>
                         <a href="{{ url_for('discussion.list_discussions', course_id=course.id) }}" class="btn btn-outline-info btn-sm rounded-pill fw-bold">
                             <i class="bi bi-chat-left-text me-1"></i> Discussions
                             {% if course.discussion_threads %}

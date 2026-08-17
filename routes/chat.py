@@ -3,20 +3,24 @@ from flask_login import login_required, current_user
 from models import Message, Course, User, db
 from sqlalchemy import or_, and_
 
+# Initialize the Blueprint for chat operations
 chat_bp = Blueprint('chat', __name__, url_prefix='/chat')
 
 @chat_bp.route('/')
 @login_required
 def chat_interface():
     """
-    Handles the chat interface functionality.
+    Renders the main chat application interface with loaded contact lists and 
+    course group chats depending on the current user's role.
     """
-    # Get courses the user is part of (for group chats)
+    # Identify available chats based on user role (Student or Instructor)
     if current_user.role.name == 'student':
+        # Students see their enrolled courses and the respective instructors
         courses = [e.course for e in current_user.enrollments] # Assuming Enrollment model maps to user.enrollments
         instructor_ids = [c.instructor_id for c in courses if c]
         users_to_chat = User.query.filter(User.id.in_(instructor_ids)).all() if instructor_ids else []
     elif current_user.role.name == 'instructor':
+        # Instructors see courses they teach and all students enrolled in them
         courses = Course.query.filter_by(instructor_id=current_user.id).all()
         student_ids = []
         for course in courses:
@@ -27,14 +31,17 @@ def chat_interface():
         courses = []
         users_to_chat = []
 
+    # Calculate unread message counts for both direct messages and course channels
     unread_counts = {}
     course_unread_counts = {}
     if current_user.is_authenticated:
         from models import CourseChatReadStatus
+        # Retrieve all unread private messages directed to the current user
         unread_msgs = Message.query.filter_by(receiver_id=current_user.id, is_read=False).all()
         for msg in unread_msgs:
             unread_counts[msg.sender_id] = unread_counts.get(msg.sender_id, 0) + 1
             
+        # Determine unread counts for course channels based on the user's last read message ID
         for course in courses:
             status = CourseChatReadStatus.query.filter_by(user_id=current_user.id, course_id=course.id).first()
             last_id = status.last_read_message_id if status else 0
@@ -48,12 +55,14 @@ def chat_interface():
 @login_required
 def get_chat_history(chat_type, chat_id):
     """
-    Handles the get chat history functionality.
+    Retrieves the chronological list of messages for a specific course channel or direct user-to-user chat,
+    and automatically marks retrieved messages as read.
     """
     if chat_type == 'course':
+        # Fetch group messages related to the course
         messages = Message.query.filter_by(course_id=chat_id).order_by(Message.timestamp.asc()).all()
         
-        # Mark course messages as read
+        # Keep track of the last read message in the course for the current user
         if messages:
             last_msg_id = messages[-1].id
             from models import CourseChatReadStatus
@@ -65,6 +74,7 @@ def get_chat_history(chat_type, chat_id):
                 status.last_read_message_id = max(status.last_read_message_id, last_msg_id)
             db.session.commit()
     elif chat_type == 'user':
+        # Fetch direct messages between the current user and target user (bidirectional)
         messages = Message.query.filter(
             or_(
                 and_(Message.sender_id == current_user.id, Message.receiver_id == chat_id),
@@ -72,7 +82,7 @@ def get_chat_history(chat_type, chat_id):
             )
         ).order_by(Message.timestamp.asc()).all()
         
-        # Mark incoming messages as read
+        # Mark incoming direct messages as read
         unread_msgs = [m for m in messages if m.receiver_id == current_user.id and not m.is_read]
         if unread_msgs:
             for m in unread_msgs:
@@ -81,6 +91,7 @@ def get_chat_history(chat_type, chat_id):
     else:
         return jsonify({'error': 'Invalid chat type'}), 400
 
+    # Serialize message objects with all relevant metadata into JSON format
     results = []
     for msg in messages:
         sender_user = User.query.get(msg.sender_id)
@@ -108,7 +119,7 @@ from werkzeug.utils import secure_filename
 @login_required
 def upload_file():
     """
-    Handles the upload file functionality.
+    Processes file uploads for chat attachments, ensuring secure filenames and directory persistence.
     """
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
@@ -116,7 +127,7 @@ def upload_file():
     if file.filename == '':
         return jsonify({'error': 'Empty filename'}), 400
     
-    # Simple secure filename and save
+    # Prefix filename with user ID to prevent naming collisions, then secure the path
     filename = secure_filename(f"{current_user.id}_{file.filename}")
     upload_folder = current_app.config.get('UPLOAD_FOLDER', 'static/uploads')
     if not os.path.exists(upload_folder):
@@ -132,11 +143,10 @@ def upload_file():
 @login_required
 def get_chat_info(chat_type, chat_id):
     """
-    Handles the get chat info functionality.
+    Fetches details and metadata about a course or user to display in the chat context panel.
     """
     if chat_type == 'course':
         course = Course.query.get_or_404(chat_id)
-        # Calculate stats
         total_students = len(course.enrollments)
         return jsonify({
             'title': course.title,

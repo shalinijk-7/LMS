@@ -110,7 +110,13 @@
             <i class="bi bi-robot fs-4"></i>
             <div>
                 <div class="fs-5">AuraLearn AI Assistant</div>
-                <div style="font-size: 0.8rem; opacity: 0.8;">Ask me anything about your courses</div>
+                <div style="font-size: 0.8rem; opacity: 0.8;">
+                    {% if course %}
+                        Answering based on: <strong>{{ course.title }}</strong>
+                    {% else %}
+                        Ask me anything about your courses
+                    {% endif %}
+                </div>
             </div>
         </div>
         
@@ -196,7 +202,10 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({ 
+                    message: message,
+                    course_id: {{ course.id if course else 'null' }}
+                })
             });
             
             const data = await response.json();

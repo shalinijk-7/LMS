@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     const togglePasswordButtons = document.querySelectorAll('.toggle-password');
     
+    /**
+     * Click event listeners to toggle password visibility.
+     * Changes input type and swaps the eye/eye-slash icons.
+     */
     togglePasswordButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             const targetId = this.getAttribute('data-target');
@@ -33,6 +37,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const registerForm = document.getElementById('register-form');
     
     if (passwordInput && strengthBar && strengthText) {
+        /**
+         * Input event listener to calculate password strength in real-time.
+         * Updates the UI progress bar and text to indicate strength level.
+         */
         passwordInput.addEventListener('input', function() {
             const val = this.value;
             let strength = 0;
@@ -71,6 +79,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (confirmPasswordInput) {
+        /**
+         * Input event listener for confirm password to validate in real-time.
+         */
         confirmPasswordInput.addEventListener('input', validatePasswords);
     }
     
@@ -109,6 +120,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Register Form Handling
     if (registerForm) {
+        /**
+         * Submit event listener for the registration form.
+         * Validates terms checkbox and passwords before submission, updating UI with errors if needed.
+         */
         registerForm.addEventListener('submit', function(e) {
             const termsCheckbox = document.getElementById('agree-terms');
             const termsError = document.getElementById('terms-error');
@@ -142,6 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide terms error when user checks the box
         const termsCheckbox = document.getElementById('agree-terms');
         if (termsCheckbox) {
+            /**
+             * Change event listener to hide the terms error message when the user checks the box.
+             */
             termsCheckbox.addEventListener('change', function() {
                 const termsError = document.getElementById('terms-error');
                 if (this.checked && termsError) {
@@ -154,13 +172,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Login Form Handling
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
+        /**
+         * Submit event listener for the login form.
+         * Shows loading state UI on the submit button.
+         */
         loginForm.addEventListener('submit', function(e) {
             // Show Loading State
             setButtonLoading(this, 'Logging in...');
         });
     }
     
-    // Helper function for loading state
+    /**
+     * Helper function to update the submit button UI to a loading state.
+     * Prevents double submission by disabling the button.
+     */
     function setButtonLoading(form, loadingText) {
         const btn = form.querySelector('button[type="submit"]');
         if (btn) {

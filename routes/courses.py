@@ -5,12 +5,14 @@ from models import Course
 from models import Enrollment
 from models import db
 
+# Define the blueprint for all course-related routes
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
 
 @courses_bp.route('/')
 def list_courses():
     """
-    Handles the list courses functionality.
+    Route to display a list of all available courses.
+    Retrieves all available courses and extracts unique instructors and categories for filtering.
     """
     courses = Course.query.all()
     # Get unique instructors from the available courses
@@ -22,10 +24,13 @@ def list_courses():
 @courses_bp.route('/<int:course_id>')
 def course_details(course_id):
     """
-    Handles the course details functionality.
+    Route to display details for a specific course.
+    Fetches details for a specific course and checks if the currently logged-in student is enrolled.
     """
     course = Course.query.get_or_404(course_id)
     is_enrolled = False
+    
+    # Check enrollment status for logged-in students
     if current_user.is_authenticated and current_user.role.name == 'student':
         enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
         if enrollment:
@@ -38,23 +43,29 @@ def course_details(course_id):
 @student_required
 def enroll(course_id):
     """
-    Handles the enroll functionality.
+    Route to handle student enrollment in a course.
+    Validates enrollment eligibility, processes payments for paid courses,
+    and creates enrollment records for free courses.
+    Notifies both the student and the instructor upon successful enrollment.
     """
     course = Course.query.get_or_404(course_id)
     
-    # Check if already enrolled
+    # Prevent duplicate enrollments
     existing = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
     if existing:
         flash('You are already enrolled in this course.', 'info')
         return redirect(url_for('student.dashboard'))
         
+    # Redirect to checkout if the course is paid
     if course.course_type == 'Paid':
         return redirect(url_for('payment.checkout', course_id=course.id))
         
+    # Handle free course enrollment instantly
     new_enrollment = Enrollment(user_id=current_user.id, course_id=course.id)
     db.session.add(new_enrollment)
     db.session.commit()
     
+    # Send real-time notifications to the instructor and the enrolling student
     from services.notification_service import send_notification
     send_notification(
         user_id=course.instructor_id,
@@ -82,9 +93,12 @@ def enroll(course_id):
 @instructor_required
 def create_course():
     """
-    Handles the create course functionality.
+    Route for instructors to create a new course.
+    Allows authorized instructors to create a new course with optional demo video uploads.
+    Handles file uploading and notifies administrators of the new course.
     """
     if request.method == 'POST':
+        # Retrieve form parameters
         title = request.form.get('title')
         description = request.form.get('description')
         course_type = request.form.get('course_type', 'Free')
@@ -95,9 +109,11 @@ def create_course():
         demo_video_url = request.form.get('demo_video_url')
         demo_video_file = request.files.get('demo_video_file')
         
+        # Enforce zero price for free courses
         if course_type == 'Free':
             price = 0.0
             
+        # Securely saveuploaded demo video file if present
         final_demo_video_file = None
         if demo_video_file and demo_video_file.filename != '':
             import os
@@ -109,6 +125,7 @@ def create_course():
             demo_video_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
             final_demo_video_file = f"/uploads/{filename}"
         
+        # Create and persist the course record
         new_course = Course(
             title=title,
             description=description,
@@ -123,6 +140,7 @@ def create_course():
         db.session.add(new_course)
         db.session.commit()
         
+        # Notify administration about the new course creation
         from services.notification_service import notify_admins
         notify_admins(
             title="New Course Created",
@@ -142,26 +160,31 @@ def create_course():
 @instructor_required
 def update_demo_video(course_id):
     """
-    Handles the update/delete of a course's demo video.
+    Route to update or delete a course's demo video.
+    Allows instructors to update or completely remove their course's promotional video assets.
     """
     course = Course.query.get_or_404(course_id)
+    # Authorization check
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
         return redirect(url_for('instructor.dashboard'))
         
     action = request.form.get('action')
     
+    # Process video deletion
     if action == 'delete':
         course.demo_video_title = None
         course.demo_video_url = None
         course.demo_video_file = None
         db.session.commit()
         flash('Demo video deleted successfully!', 'success')
+    # Process video modification
     else:
         demo_video_title = request.form.get('demo_video_title')
         demo_video_url = request.form.get('demo_video_url')
         demo_video_file = request.files.get('demo_video_file')
         
+        # Save new upload if provided
         if demo_video_file and demo_video_file.filename != '':
             import os
             import time
@@ -184,15 +207,17 @@ def update_demo_video(course_id):
 @instructor_required
 def manage_course(course_id):
     """
-    Handles the manage course functionality.
+    Route to render the course management dashboard for instructors.
+    Renders the management dashboard for a specific course, displaying its curriculum.
     """
     course = Course.query.get_or_404(course_id)
+    # Verify course ownership
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
         return redirect(url_for('instructor.dashboard'))
         
-    # We will need the Lesson model to fetch lessons here
     from models import Lesson
+    # Retrieve curriculum lessons ordered sequentially
     lessons = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).all()
     
     return render_template('courses/manage_course.html', course=course, lessons=lessons)
@@ -202,7 +227,9 @@ def manage_course(course_id):
 @instructor_required
 def add_lesson(course_id):
     """
-    Handles the add lesson functionality.
+    Route to add a new lesson to a course.
+    Appends a new lesson to the end of the course timeline, handles associated media,
+    and notifies all enrolled participants.
     """
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
@@ -215,7 +242,7 @@ def add_lesson(course_id):
     video_file = request.files.get('video_file')
     
     from models import Lesson, Video
-    # Get current max order
+    # Calculate the sequential order index for the new lesson
     max_order_lesson = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index.desc()).first()
     new_order = (max_order_lesson.order_index + 1) if max_order_lesson else 1
     
@@ -226,8 +253,9 @@ def add_lesson(course_id):
         order_index=new_order
     )
     db.session.add(new_lesson)
-    db.session.flush() # get new_lesson.id
+    db.session.flush() # Flush to populate ID for video association
     
+    # Process video asset priority (uploaded file overrides raw URL)
     final_video_url = None
     if video_file and video_file.filename != '':
         import os
@@ -247,7 +275,7 @@ def add_lesson(course_id):
         
     db.session.commit()
     
-    # Send notification to all enrolled students
+    # Notify all enrolled students regarding newly updated course material
     from models import Enrollment
     from services.notification_service import send_notification
     enrollments = Enrollment.query.filter_by(course_id=course.id).all()
@@ -271,7 +299,8 @@ def add_lesson(course_id):
 @instructor_required
 def upload_material(course_id, lesson_id):
     """
-    Handles the upload material functionality.
+    Route to upload supplementary study materials for a lesson.
+    Processes supplemental study resource attachments for a specific lesson and updates students.
     """
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
@@ -290,10 +319,12 @@ def upload_material(course_id, lesson_id):
         from werkzeug.utils import secure_filename
         from flask import current_app
         
+        # Generate unique filename on disk
         filename = secure_filename(file.filename)
         filename = f"{int(time.time())}_{filename}"
         file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
         
+        # Track file extensions for display purposes
         file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
         
         new_material = StudyMaterial(
@@ -305,7 +336,7 @@ def upload_material(course_id, lesson_id):
         db.session.add(new_material)
         db.session.commit()
         
-        # Notify enrolled students
+        # Broadcast material update notification to students
         from models import Enrollment
         from services.notification_service import send_notification
         enrollments = Enrollment.query.filter_by(course_id=course.id).all()
@@ -331,7 +362,8 @@ def upload_material(course_id, lesson_id):
 @instructor_required
 def delete_material(course_id, lesson_id, material_id):
     """
-    Handles the delete material functionality.
+    Route to delete a study material from a lesson.
+    Removes a study resource attachment permanently from the database.
     """
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
@@ -351,7 +383,8 @@ def delete_material(course_id, lesson_id, material_id):
 @instructor_required
 def delete_video(course_id, lesson_id):
     """
-    Handles the delete video functionality.
+    Route to delete a lesson's associated video.
+    Removes a lesson's associated video lecture structure.
     """
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
@@ -373,7 +406,8 @@ def delete_video(course_id, lesson_id):
 @instructor_required
 def add_lesson_video(course_id, lesson_id):
     """
-    Handles the add lesson video functionality.
+    Route to add a video to a lesson.
+    Attaches a video resource to an existing lesson if it does not already contain one.
     """
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
@@ -383,6 +417,7 @@ def add_lesson_video(course_id, lesson_id):
     from models import Lesson, Video
     lesson = Lesson.query.filter_by(id=lesson_id, course_id=course.id).first_or_404()
     
+    # Enforce one-video-per-lesson validation constraint
     if lesson.video:
         flash('Lesson already has a video.', 'error')
         return redirect(url_for('courses.manage_course', course_id=course.id))
@@ -390,6 +425,7 @@ def add_lesson_video(course_id, lesson_id):
     video_url = request.form.get('video_url')
     video_file = request.files.get('video_file')
     
+    # Process the provided video input method
     final_video_url = None
     if video_file and video_file.filename != '':
         import os
@@ -408,7 +444,7 @@ def add_lesson_video(course_id, lesson_id):
         db.session.add(new_video)
         db.session.commit()
         
-        # Notify enrolled students
+        # Broadcast video upload notification to students
         from models import Enrollment
         from services.notification_service import send_notification
         enrollments = Enrollment.query.filter_by(course_id=course.id).all()
@@ -433,11 +469,13 @@ def add_lesson_video(course_id, lesson_id):
 @login_required
 def lesson_view(course_id, lesson_id):
     """
-    Handles the lesson view functionality.
+    Route to view a specific lesson's content.
+    Validates user credentials (instructor ownership or active enrollment) before rendering course contents.
+    Retrieves the lesson details, student quiz results, and the course curriculum.
     """
     course = Course.query.get_or_404(course_id)
     
-    # Check if student is enrolled (or if they are the instructor of the course)
+    # Access security check
     has_access = False
     if current_user.role.name == 'instructor' and course.instructor_id == current_user.id:
         has_access = True
@@ -454,7 +492,7 @@ def lesson_view(course_id, lesson_id):
     from models import Lesson, Result
     lesson = Lesson.query.filter_by(id=lesson_id, course_id=course.id).first_or_404()
     
-    # Fetch user results for any quizzes attached to this lesson
+    # Retrieve any completed student quiz results to display in the UI sidebar/view
     user_results = {}
     if current_user.is_authenticated and current_user.role.name == 'student':
         for quiz in lesson.quizzes:
@@ -462,7 +500,7 @@ def lesson_view(course_id, lesson_id):
             if res:
                 user_results[quiz.id] = res
     
-    # Get all lessons for navigation sidebar
+    # Get all course lessons for sequential navigation index
     all_lessons = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).all()
     
     return render_template('courses/lesson.html', course=course, lesson=lesson, all_lessons=all_lessons, user_results=user_results)
@@ -471,12 +509,13 @@ def lesson_view(course_id, lesson_id):
 @login_required
 def preview_material(material_id):
     """
-    Handles the preview material functionality.
+    Route to preview a study material.
+    Displays course attachments in a sandboxed view for authorized users.
     """
     from models import StudyMaterial
     material = StudyMaterial.query.get_or_404(material_id)
     
-    # Check if the user is enrolled or is the instructor
+    # Access security check
     course = material.lesson.course
     has_access = False
     
@@ -498,11 +537,12 @@ def preview_material(material_id):
 @login_required
 def course_start(course_id):
     """
-    Handles the course start functionality.
+    Route to initiate a course for a student.
+    Locates the entry point (first lesson by sequence index) and redirects the user.
     """
     course = Course.query.get_or_404(course_id)
     
-    # Verify enrollment or instructor status
+    # Access security check
     has_access = False
     if current_user.role.name == 'instructor' and course.instructor_id == current_user.id:
         has_access = True
@@ -519,6 +559,7 @@ def course_start(course_id):
     from models import Lesson
     first_lesson = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).first()
     
+    # Redirect gracefully if course is currently empty
     if not first_lesson:
         flash('This course has no lessons yet. Please check back later!', 'info')
         return redirect(url_for('student.dashboard'))
@@ -530,11 +571,14 @@ def course_start(course_id):
 @student_required
 def complete_lesson(course_id, lesson_id):
     """
-    Handles the complete lesson functionality.
+    Route to mark a lesson as complete for a student.
+    Updates progress logs, recalculates completion metrics, awards dynamic PDF certificates
+    upon crossing the 100% threshold, and routes students to the next chronological lesson.
     """
     from models import Progress
     from datetime import datetime
     
+    # Record or update lesson completion status
     progress = Progress.query.filter_by(user_id=current_user.id, lesson_id=lesson_id).first()
     if not progress:
         progress = Progress(user_id=current_user.id, lesson_id=lesson_id, completed=True, completed_at=datetime.utcnow())
@@ -545,7 +589,7 @@ def complete_lesson(course_id, lesson_id):
         
     db.session.commit()
     
-    # Update course enrollment progress_percent
+    # Recalculate course enrollment progress percentage
     from models import Enrollment, Lesson, Certificate
     from utils.certificate import generate_certificate
     enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course_id).first()
@@ -562,7 +606,7 @@ def complete_lesson(course_id, lesson_id):
             enrollment.progress_percent = int((completed_lessons / total_lessons) * 100)
             db.session.commit()
             
-            # If they just crossed the 100% threshold, send the Course Completed notifications
+            # Send notifications once completion metrics hit 100%
             if old_percent < 100 and enrollment.progress_percent == 100:
                 from services.notification_service import send_notification
                 
@@ -587,11 +631,10 @@ def complete_lesson(course_id, lesson_id):
                     sender_id=current_user.id
                 )
             
-            # Check if course is completed and generate certificate if not already present
+            # Trigger unique PDF certificate generation on 100% course status
             if enrollment.progress_percent == 100:
                 existing_cert = Certificate.query.filter_by(student_id=current_user.id, course_id=course_id).first()
                 if not existing_cert:
-                    # Generate certificate
                     course = enrollment.course
                     student = current_user
                     cert_id, file_path = generate_certificate(student.name, course.title)
@@ -605,6 +648,7 @@ def complete_lesson(course_id, lesson_id):
                     db.session.add(new_cert)
                     db.session.commit()
                     
+                    # Deliver generated certificate via Email service
                     from services.email_service import send_certificate_email
                     from datetime import datetime
                     email_success = send_certificate_email(student, course, file_path)
@@ -614,6 +658,7 @@ def complete_lesson(course_id, lesson_id):
                         new_cert.email_sent_at = datetime.utcnow()
                         db.session.commit()
                         
+                    # Issue dashboard alert for the certificate
                     from services.notification_service import send_notification
                     send_notification(
                         user_id=student.id,
@@ -626,7 +671,7 @@ def complete_lesson(course_id, lesson_id):
                     
                     flash(f'Congratulations! You have earned a certificate for completing {course.title}.', 'success')
     
-    # Try to find the next lesson
+    # Determine next chronological lesson routing
     current_lesson = Lesson.query.get_or_404(lesson_id)
     next_lesson = Lesson.query.filter(Lesson.course_id == course_id, Lesson.order_index > current_lesson.order_index).order_by(Lesson.order_index).first()
     
