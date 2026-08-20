@@ -1,0 +1,49 @@
+<!-- Template for assignment list view. -->
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/activities.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="activity-container-premium fade-in slide-up">
+    <div class="activity-header">
+        <h1 class="activity-title">Assignments for {{ course.title }}</h1>
+        <p>Complete your tasks to ensure a comprehensive understanding.</p>
+    </div>
+    
+    {% if assignments %}
+        {% for assignment in assignments %}
+        <div class="assignment-card" style="margin-bottom: 1.5rem; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main);">
+            <h3 style="margin-bottom: 0.5rem;">{{ assignment.title }}</h3>
+            <p style="margin-bottom: 1rem; color: var(--text-muted);">{{ assignment.description[:100] }}...</p>
+            <div class="assignment-meta" style="display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.9rem;">
+                <span style="padding: 0.25rem 0.75rem; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); border-radius: 4px;">Deadline: {{ assignment.deadline.strftime('%Y-%m-%d %H:%M') if assignment.deadline else 'No deadline' }}</span>
+                <span style="padding: 0.25rem 0.75rem; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); border-radius: 4px;">Total Marks: {{ assignment.total_marks }}</span>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="{{ url_for('assignment.view_assignment', assignment_id=assignment.id) }}" class="btn btn-primary pulse-hover">View Details</a>
+                
+                {% if current_user.role.name == 'instructor' and course.instructor_id == current_user.id %}
+                    <a href="{{ url_for('instructor.grade_submissions', course_id=course.id, assignment_id=assignment.id) }}" class="btn btn-outline" style="border-color: #28a745; color: #28a745;">Grade Submissions</a>
+                {% elif user_submissions and assignment.id in user_submissions %}
+                    {% set sub = user_submissions[assignment.id] %}
+                    {% if sub.status == 'Graded' %}
+                        <span style="color: #28a745; font-weight: bold;">Graded: {{ sub.marks_obtained }}/{{ assignment.total_marks }}</span>
+                    {% else %}
+                        <span style="color: #ffc107; font-weight: bold;">Submitted</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <p>No assignments available for this course yet.</p>
+        </div>
+    {% endif %}
+    
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline" style="margin-top: 2rem;">Back to Dashboard</a>
+</div>
+{% endblock %}

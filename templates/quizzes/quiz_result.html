@@ -1,0 +1,200 @@
+<!-- Template for quiz result view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block extra_css %}
+<style>
+    .result-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .score-card {
+        border-radius: 16px;
+        padding: 2.5rem;
+        margin-bottom: 3rem;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    
+    .score-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin: 0 auto 1.5rem;
+        background: white;
+        box-shadow: 0 0 0 10px rgba(255,255,255,0.5);
+    }
+    
+    .score-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+    .score-total {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+    
+    .grade-badge {
+        display: inline-block;
+        padding: 0.5rem 2rem;
+        border-radius: 30px;
+        font-weight: 800;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .review-section {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    }
+    
+    .question-review {
+        margin-bottom: 2.5rem;
+        padding-bottom: 2.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .question-review:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .q-number {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #6366f1;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .q-text {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2b3674;
+        margin-bottom: 1.5rem;
+    }
+    
+    .answer-option {
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: #f8fafc;
+    }
+    
+    .answer-option.correct {
+        background: #dcfce7;
+        border-color: #22c55e;
+    }
+    
+    .answer-icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    .answer-option.correct .answer-icon {
+        background: #22c55e;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="result-container fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1 text-dark">Quiz Results</h2>
+            <p class="text-muted">{{ quiz.title }}</p>
+        </div>
+        <a href="{{ url_for('quiz.list_quizzes', course_id=quiz.course_id) }}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+            <i class="bi bi-arrow-left"></i> Back to Quizzes
+        </a>
+    </div>
+
+    {% set percentage = (result.score / result.total * 100) if result.total > 0 else 0 %}
+    {% set grade_info = {
+        'grade': 'D',
+        'color': '#ef4444',
+        'bg': '#fef2f2',
+        'msg': 'Keep practicing. You can do better next time!'
+    } %}
+    
+    {% if percentage >= 90 %}
+        {% set _ = grade_info.update({'grade': 'A', 'color': '#22c55e', 'bg': '#f0fdf4', 'msg': 'Excellent work! You got very good marks. Work hard for the next assessment like this!'}) %}
+    {% elif percentage >= 75 %}
+        {% set _ = grade_info.update({'grade': 'B', 'color': '#6366f1', 'bg': '#eef2ff', 'msg': 'Great job! You got good marks. Work hard for the next assessment like this!'}) %}
+    {% elif percentage >= 60 %}
+        {% set _ = grade_info.update({'grade': 'C', 'color': '#f59e0b', 'bg': '#fffbeb', 'msg': 'Good effort! Keep up the hard work for the next assessment.'}) %}
+    {% endif %}
+
+    <div class="score-card" style="background-color: {{ grade_info.bg }}; border: 1px solid {{ grade_info.color }}40;">
+        <div class="score-circle" style="color: {{ grade_info.color }};">
+            <div class="score-value">{{ result.score }}</div>
+            <div class="score-total">out of {{ result.total }}</div>
+        </div>
+        <div class="grade-badge" style="background-color: {{ grade_info.color }}; color: white;">
+            Grade {{ grade_info.grade }}
+        </div>
+        <h5 class="fw-bold" style="color: {{ grade_info.color }};">{{ percentage|round|int }}% Score</h5>
+        <p class="text-muted mt-3 mb-0 fw-medium px-4 py-3 bg-white rounded-3 d-inline-block shadow-sm">
+            <i class="bi bi-chat-quote-fill me-2" style="color: {{ grade_info.color }};"></i> {{ grade_info.msg }}
+        </p>
+    </div>
+
+    <div class="review-section">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <h4 class="fw-bold mb-0"><i class="bi bi-card-checklist text-primary me-2"></i> Review Answers</h4>
+        </div>
+        
+        <div class="alert alert-info rounded-3 mb-4 border-0 d-flex align-items-center gap-3">
+            <i class="bi bi-info-circle-fill fs-4"></i>
+            <div>
+                <strong>Note:</strong> The answers highlighted in green below are the correct answers for the quiz. (Your individual selections are not displayed).
+            </div>
+        </div>
+        
+        {% set alphabet = ['A', 'B', 'C', 'D', 'E', 'F'] %}
+        {% for question in quiz.questions %}
+        <div class="question-review">
+            <div class="q-number">Question {{ loop.index }}</div>
+            <div class="q-text">{{ question.text }}</div>
+            
+            <div class="options">
+                {% for answer in question.answers %}
+                <div class="answer-option {% if answer.is_correct %}correct{% endif %}">
+                    <div class="answer-icon">
+                        {% if answer.is_correct %}
+                            <i class="bi bi-check" style="font-size: 1.2rem; line-height: 1;"></i>
+                        {% else %}
+                            <span class="text-muted fw-bold" style="font-size: 0.8rem;">{{ alphabet[loop.index0] }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="fw-medium" style="{% if answer.is_correct %}color: #166534;{% else %}color: #475569;{% endif %}">
+                        {{ answer.text }}
+                    </div>
+                    {% if answer.is_correct %}
+                    <span class="badge bg-success ms-auto rounded-pill px-3">Correct Option</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

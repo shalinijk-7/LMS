@@ -1,0 +1,136 @@
+<!-- Template for create course view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Create New Course</h2>
+        <p class="text-muted mb-0">Share your knowledge with the world.</p>
+    </div>
+</div>
+
+<div class="row" data-aos="fade-up" data-aos-delay="100">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" action="{{ url_for('courses.create_course') }}" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="title" class="form-label fw-bold text-dark">Course Title</label>
+                        <input type="text" id="title" name="title" class="form-control form-control-lg bg-light border-0" placeholder="e.g. Complete Web Development Bootcamp" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-bold text-dark">Course Description</label>
+                        <textarea id="description" name="description" class="form-control bg-light border-0" rows="5" placeholder="Describe what students will learn..." required></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-3">Course Type</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check form-check-inline custom-radio">
+                                <input class="form-check-input" type="radio" name="course_type" id="typeFree" value="Free" checked onchange="togglePrice()">
+                                <label class="form-check-label" for="typeFree">
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3 fs-6 rounded-pill">Free Course</span>
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline custom-radio">
+                                <input class="form-check-input" type="radio" name="course_type" id="typePaid" value="Paid" onchange="togglePrice()">
+                                <label class="form-check-label" for="typePaid">
+                                    <span class="badge bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25 py-2 px-3 fs-6 rounded-pill" style="color: var(--bs-purple);">Paid Course</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row" id="priceSection" style="display: none;">
+                        <div class="col-md-6 mb-4">
+                            <label for="currency" class="form-label fw-bold text-dark">Currency</label>
+                            <select id="currency" name="currency" class="form-select form-select-lg bg-light border-0">
+                                <option value="USD">USD ($)</option>
+                                <option value="INR">INR (₹)</option>
+                                <option value="EUR">EUR (€)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="price" class="form-label fw-bold text-dark">Price</label>
+                            <input type="number" step="0.01" id="price" name="price" class="form-control form-control-lg bg-light border-0" placeholder="0.00" value="0.00">
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4 text-muted opacity-25">
+                    
+                    <h5 class="fw-bold mb-3 text-dark">
+                        <i class="bi bi-camera-video me-2"></i> Course Demo Video 
+                        <span class="text-muted small fw-normal">(Optional)</span>
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <label for="demo_video_title" class="form-label fw-bold text-dark">Demo Video Title</label>
+                        <input type="text" id="demo_video_title" name="demo_video_title" class="form-control bg-light border-0" placeholder="e.g. Course Preview">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="demo_video_url" class="form-label fw-bold text-dark">Video URL (YouTube/Vimeo)</label>
+                            <input type="url" id="demo_video_url" name="demo_video_url" class="form-control bg-light border-0" placeholder="https://...">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="demo_video_file" class="form-label fw-bold text-dark">Or Upload Video File</label>
+                            <input type="file" id="demo_video_file" name="demo_video_file" accept="video/*" class="form-control bg-light border-0">
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4 text-muted opacity-25">
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm">Publish Course</button>
+                        <a href="{{ url_for('instructor.dashboard') }}" class="btn btn-light btn-lg rounded-pill px-4 fw-bold border">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-primary-subtle text-primary border-primary border-opacity-25">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb-fill me-2"></i> Course Creation Tips</h5>
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-3 small">
+                    <li><strong class="text-dark">Catchy Title:</strong> Make sure your title is clear and concise.</li>
+                    <li><strong class="text-dark">Detailed Description:</strong> Explain the outcomes and who the course is for.</li>
+                    <li><strong class="text-dark">Fair Pricing:</strong> Consider your target audience when setting a price.</li>
+                    <li><strong class="text-dark">Demo Video:</strong> A short preview increases enrollments.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePrice() {
+        const isPaid = document.getElementById('typePaid').checked;
+        const priceSection = document.getElementById('priceSection');
+        if (isPaid) {
+            priceSection.style.display = 'flex';
+            document.getElementById('price').required = true;
+        } else {
+            priceSection.style.display = 'none';
+            document.getElementById('price').required = false;
+        }
+    }
+</script>
+
+<style>
+    .custom-radio .form-check-input {
+        display: none;
+    }
+    .custom-radio .form-check-input:checked + .form-check-label span {
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+        border-color: var(--bs-primary) !important;
+    }
+    .bg-purple { background-color: #6f42c1; }
+    .text-purple { color: #6f42c1; }
+    .border-purple { border-color: #6f42c1; }
+</style>
+{% endblock %}

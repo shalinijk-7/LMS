@@ -1,0 +1,36 @@
+<!-- Template for otp verification view. -->
+{% extends "base.html" %}
+
+{% block title %}Verify OTP - LearnSphere AI{% endblock %}
+
+{% block content %}
+<div class="container-premium d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card glass-card p-4 p-md-5" style="max-width: 450px; width: 100%;">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="color: var(--primary);">Enter OTP</h2>
+            <p class="text-muted">We sent a 6-digit verification code to your email.</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.verify_otp') }}">
+            <div class="mb-4">
+                <label for="otp" class="form-label fw-medium text-center d-block">Verification Code</label>
+                <input type="text" class="form-control form-control-lg text-center" id="otp" name="otp" placeholder="••••••" maxlength="6" required style="letter-spacing: 10px; font-size: 1.5rem; font-weight: bold;">
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">Verify Code</button>
+        </form>
+        
+        <div class="text-center mt-3">
+            <p class="mb-0 text-muted">Didn't receive the code? 
+                <form method="POST" action="{{ url_for('auth.forgot_password') }}" class="d-inline">
+                    <input type="hidden" name="email" value="{{ session.get('reset_email', '') }}">
+                    <button type="submit" class="btn btn-link text-decoration-none fw-medium p-0 border-0 bg-transparent">Resend</button>
+                </form>
+            </p>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('auth.login') }}" class="text-decoration-none fw-medium text-muted"><i class="bi bi-arrow-left me-1"></i> Back to Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

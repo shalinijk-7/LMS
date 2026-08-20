@@ -1,0 +1,126 @@
+<!-- Template for profile view. -->
+{% extends "base.html" %}
+
+{% block title %}Settings - AuraLearn{% endblock %}
+
+{% block content %}
+<div class="container-premium py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card glass-card h-100">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img src="{% if current_user.profile_photo == 'default.jpg' %}{{ url_for('static', filename='images/default.jpg') }}{% else %}{{ url_for('uploaded_file', filename=current_user.profile_photo) }}{% endif %}" 
+                             alt="Profile Photo" class="rounded-circle img-thumbnail mb-3" 
+                             style="width: 120px; height: 120px; object-fit: cover;">
+                        <h5 class="fw-bold">{{ current_user.name }}</h5>
+                        <p class="text-muted small text-capitalize">{{ current_user.role.name }}</p>
+                    </div>
+                    <ul class="nav flex-column nav-pills">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('settings.profile') }}">
+                                <i class="bi bi-person me-2"></i> Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('settings.security') }}">
+                                <i class="bi bi-shield-lock me-2"></i> Security
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('settings.profile') }}#notifications">
+                                <i class="bi bi-bell me-2"></i> Notifications
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Form -->
+        <div class="col-md-9">
+            <div class="card glass-card">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                    <h4 class="fw-bold mb-0">Profile Settings</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('settings.profile') }}" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label for="profile_photo" class="form-label fw-medium">Profile Photo</label>
+                            <input class="form-control" type="file" id="profile_photo" name="profile_photo" accept="image/*">
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="name" class="form-label fw-medium">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" value="{{ current_user.name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label fw-medium">Email Address</label>
+                                <input type="email" class="form-control text-muted" id="email" value="{{ current_user.email }}" readonly>
+                                <small class="form-text text-muted">Email cannot be changed.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="phone" class="form-label fw-medium">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="language" class="form-label fw-medium">Language</label>
+                                <select class="form-select" id="language" name="language">
+                                    <option value="en" {% if current_user.settings and current_user.settings.language == 'en' %}selected{% endif %}>English</option>
+                                    <option value="es" {% if current_user.settings and current_user.settings.language == 'es' %}selected{% endif %}>Spanish</option>
+                                    <option value="fr" {% if current_user.settings and current_user.settings.language == 'fr' %}selected{% endif %}>French</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="bio" class="form-label fw-medium">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4">{{ current_user.bio or '' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-4" id="notifications">
+                            <h5 class="fw-bold mb-3">Preferences</h5>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="desktop_notifications" name="desktop_notifications" {% if not current_user.settings or current_user.settings.desktop_notifications_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="desktop_notifications">Desktop Notifications (Push)</label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="real_time_notifications" name="real_time_notifications" {% if not current_user.settings or current_user.settings.real_time_notifications_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="real_time_notifications">Real-Time App Notifications</label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="notification_sound" name="notification_sound" {% if not current_user.settings or current_user.settings.notification_sound_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="notification_sound">Notification Sounds</label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if not current_user.settings or current_user.settings.email_notifications_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="email_notifications">Receive email notifications</label>
+                            </div>
+                            
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="theme" name="theme" value="dark" {% if current_user.settings and current_user.settings.theme == 'dark' %}checked{% endif %}>
+                                <label class="form-check-label" for="theme">Enable Dark Mode</label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="reset" class="btn btn-outline-secondary">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

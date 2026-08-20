@@ -1,0 +1,168 @@
+/* Activities Shared Styles (Quizzes, Assignments, Certificates) */
+.activity-container {
+    max-width: 900px;
+    margin: 6rem auto 4rem;
+    padding: 2rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.activity-container-premium {
+    max-width: 1000px;
+    margin: 4rem auto;
+    padding: 3rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.activity-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.activity-title {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+/* Quizzes */
+.quiz-question {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-main);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+}
+
+.quiz-question h4 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.quiz-options label {
+    display: block;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.quiz-options label:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.quiz-options input[type="radio"] {
+    margin-right: 10px;
+}
+
+/* Assignments */
+.assignment-card {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease;
+}
+.assignment-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.assignment-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Certificates */
+.certificate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.certificate-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+.certificate-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.certificate-img {
+    height: 180px;
+    background: radial-gradient(circle, #fcd34d 0%, #f59e0b 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+}
+
+.certificate-details {
+    padding: 1.5rem;
+}
+
+/* Certificate View Page (Digital Render) */
+.certificate-render {
+    border: 15px solid var(--primary);
+    padding: 4rem;
+    text-align: center;
+    background: #fff;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.certificate-render::before {
+    content: '';
+    position: absolute;
+    top: 5px; left: 5px; right: 5px; bottom: 5px;
+    border: 2px solid var(--primary-light);
+    pointer-events: none;
+}
+
+.cert-title {
+    font-size: 3.5rem;
+    color: var(--primary);
+    font-family: var(--font-heading);
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.cert-recipient {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 1.5rem 0;
+    font-family: 'Times New Roman', Times, serif;
+    border-bottom: 2px solid var(--text-muted);
+    display: inline-block;
+    padding: 0 2rem;
+}
+
+.cert-course {
+    font-size: 1.5rem;
+    color: var(--primary);
+    font-weight: 600;
+    margin: 1.5rem 0;
+}

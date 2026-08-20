@@ -1,0 +1,230 @@
+<!-- Template for lesson view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="row">
+    <!-- Lesson Content Area -->
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <h2 class="fw-bold mb-0">Lesson {{ lesson.order_index }}: {{ lesson.title }}</h2>
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                            <i class="bi bi-book me-1"></i> Course: {{ course.title }}
+                        </span>
+                        <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#aiExplainModal">
+                            <i class="bi bi-magic me-1"></i> Explain with AI
+                        </button>
+                        <a href="{{ url_for('discussion.list_discussions', course_id=course.id) }}" class="btn btn-outline-info btn-sm rounded-pill fw-bold">
+                            <i class="bi bi-chat-left-text me-1"></i> Discussions
+                            {% if course.discussion_threads %}
+                            <span class="badge bg-info text-white rounded-pill ms-1">{{ course.discussion_threads|length }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-bold">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Course
+                        </a>
+                    </div>
+                </div>
+                
+                {% if lesson.video %}
+                <div class="ratio ratio-16x9 mb-4 rounded-4 overflow-hidden bg-dark shadow-sm">
+                    {% if lesson.video.url.startswith('/uploads/') %}
+                        <video controls class="w-100 h-100" style="object-fit: cover;">
+                            <source src="{{ lesson.video.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% else %}
+                        <iframe src="{{ lesson.video.url.replace('watch?v=', 'embed/') }}" 
+                                title="YouTube video player" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen></iframe>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="lesson-content fs-5 text-dark mb-4" style="line-height: 1.8;">
+                    {{ lesson.description | replace('\n', '<br>') | safe if lesson.description else '' }}
+                </div>
+
+                {% if lesson.materials %}
+                <div class="materials-section mt-5 border-top pt-4">
+                    <h4 class="fw-bold mb-3"><i class="bi bi-folder-fill text-warning me-2"></i>Study Materials</h4>
+                    <div class="list-group list-group-flush border rounded-3">
+                        {% for material in lesson.materials %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <i class="bi bi-file-earmark-text fs-4 text-primary me-2 align-middle"></i>
+                                <span class="fw-semibold align-middle">{{ material.title }}</span>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('courses.preview_material', material_id=material.id) }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3 me-2">
+                                    Preview <i class="bi bi-eye ms-1"></i>
+                                </a>
+                                <a href="{{ material.file_path }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 text-white text-decoration-none">
+                                    Download <i class="bi bi-download ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer bg-white border-top-0 p-4 pt-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4">Exit to Dashboard</a>
+                
+                {% if lesson.quizzes %}
+                <div class="d-flex flex-column gap-2 align-items-end">
+                    {% for quiz in lesson.quizzes %}
+                        <div class="border rounded-3 p-3 mb-2 w-100 shadow-sm" style="background: var(--bg-main);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="fw-bold mb-1"><i class="bi bi-question-circle text-primary me-2"></i>{{ quiz.title }}</h5>
+                                    <small class="text-muted">{{ quiz.timer_minutes }} Minutes | {{ quiz.questions|length }} Questions</small>
+                                </div>
+                                <div>
+                                    {% if current_user.role.name == 'instructor' %}
+                                        <a href="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" class="btn btn-sm btn-outline-primary">Preview Quiz</a>
+                                    {% elif user_results and quiz.id in user_results %}
+                                        <span class="badge bg-success px-3 py-2 fs-6">Grade: {{ user_results[quiz.id].score }}/{{ user_results[quiz.id].total }}</span>
+                                    {% else %}
+                                        <a href="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" class="btn btn-sm btn-primary pulse-hover px-4 rounded-pill">Take Quiz</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <form method="POST" action="{{ url_for('courses.complete_lesson', course_id=course.id, lesson_id=lesson.id) }}" class="m-0 mt-2">
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Mark as Complete</button>
+                    </form>
+                </div>
+                {% else %}
+                <form method="POST" action="{{ url_for('courses.complete_lesson', course_id=course.id, lesson_id=lesson.id) }}" class="m-0">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Mark as Complete</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar / Lesson List -->
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 position-sticky" style="top: 2rem; max-height: calc(100vh - 4rem);">
+            <div class="card-header bg-white border-bottom p-4">
+                <h5 class="fw-bold mb-0">Course Content</h5>
+            </div>
+            <div class="card-body p-0" style="overflow-y: auto;">
+                <div class="list-group list-group-flush rounded-bottom-4">
+                    {% for l in all_lessons %}
+                        <a href="{{ url_for('courses.lesson_view', course_id=course.id, lesson_id=l.id) }}" 
+                           class="list-group-item list-group-item-action p-4 {% if l.id == lesson.id %}bg-primary-subtle border-start border-primary border-4{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="fw-bold mb-1 {% if l.id == lesson.id %}text-primary{% else %}text-dark{% endif %}">
+                                        {{ l.order_index }}. {{ l.title }}
+                                    </h6>
+                                    <small class="text-muted"><i class="bi bi-play-circle me-1"></i> Video Lesson</small>
+                                </div>
+                                {% if l.id == lesson.id %}
+                                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-play-fill text-white"></i></span>
+                                {% endif %}
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Explain Modal -->
+<div class="modal fade" id="aiExplainModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold"><i class="bi bi-robot me-2"></i>Explain with AI</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Explanation Detail Level</label>
+            <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="explainDetail" id="detailSimple" value="Simple" checked>
+                  <label class="form-check-label" for="detailSimple">Simple (Beginner Friendly)</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="explainDetail" id="detailDetailed" value="Detailed">
+                  <label class="form-check-label" for="detailDetailed">Detailed (In-depth analysis)</label>
+                </div>
+            </div>
+        </div>
+        <button id="btnGenerateExplain" class="btn btn-warning fw-bold w-100 mb-4 pulse-hover">
+            <i class="bi bi-magic me-2"></i>Generate Explanation
+        </button>
+        
+        <div id="explainLoading" class="text-center d-none my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">AI is thinking...</p>
+        </div>
+        
+        <div id="explainResult" class="p-3 bg-light rounded-3 d-none" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6;">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('btnGenerateExplain');
+    if (btn) {
+        btn.addEventListener('click', async function() {
+            const loading = document.getElementById('explainLoading');
+            const result = document.getElementById('explainResult');
+            const detailLevel = document.querySelector('input[name="explainDetail"]:checked').value;
+            
+            btn.disabled = true;
+            loading.classList.remove('d-none');
+            result.classList.add('d-none');
+            
+            try {
+                const response = await fetch("{{ url_for('ai.api_explain') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        topic_title: "{{ lesson.title }}",
+                        description: `{{ lesson.description | striptags | replace('\n', ' ') | truncate(500) if lesson.description else '' }}`,
+                        detail_level: detailLevel
+                    })
+                });
+                
+                const data = await response.json();
+                
+                loading.classList.add('d-none');
+                btn.disabled = false;
+                result.classList.remove('d-none');
+                
+                if (data.success) {
+                    let htmlText = data.explanation
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+                    result.innerHTML = htmlText;
+                } else {
+                    result.innerHTML = `<span class="text-danger">Error: ${data.error || 'Failed to generate explanation.'}</span>`;
+                }
+            } catch (err) {
+                loading.classList.add('d-none');
+                btn.disabled = false;
+                result.classList.remove('d-none');
+                result.innerHTML = `<span class="text-danger">Network error. Please try again.</span>`;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

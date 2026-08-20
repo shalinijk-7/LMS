@@ -1,0 +1,69 @@
+/* Base Responsive Utilities */
+
+@media (max-width: 768px) {
+    .container-premium {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .display-premium {
+        font-size: 2rem;
+    }
+
+    .navbar-collapse {
+        background-color: var(--bg-card);
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+
+    .dashboard-layout {
+        flex-direction: column;
+    }
+    
+    .dashboard-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .course-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Sidebar Filter (Toggleable on mobile) */
+    .filter-sidebar {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 80%;
+        height: 100%;
+        background-color: var(--bg-card);
+        z-index: 2000;
+        overflow-y: auto;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .filter-sidebar.active {
+        display: block;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}

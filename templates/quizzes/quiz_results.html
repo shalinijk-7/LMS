@@ -1,0 +1,65 @@
+<!-- Template for quiz results view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-1">Quiz Results: {{ quiz.title }}</h2>
+            <p class="text-muted mb-0">Course: {{ course.title }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('quiz.list_quizzes', course_id=course.id) }}" class="btn btn-outline-secondary">Back to Quizzes</a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-0">
+        {% if results %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-uppercase text-muted fw-bold" style="font-size: 0.85rem; letter-spacing: 0.5px;">Student</th>
+                        <th class="py-3 text-uppercase text-muted fw-bold" style="font-size: 0.85rem; letter-spacing: 0.5px;">Grade</th>
+                        <th class="py-3 text-uppercase text-muted fw-bold" style="font-size: 0.85rem; letter-spacing: 0.5px;">Submitted On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold me-3" style="width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 1rem;">
+                                    {{ result.student.name[0]|upper }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ result.student.name }}</h6>
+                                    <small class="text-muted">{{ result.student.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <span class="badge bg-success px-3 py-2 fs-6">
+                                {{ result.score }} / {{ result.total }}
+                            </span>
+                        </td>
+                        <td class="py-3">
+                            <span class="text-muted">{{ result.submitted_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center p-5 text-muted">
+            <i class="bi bi-person-x fs-1 text-light mb-3"></i>
+            <h5>No Results Yet</h5>
+            <p>No students have taken this quiz yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

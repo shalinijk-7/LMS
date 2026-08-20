@@ -1,0 +1,366 @@
+<!-- Template for admin reports view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<style>
+.progress-clean {
+    height: 8px;
+    background-color: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h2 class="fw-bold mb-1">Platform Reports</h2>
+            <p class="text-muted mb-0">Enrollment and performance analytics across all courses.</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Summary KPIs -->
+<div class="row g-3 mb-4" data-aos="fade-up" data-aos-delay="50">
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card h-100">
+            <div class="icon-container" style="color:#6366f1;background:#e0e7ff;">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ stats.total_enrollments }}</h3>
+                <span class="text-muted small fw-medium">Total Enrollments</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card h-100">
+            <div class="icon-container" style="color:#22c55e;background:#dcfce7;">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ stats.success_payments }}</h3>
+                <span class="text-muted small fw-medium">Paid Enrollments</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card h-100">
+            <div class="icon-container" style="color:#f59e0b;background:#fef3c7;">
+                <i class="bi bi-gift-fill"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ stats.free_enrollments }}</h3>
+                <span class="text-muted small fw-medium">Free Enrollments</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card h-100">
+            <div class="icon-container" style="color:#ec4899;background:#fce7f3;">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">${{ '%.0f'|format(stats.total_revenue) }}</h3>
+                <span class="text-muted small fw-medium">Est. Revenue</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-5" data-aos="fade-up" data-aos-delay="80">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Enrollment Trend (14 days)</h6>
+                <div style="position:relative;height:220px;">
+                    <canvas id="enrollTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3" data-aos="fade-up" data-aos-delay="100">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">By Course Type</h6>
+                <div style="position:relative;height:200px;">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4" data-aos="fade-up" data-aos-delay="120">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Free vs Paid</h6>
+                <div style="position:relative;height:200px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm rounded-4 mb-4" data-aos="fade-up" data-aos-delay="140">
+    <div class="card-body p-3">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">Date Range</label>
+                <select id="filterDate" class="form-select form-select-sm">
+                    <option value="">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="6m">Last 6 Months</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">Course Type</label>
+                <select id="filterCourseType" class="form-select form-select-sm">
+                    <option value="">All Types</option>
+                    <option value="Free">Free</option>
+                    <option value="Paid">Paid</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+                <select id="filterPayment" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="Free">Free</option>
+                    <option value="Paid">Paid</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button id="resetFilters" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden" data-aos="fade-up" data-aos-delay="160">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="reportsTable" style="width:100%;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 ps-4 py-3 text-muted small fw-bold text-uppercase">Student</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase">Course</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase">Instructor</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase">Enrolled</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase">Type</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase">Status</th>
+                        <th class="border-0 py-3 text-muted small fw-bold text-uppercase text-center">Progress</th>
+                        <th class="border-0 pe-4 py-3 text-muted small fw-bold text-uppercase text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in report_data %}
+                    <tr data-raw-date="{{ row.raw_date }}">
+                        <td class="ps-4 py-3">
+                            <div class="fw-semibold small">{{ row.student_name }}</div>
+                            <div class="text-muted" style="font-size:0.7rem;">{{ row.student_email }}</div>
+                        </td>
+                        <td class="py-3 small">{{ row.course_title }}</td>
+                        <td class="py-3 small text-muted">{{ row.instructor_name }}</td>
+                        <td class="py-3 small text-muted">{{ row.enrolled_at|safe }}</td>
+                        <td class="py-3">
+                            {% if row.course_type == 'Paid' %}
+                            <span class="badge rounded-pill" style="background:#fef3c7;color:#b45309;">Paid</span>
+                            {% else %}
+                            <span class="badge rounded-pill" style="background:#dcfce7;color:#15803d;">Free</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3">
+                            {% if row.payment_status == 'Paid' %}
+                            <span class="badge rounded-pill bg-success">Paid</span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-secondary">Free</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <div class="progress" style="width:60px;height:6px;">
+                                    <div class="progress-bar {% if row.progress >= 100 %}bg-success{% elif row.progress >= 50 %}bg-primary{% else %}bg-secondary{% endif %}"
+                                         style="width:{{ row.progress }}%;"></div>
+                                </div>
+                                <span class="small fw-semibold">{{ row.progress }}%</span>
+                            </div>
+                        </td>
+                        <td class="pe-4 py-3 text-end fw-semibold {% if row.amount > 0 %}text-success{% else %}text-muted{% endif %}">
+                            {% if row.amount > 0 %}${{ '%.2f'|format(row.amount) }}{% else %}—{% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">No enrollment records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const labels = {{ chart_labels | tojson }};
+    const enrollTrend = {{ enrollment_trend | tojson }};
+    const typeLabels = {{ type_labels | tojson }};
+    const typeData = {{ type_data | tojson }};
+    const statusLabels = {{ status_labels | tojson }};
+    const statusData = {{ status_data | tojson }};
+
+    new Chart(document.getElementById('enrollTrendChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Enrollments',
+                data: enrollTrend,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99,102,241,0.12)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: '#1e293b', cornerRadius: 8, padding: 10 }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { precision: 0, font: { size: 11 } } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('typeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: typeLabels,
+            datasets: [{
+                data: typeData,
+                backgroundColor: ['#22c55e', '#6366f1', '#f59e0b', '#ec4899'],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 11 } } },
+                tooltip: { backgroundColor: '#1e293b', cornerRadius: 8 }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusData,
+                backgroundColor: ['#22c55e', '#94a3b8', '#f59e0b', '#ef4444'],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 11 } } },
+                tooltip: { backgroundColor: '#1e293b', cornerRadius: 8 }
+            }
+        }
+    });
+
+    const table = $('#reportsTable').DataTable({
+        order: [],
+        pageLength: 15,
+        lengthMenu: [10, 15, 25, 50, 100],
+        language: {
+            search: '',
+            searchPlaceholder: 'Search records...',
+            lengthMenu: 'Show _MENU_',
+            info: 'Showing _START_–_END_ of _TOTAL_',
+            paginate: { previous: '‹', next: '›' }
+        },
+        dom: '<"d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 pt-3"lf>t<"d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 pb-3"ip>',
+        columnDefs: [{ orderable: false, targets: [6] }]
+    });
+
+    function applyDateFilter(val) {
+        $.fn.dataTable.ext.search.length = 0;
+        if (!val) return;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let cutoffStart = new Date(today);
+        let cutoffEnd = new Date(today);
+        cutoffEnd.setHours(23, 59, 59, 999);
+        if (val === '7d') cutoffStart.setDate(cutoffStart.getDate() - 7);
+        else if (val === '30d') cutoffStart.setDate(cutoffStart.getDate() - 30);
+        else if (val === 'this_month') cutoffStart.setDate(1);
+        else if (val === '6m') cutoffStart.setMonth(cutoffStart.getMonth() - 6);
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+            try {
+                const node = table.row(dataIndex).node();
+                if (!node) return true;
+                const raw = node.getAttribute('data-raw-date');
+                if (!raw) return true;
+                const rowDate = new Date(raw);
+                if (isNaN(rowDate.getTime())) return true;
+                return rowDate >= cutoffStart && rowDate <= cutoffEnd;
+            } catch (e) { return true; }
+        });
+    }
+
+    $('#filterDate').on('change', function () {
+        applyDateFilter(this.value);
+        table.draw();
+    });
+    $('#filterCourseType').on('change', function () {
+        table.column(4).search(this.value).draw();
+    });
+    $('#filterPayment').on('change', function () {
+        table.column(5).search(this.value).draw();
+    });
+    $('#resetFilters').on('click', function () {
+        $('#filterDate').val('');
+        $('#filterCourseType').val('');
+        $('#filterPayment').val('');
+        $.fn.dataTable.ext.search.length = 0;
+        table.column(4).search('');
+        table.column(5).search('');
+        table.draw();
+    });
+});
+</script>
+{% endblock %}

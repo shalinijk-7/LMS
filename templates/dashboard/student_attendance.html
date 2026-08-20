@@ -1,0 +1,119 @@
+<!-- Template for student attendance view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 w-100">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{{ url_for('student.dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Attendance History</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold mb-1">My Attendance History</h2>
+            <p class="text-muted mb-0">Track your attendance across all your enrolled courses.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4" data-aos="fade-up">
+    <div class="col-md-4">
+        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all {% if attendance_pct < 75 %}border border-danger{% endif %}" style="padding: 1.5rem;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: {% if attendance_pct >= 75 %}#ec4899{% else %}#dc3545{% endif %}; background: {% if attendance_pct >= 75 %}#fce7f3{% else %}#f8d7da{% endif %}; width: 56px; height: 56px; font-size: 1.5rem;">
+                    <i class="bi bi-calendar-check-fill"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0 fw-bold {% if attendance_pct < 75 %}text-danger{% else %}text-dark{% endif %} lh-1">{{ attendance_pct }}%</h3>
+                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Attendance Rate</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card bg-white border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100 transition-all" style="padding: 1.5rem;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-container rounded-4 shadow-sm d-flex align-items-center justify-content-center" style="color: #6366f1; background: #e0e7ff; width: 56px; height: 56px; font-size: 1.5rem;">
+                    <i class="bi bi-list-check"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0 fw-bold text-dark lh-1">{{ attended }} / {{ total_classes }}</h3>
+                    <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Classes Attended</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <form method="GET" action="{{ url_for('student.attendance') }}" class="h-100 d-flex flex-column justify-content-center bg-white border-0 shadow-sm rounded-4 p-4">
+            <label class="form-label fw-bold small text-uppercase text-muted">Filter by Course</label>
+            <select name="course_id" class="form-select rounded-pill" onchange="this.form.submit()">
+                <option value="">All Courses</option>
+                {% for enrollment in enrollments %}
+                <option value="{{ enrollment.course_id }}" {% if selected_course_id == enrollment.course_id %}selected{% endif %}>{{ enrollment.course.title }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 py-3 text-muted fw-bold border-bottom-0">Date</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Course</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Lesson</th>
+                                <th class="py-3 text-muted fw-bold border-bottom-0">Status</th>
+                                <th class="pe-4 py-3 text-muted fw-bold border-bottom-0">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                            <tr>
+                                <td class="ps-4 py-3 fw-medium">
+                                    {{ record.attendance_date.strftime('%B %d, %Y') }}
+                                </td>
+                                <td class="py-3">
+                                    <div class="fw-bold">{{ record.course.title }}</div>
+                                </td>
+                                <td class="py-3 text-muted">
+                                    {{ record.lesson.title if record.lesson else 'General' }}
+                                </td>
+                                <td class="py-3">
+                                    {% if record.status == 'Present' %}
+                                        <span class="badge bg-success rounded-pill px-3">Present</span>
+                                    {% elif record.status == 'Absent' %}
+                                        <span class="badge bg-danger rounded-pill px-3">Absent</span>
+                                    {% elif record.status == 'Late' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3">Late</span>
+                                    {% elif record.status == 'Excused' %}
+                                        <span class="badge bg-info text-dark rounded-pill px-3">Excused</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 py-3 text-muted small">
+                                    {{ record.remarks or '-' }}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="bi bi-calendar-x text-muted fs-1 d-block mb-3"></i>
+                                    <h5 class="fw-bold">No Attendance Records</h5>
+                                    <p class="text-muted">No attendance data found matching your criteria.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

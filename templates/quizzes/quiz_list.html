@@ -1,0 +1,136 @@
+<!-- Template for quiz list view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 w-100">
+        <div>
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 mb-2 fw-bold border border-primary-subtle" style="font-size: 0.75rem; letter-spacing: 0.5px;">COURSE QUIZZES</span>
+            <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Quizzes for {{ course.title }}</h2>
+            <p class="text-muted mb-0 fw-medium">Test your knowledge and track your progress.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-white bg-white text-dark border shadow-sm rounded-pill px-4 py-2 fw-bold hover-lift">
+                <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4" data-aos="fade-up" data-aos-delay="100">
+    {% if quizzes %}
+        {% for quiz in quizzes %}
+        <div class="col-lg-6 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden dash-course-card transition-all hover-lift">
+                <div class="card-body p-4 d-flex flex-column">
+                    <h5 class="fw-bold mb-3 text-dark">{{ quiz.title }}</h5>
+                    
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="badge bg-light text-primary border px-2 py-1 rounded-2 fw-medium d-flex align-items-center gap-1">
+                            <i class="bi bi-stopwatch"></i> {{ quiz.timer_minutes }} Min
+                        </span>
+                        <span class="badge bg-light text-secondary border px-2 py-1 rounded-2 fw-medium d-flex align-items-center gap-1">
+                            <i class="bi bi-list-task"></i> {{ quiz.questions|length }} Qs
+                        </span>
+                    </div>
+
+                    {% if quiz.start_date or quiz.expiry_date %}
+                    <div class="p-3 bg-light rounded-3 mb-4 border border-light-subtle">
+                        {% if quiz.start_date %}
+                        <div class="d-flex align-items-center text-muted small fw-medium mb-1">
+                            <i class="bi bi-calendar-event me-2 text-success"></i>
+                            Starts: <span class="ms-1 text-dark">{{ quiz.start_date.strftime('%d %b %Y, %I:%M %p') }}</span>
+                        </div>
+                        {% endif %}
+                        {% if quiz.expiry_date %}
+                        <div class="d-flex align-items-center text-muted small fw-medium">
+                            <i class="bi bi-calendar-x me-2 text-danger"></i>
+                            Expires: <span class="ms-1 text-dark">{{ quiz.expiry_date.strftime('%d %b %Y, %I:%M %p') }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-auto">
+                        {% if current_user.role.name == 'instructor' and course.instructor_id == current_user.id %}
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" class="btn btn-outline-primary btn-sm flex-fill rounded-pill fw-bold">Preview</a>
+                                <a href="{{ url_for('instructor.quiz_results', course_id=course.id, quiz_id=quiz.id) }}" class="btn btn-primary btn-sm flex-fill rounded-pill fw-bold">Results</a>
+                                <button onclick="navigator.clipboard.writeText('{{ url_for('quiz.take_quiz', quiz_id=quiz.id, _external=True) }}'); alert('Quiz link copied to clipboard!');" class="btn btn-outline-secondary btn-sm flex-fill rounded-pill fw-bold" title="Copy Quiz Link">
+                                    <i class="bi bi-link-45deg"></i> Copy Link
+                                </button>
+                            </div>
+                        {% elif user_results and quiz.id in user_results %}
+                            {% set res = user_results[quiz.id] %}
+                            {% set percentage = (res.score / res.total * 100) if res.total > 0 else 0 %}
+                            
+                            {% set grade_info = {
+                                'grade': 'D',
+                                'color': 'danger',
+                                'bg': 'danger-subtle',
+                                'msg': 'Keep practicing. You can do better next time!'
+                            } %}
+                            
+                            {% if percentage >= 90 %}
+                                {% set _ = grade_info.update({'grade': 'A', 'color': 'success', 'bg': 'success-subtle', 'msg': 'Excellent work! You got very good marks. Work hard for the next assessment like this!'}) %}
+                            {% elif percentage >= 75 %}
+                                {% set _ = grade_info.update({'grade': 'B', 'color': 'primary', 'bg': 'primary-subtle', 'msg': 'Great job! You got good marks. Work hard for the next assessment like this!'}) %}
+                            {% elif percentage >= 60 %}
+                                {% set _ = grade_info.update({'grade': 'C', 'color': 'warning', 'bg': 'warning-subtle', 'msg': 'Good effort! Keep up the hard work for the next assessment.'}) %}
+                            {% endif %}
+                            
+                            <div class="score-card rounded-4 p-4 border bg-{{ grade_info.bg }} border-{{ grade_info.bg }}">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <p class="text-uppercase small fw-bold mb-0 text-muted" style="letter-spacing: 1px;">Score Card</p>
+                                        <h3 class="fw-bold mb-0 text-{{ grade_info.color }}">{{ res.score }} / {{ res.total }}</h3>
+                                    </div>
+                                    <div class="rounded-circle bg-white d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px;">
+                                        <span class="fs-4 fw-bold text-{{ grade_info.color }}">{{ grade_info.grade }}</span>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-white rounded-3 shadow-sm border border-light">
+                                    <p class="mb-2 small fw-medium text-dark"><i class="bi bi-chat-quote-fill text-{{ grade_info.color }} me-2"></i>{{ grade_info.msg }}</p>
+                                    <a href="{{ url_for('quiz.quiz_result', quiz_id=quiz.id) }}" class="btn btn-sm w-100 rounded-pill fw-bold mt-2" style="background-color: {{ grade_info.bg }}; color: {{ grade_info.color }}; border: 1px solid {{ grade_info.color }}40;">
+                                        <i class="bi bi-card-checklist me-1"></i> Review Answers
+                                    </a>
+                                </div>
+                            </div>
+                        {% else %}
+                            <a href="{{ url_for('quiz.take_quiz', quiz_id=quiz.id) }}" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm hover-lift">
+                                <i class="bi bi-play-circle-fill me-2"></i> Take Quiz
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="empty-state text-center py-5 bg-white rounded-4 shadow-sm border-0 position-relative overflow-hidden">
+                <div class="position-relative z-index-1">
+                    <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary shadow-sm" style="width: 100px; height: 100px;">
+                        <i class="bi bi-question-circle" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 text-dark">No quizzes available</h4>
+                    <p class="text-muted mx-auto fw-medium" style="max-width: 500px;">There are no quizzes created for this course yet.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08) !important;
+    }
+    .score-card {
+        transition: all 0.2s ease;
+    }
+</style>
+{% endblock %}

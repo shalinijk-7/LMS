@@ -1,0 +1,30 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}Summary Details - AuraLearn{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center mb-4 gap-3">
+        <a href="{{ url_for('ai.summary') }}" class="btn btn-light rounded-circle shadow-sm" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="fw-bold mb-0 text-dark">Summary Details</h2>
+    </div>
+    
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white p-4 border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-1">{{ summary.filename }}</h5>
+                    <p class="text-muted small mb-0">Generated on {{ summary.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                </div>
+                <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill">{{ summary.summary_type }} Detail</span>
+            </div>
+        </div>
+        <div class="card-body p-4 p-md-5">
+            <div style="white-space: pre-wrap; font-size: 1rem; line-height: 1.8; color: #333;">
+{{ summary.summary_text }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

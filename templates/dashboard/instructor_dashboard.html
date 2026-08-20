@@ -1,0 +1,171 @@
+<!-- Template for instructor dashboard view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1">Instructor Dashboard</h2>
+        <p class="text-muted mb-0">Welcome back, {{ current_user.name.split(' ')[0] }}! Manage your courses and track student progress.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('courses.create_course') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">
+            <i class="bi bi-plus-lg me-1"></i> New Course
+        </a>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #6366f1; background: #e0e7ff;">
+                <i class="bi bi-camera-video-fill"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ courses|length }}</h3>
+                <span class="text-muted small fw-medium">Total Courses</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #8b5cf6; background: #ede9fe;">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">{{ total_students }}</h3>
+                <span class="text-muted small fw-medium">Total Students</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="icon-container" style="color: #ec4899; background: #fce7f3;">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold">${{ "%.2f"|format(total_revenue|default(0.00)) }}</h3>
+                <span class="text-muted small fw-medium">Total Revenue</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Courses -->
+<div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-in" data-aos-delay="200">
+    <h4 class="fw-bold mb-0">My Courses</h4>
+    <div class="search-box">
+        <i class="bi bi-search text-muted"></i>
+        <input type="text" id="courseSearch" placeholder="Search your courses..." class="form-control border-0 shadow-none bg-transparent">
+    </div>
+</div>
+
+<div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="300">
+    {% for data in course_data %}
+    <div class="col-xl-3 col-lg-4 col-md-6 course-item">
+        <div class="dash-course-card h-100 d-flex flex-column">
+            <div class="mb-3">
+                <i class="bi bi-camera-video-fill text-primary fs-1"></i>
+            </div>
+            <h6 class="fw-bold mb-2 text-truncate course-title" title="{{ data.course.title }}">{{ data.course.title }}</h6>
+            <p class="text-muted small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ data.course.description }}</p>
+            
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-primary-subtle text-primary fw-bold">${{ "%.2f"|format(data.course.price|default(0.00)) }}</span>
+                <span class="text-muted small fw-medium"><i class="bi bi-people"></i> {{ data.course.enrollments|length }} Students</span>
+            </div>
+            
+            <div class="mb-3">
+                <div class="d-flex justify-content-between small fw-bold text-muted mb-1">
+                    <span>Completion Rate</span>
+                    <span>{{ data.completion_rate }}%</span>
+                </div>
+                <div class="progress rounded-pill bg-light border" style="height: 6px;">
+                    <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: {{ data.completion_rate }}%;" aria-valuenow="{{ data.completion_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+            
+            <div class="d-flex flex-column gap-3 mt-auto pt-3 border-top" style="border-color: #f1f5f9 !important;">
+                <a href="{{ url_for('courses.manage_course', course_id=data.course.id) }}" class="btn btn-primary rounded-pill w-100 fw-bold py-2 shadow-sm">Manage Course</a>
+                
+                <a href="{{ url_for('attendance.manage_attendance', course_id=data.course.id) }}" class="btn btn-outline-info rounded-pill w-100 fw-bold py-1 shadow-sm small"><i class="bi bi-calendar-check me-1"></i> Attendance</a>
+                
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="small fw-bold text-muted mb-1 text-center" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Quizzes</div>
+                        <div class="btn-group w-100 shadow-sm" role="group">
+                            <a href="{{ url_for('quiz.list_quizzes', course_id=data.course.id) }}" class="btn btn-sm btn-light border border-secondary-subtle" title="All Quizzes"><i class="bi bi-list-ul text-secondary"></i></a>
+                            <a href="{{ url_for('instructor.create_quiz', course_id=data.course.id) }}" class="btn btn-sm btn-light border border-secondary-subtle border-start-0" title="Add Quiz"><i class="bi bi-plus-lg text-secondary"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small fw-bold text-muted mb-1 text-center" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Assignments</div>
+                        <div class="btn-group w-100 shadow-sm" role="group">
+                            <a href="{{ url_for('assignment.list_assignments', course_id=data.course.id) }}" class="btn btn-sm btn-light border border-secondary-subtle" title="All Assignments"><i class="bi bi-list-ul text-secondary"></i></a>
+                            <a href="{{ url_for('instructor.create_assignment', course_id=data.course.id) }}" class="btn btn-sm btn-light border border-secondary-subtle border-start-0" title="Add Assignment"><i class="bi bi-plus-lg text-secondary"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="empty-state text-center py-5 bg-white rounded-4 border shadow-sm" style="border-color: #eaeaea !important; border-style: solid !important;">
+            <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 80px; height: 80px;">
+                <i class="bi bi-camera-video-off fs-1"></i>
+            </div>
+            <h5 class="fw-bold mb-2">No courses created yet</h5>
+            <p class="text-muted mx-auto mb-4" style="max-width: 400px;">Share your knowledge with the world. Start building your first course and reach students globally.</p>
+            <a href="{{ url_for('courses.create_course') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">Create First Course</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Recent Activity Placeholder -->
+<h4 class="fw-bold mb-4" data-aos="fade-right" data-aos-delay="400">Recent Instructor Activity</h4>
+<div class="dash-activity-card mb-5" data-aos="fade-up" data-aos-delay="500">
+    <div class="activity-item">
+        <div class="activity-badge">LOGIN</div>
+        <div>
+            <p class="mb-0 fw-medium">Logged into the application</p>
+            <small class="text-muted">Just now</small>
+        </div>
+    </div>
+    <div class="activity-item">
+        <div class="activity-badge text-primary" style="background: var(--primary-light);">VIEW</div>
+        <div>
+            <p class="mb-0 fw-medium">Viewed instructor dashboard</p>
+            <small class="text-muted">2 minutes ago</small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('courseSearch');
+        const courseItems = document.querySelectorAll('.course-item');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                
+                courseItems.forEach(item => {
+                    const titleElement = item.querySelector('.course-title');
+                    if (titleElement) {
+                        const title = titleElement.textContent.toLowerCase();
+                        if (title.includes(query)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

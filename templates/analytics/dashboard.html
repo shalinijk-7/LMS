@@ -1,0 +1,479 @@
+<!-- Template for dashboard view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Analytics - AuraLearn{% endblock %}
+
+{% block content %}
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h2 class="fw-bold mb-1">Admin Analytics Dashboard</h2>
+            <p class="text-muted mb-0">Comprehensive metrics, user growth, and platform performance.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+            <select class="form-select bg-white border-0 shadow-sm" id="globalDateFilter" style="width: auto; font-weight: 500;">
+                <option value="7d">Last 7 Days</option>
+                <option value="30d" selected>Last 30 Days</option>
+                <option value="6m">Last 6 Months</option>
+                <option value="1y">Last 12 Months</option>
+                <option value="all">All Time</option>
+            </select>
+            <button class="btn btn-primary" onclick="loadDashboardData()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4" id="kpiContainer" data-aos="fade-up" data-aos-delay="100">
+    <!-- Row 1 -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 kpi-card">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Total Students</p>
+                    <h4 class="fw-bold mb-0" id="kpi-students">...</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 kpi-card">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Instructors</p>
+                    <h4 class="fw-bold mb-0" id="kpi-instructors">...</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 kpi-card">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-dark-subtle text-dark d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Admins</p>
+                    <h4 class="fw-bold mb-0" id="kpi-admins">...</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 kpi-card">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Courses</p>
+                    <h4 class="fw-bold mb-0" id="kpi-courses">...</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Row 2 -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 kpi-card">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Enrollments</p>
+                    <h4 class="fw-bold mb-0" id="kpi-enrollments">...</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 kpi-card">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Completions</p>
+                    <h4 class="fw-bold mb-0" id="kpi-completions">...</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 kpi-card">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="bi bi-activity"></i>
+                </div>
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Active Learners</p>
+                    <h4 class="fw-bold mb-0" id="kpi-active">...</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 kpi-card">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Est. Revenue</p>
+                    <h4 class="fw-bold mb-0" id="kpi-revenue">...</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">User Growth (Students vs Instructors)</h5>
+                <div style="height: 350px; position: relative; width: 100%;">
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">Enrollment Trends</h5>
+                <div style="height: 300px; position: relative; width: 100%;">
+                    <canvas id="enrollmentTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">Revenue Analytics (USD)</h5>
+                <div style="height: 300px; position: relative; width: 100%;">
+                    <canvas id="revenueAnalyticsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">Top Performing Courses (by Enrollments)</h5>
+                <div style="height: 300px; position: relative; width: 100%;">
+                    <canvas id="topCoursesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 text-center">
+                <h5 class="fw-bold mb-4">User Distribution</h5>
+                <div style="height: 300px; position: relative; width: 100%;">
+                    <canvas id="userDistChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 text-center">
+                <h5 class="fw-bold mb-4">Course Completion <span class="badge bg-primary ms-2" id="avg-comp-badge"></span></h5>
+                <div style="height: 300px; position: relative; width: 100%;">
+                    <canvas id="courseCompletionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 text-center">
+                <h5 class="fw-bold mb-4">Attendance <span class="badge bg-success ms-2" id="avg-att-badge"></span></h5>
+                <div style="height: 300px; position: relative; width: 100%;">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">Quiz & Assignment Performance</h5>
+                <div style="height: 300px; position: relative; width: 100%;">
+                    <canvas id="academicPerfChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tables & Timeline -->
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-white pt-4 pb-2 px-4 border-0">
+                        <h5 class="fw-bold mb-0">Top Instructors</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="topInstructorsTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Instructor Name</th>
+                                        <th>Courses Taught</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-white pt-4 pb-2 px-4 border-0">
+                        <h5 class="fw-bold mb-0">System Status</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="d-flex align-items-center gap-2 p-2 bg-success-subtle text-success rounded-3 fw-bold" style="font-size: 0.9rem;">
+                                <i class="bi bi-circle-fill" style="font-size: 0.6rem;"></i> Database Online
+                            </div>
+                            <div class="d-flex align-items-center gap-2 p-2 bg-success-subtle text-success rounded-3 fw-bold" style="font-size: 0.9rem;">
+                                <i class="bi bi-circle-fill" style="font-size: 0.6rem;"></i> Storage Online
+                            </div>
+                            <div class="d-flex align-items-center gap-2 p-2 bg-success-subtle text-success rounded-3 fw-bold" style="font-size: 0.9rem;">
+                                <i class="bi bi-circle-fill" style="font-size: 0.6rem;"></i> Auth System Online
+                            </div>
+                            <div class="d-flex align-items-center gap-2 p-2 bg-success-subtle text-success rounded-3 fw-bold" style="font-size: 0.9rem;">
+                                <i class="bi bi-circle-fill" style="font-size: 0.6rem;"></i> Socket.IO Online
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white pt-4 pb-0 px-4 border-0">
+                <h5 class="fw-bold mb-0">Recent Platform Activity</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="timeline" id="activityTimeline">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.kpi-card { transition: transform 0.2s; }
+.kpi-card:hover { transform: translateY(-3px); }
+.timeline { border-left: 2px solid #e2e8f0; padding-left: 20px; position: relative; }
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item::before {
+    content: ''; position: absolute; left: -26px; top: 0; width: 10px; height: 10px;
+    border-radius: 50%; background: var(--primary); border: 2px solid white;
+}
+.timeline-date { font-size: 0.75rem; color: #64748b; margin-bottom: 2px; }
+.timeline-content { font-size: 0.9rem; color: #334155; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let charts = {};
+
+function initChart(canvasId, config) {
+    if (charts[canvasId]) charts[canvasId].destroy();
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    charts[canvasId] = new Chart(ctx, config);
+}
+
+function loadDashboardData() {
+    const period = document.getElementById('globalDateFilter').value;
+
+    fetch(`/analytics/api/data?period=${period}`)
+        .then(res => res.json())
+        .then(data => {
+            // Update KPIs
+            document.getElementById('kpi-students').innerText = data.kpis.total_students;
+            document.getElementById('kpi-instructors').innerText = data.kpis.total_instructors;
+            document.getElementById('kpi-admins').innerText = data.kpis.total_admins;
+            document.getElementById('kpi-courses').innerText = data.kpis.total_courses;
+            document.getElementById('kpi-enrollments').innerText = data.kpis.total_enrollments;
+            document.getElementById('kpi-completions').innerText = data.kpis.completed_courses;
+            document.getElementById('kpi-active').innerText = data.kpis.active_learners;
+            document.getElementById('kpi-revenue').innerText = '$' + data.kpis.total_revenue.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('avg-comp-badge').innerText = data.kpis.avg_completion_rate + '% Avg';
+            document.getElementById('avg-att-badge').innerText = data.kpis.avg_attendance_rate + '% Avg';
+
+            // User Growth Chart
+            const dates = [...new Set(data.charts.user_growth.map(i => i.date))].sort();
+            const studentsData = dates.map(d => {
+                const found = data.charts.user_growth.find(i => i.date === d && i.role === 'student');
+                return found ? found.count : 0;
+            });
+            const instructorsData = dates.map(d => {
+                const found = data.charts.user_growth.find(i => i.date === d && i.role === 'instructor');
+                return found ? found.count : 0;
+            });
+
+            initChart('userGrowthChart', {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        { label: 'Students', data: studentsData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 },
+                        { label: 'Instructors', data: instructorsData, borderColor: '#ec4899', backgroundColor: 'transparent', tension: 0.4 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } }
+            });
+
+            // Enrollment Trends
+            const envDates = data.charts.enrollment_trends.map(i => i.date);
+            const envCounts = data.charts.enrollment_trends.map(i => i.count);
+            initChart('enrollmentTrendsChart', {
+                type: 'bar',
+                data: {
+                    labels: envDates,
+                    datasets: [{ label: 'New Enrollments', data: envCounts, backgroundColor: '#8b5cf6', borderRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { borderDash: [2, 4] } } } }
+            });
+
+            // Revenue Trends
+            const revDates = data.charts.revenue_trends.map(i => i.date);
+            const revValues = data.charts.revenue_trends.map(i => i.revenue);
+            initChart('revenueAnalyticsChart', {
+                type: 'line',
+                data: {
+                    labels: revDates,
+                    datasets: [{ label: 'Revenue ($)', data: revValues, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: true, tension: 0.3 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { borderDash: [2, 4] } } } }
+            });
+
+            // Top Courses
+            const courseTitles = data.charts.course_performance.map(i => i.title);
+            const courseEnrolls = data.charts.course_performance.map(i => i.enrollments);
+            initChart('topCoursesChart', {
+                type: 'bar',
+                data: {
+                    labels: courseTitles,
+                    datasets: [{ label: 'Enrollments', data: courseEnrolls, backgroundColor: '#f59e0b', borderRadius: 4 }]
+                },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { borderDash: [2, 4] } }, y: { grid: { display: false } } } }
+            });
+
+            // User Dist
+            initChart('userDistChart', {
+                type: 'doughnut',
+                data: {
+                    labels: ['Students', 'Instructors', 'Admins'],
+                    datasets: [{ data: [data.kpis.total_students, data.kpis.total_instructors, data.kpis.total_admins], backgroundColor: ['#3b82f6', '#ec4899', '#64748b'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Completion
+            const compLabels = Object.keys(data.charts.course_completion);
+            const compData = Object.values(data.charts.course_completion);
+            initChart('courseCompletionChart', {
+                type: 'pie',
+                data: {
+                    labels: compLabels.length ? compLabels : ['No Data'],
+                    datasets: [{ data: compData.length ? compData : [1], backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#e2e8f0'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Attendance
+            const attLabels = Object.keys(data.charts.attendance);
+            const attData = Object.values(data.charts.attendance);
+            initChart('attendanceChart', {
+                type: 'bar',
+                data: {
+                    labels: attLabels.length ? attLabels : ['No Data'],
+                    datasets: [{ label: 'Records', data: attData.length ? attData : [0], backgroundColor: '#0ea5e9', borderRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { display: false } } } }
+            });
+
+            // Academic
+            initChart('academicPerfChart', {
+                type: 'bar',
+                data: {
+                    labels: ['Quizzes', 'Assignments'],
+                    datasets: [
+                        { label: 'Total', data: [data.charts.academic.quizzes.total, data.charts.academic.assignments.total], backgroundColor: '#94a3b8', borderRadius: 4 },
+                        { label: 'Completed/Submitted', data: [data.charts.academic.quizzes.completed, data.charts.academic.assignments.submitted], backgroundColor: '#8b5cf6', borderRadius: 4 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { display: false } } } }
+            });
+
+            // Top Instructors Table
+            const tbody = document.querySelector('#topInstructorsTable tbody');
+            tbody.innerHTML = '';
+            if (data.tables.top_instructors.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-3">No instructors found</td></tr>';
+            } else {
+                data.tables.top_instructors.forEach(inst => {
+                    tbody.innerHTML += `<tr><td class="ps-4 fw-medium">${inst.name}</td><td><span class="badge bg-secondary-subtle text-secondary rounded-pill">${inst.courses} Courses</span></td></tr>`;
+                });
+            }
+
+            // Timeline
+            const tl = document.getElementById('activityTimeline');
+            tl.innerHTML = '';
+            if (data.tables.recent_activity.length === 0) {
+                tl.innerHTML = '<div class="text-muted small">No recent activity</div>';
+            } else {
+                data.tables.recent_activity.forEach(act => {
+                    tl.innerHTML += `
+                        <div class="timeline-item">
+                            <div class="timeline-date">${act.time}</div>
+                            <div class="timeline-content"><strong>${act.user}</strong> ${act.action}</div>
+                        </div>
+                    `;
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load analytics data:', err);
+        });
+}
+
+document.getElementById('globalDateFilter').addEventListener('change', loadDashboardData);
+document.addEventListener('DOMContentLoaded', loadDashboardData);
+</script>

@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - AuraLearn{% endblock %}
+
+{% block extra_css %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    .legal-hero {
+        background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 60%);
+        border-radius: 1.5rem;
+        padding: 2.5rem 1.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .legal-hero::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 180px;
+        height: 180px;
+        background: var(--primary);
+        opacity: 0.08;
+        border-radius: 50%;
+    }
+    .legal-badge {
+        background: var(--gradient-primary);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 1rem;
+        border-radius: 2rem;
+        display: inline-block;
+        margin-bottom: 0.75rem;
+    }
+    .contact-card {
+        background: white;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid #f1f5f9;
+        padding: 1.75rem 1.5rem;
+        height: 100%;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .contact-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 28px rgba(168, 85, 247, 0.12);
+    }
+    .contact-icon {
+        width: 52px;
+        height: 52px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+        flex-shrink: 0;
+    }
+    .form-control, .form-select {
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+    }
+    .alert-success {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        color: #065f46;
+        border-left: 4px solid #10b981;
+    }
+    .alert-danger {
+        background: #fef2f2;
+        color: #991b1b;
+        border-left: 4px solid #ef4444;
+    }
+
+    /* Mobile */
+    @media (max-width: 767.98px) {
+        .legal-hero {
+            padding: 2rem 1.25rem;
+            text-align: center;
+        }
+        .contact-card {
+            text-align: center;
+        }
+        .contact-icon {
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-4 py-md-5 mt-2">
+    <div class="container-premium">
+
+        <!-- Hero -->
+        <div class="legal-hero" data-aos="fade-up">
+            <span class="legal-badge">Get in Touch</span>
+            <h1 class="display-5 fw-bold text-dark mb-2">Contact Us</h1>
+            <p class="text-muted mb-0">Have a question or need help? We'd love to hear from you.</p>
+        </div>
+
+        <!-- Contact Info Cards -->
+        <div class="row g-3 g-md-4 mb-4 mb-md-5">
+            <div class="col-12 col-md-4" data-aos="fade-up" data-aos-delay="50">
+                <div class="contact-card h-100">
+                    <div class="contact-icon">
+                        <i class="bi bi-envelope-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Email Us</h5>
+                    <p class="text-muted mb-1">support@auralearn.com</p>
+                    <p class="text-muted small mb-0">We usually reply within 24 hours</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="contact-card h-100">
+                    <div class="contact-icon">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Working Hours</h5>
+                    <p class="text-muted mb-1">Monday – Friday</p>
+                    <p class="text-muted small mb-0">9:00 AM – 6:00 PM (IST)</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4" data-aos="fade-up" data-aos-delay="150">
+                <div class="contact-card h-100">
+                    <div class="contact-icon">
+                        <i class="bi bi-chat-dots-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Live Chat</h5>
+                    <p class="text-muted mb-1">Available inside the platform</p>
+                    <p class="text-muted small mb-0">For logged-in users</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="200">
+            <div class="col-12 col-lg-8">
+                <div class="contact-card">
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} border-0 rounded-3 d-flex align-items-center gap-3 mb-4" role="alert">
+                                    {% if category == 'success' %}
+                                        <i class="bi bi-check-circle-fill fs-4"></i>
+                                    {% else %}
+                                        <i class="bi bi-exclamation-circle-fill fs-4"></i>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{% if category == 'success' %}Message Sent!{% else %}Error{% endif %}</strong>
+                                        <div class="small">{{ message }}</div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <h4 class="fw-bold mb-4">Send us a Message</h4>
+
+                    <form method="POST" action="{{ url_for('contact') }}" id="contactForm">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-medium">Your Name</label>
+                                <input type="text" name="name" class="form-control" placeholder="Enter your name" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-medium">Email Address</label>
+                                <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-medium">Subject</label>
+                                <select name="subject" class="form-select" required>
+                                    <option value="" selected disabled>Select a topic</option>
+                                    <option value="General Inquiry">General Inquiry</option>
+                                    <option value="Technical Support">Technical Support</option>
+                                    <option value="Course Related">Course Related</option>
+                                    <option value="Account / Billing">Account / Billing</option>
+                                    <option value="Feedback">Feedback</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-medium">Message</label>
+                                <textarea name="message" class="form-control" rows="5" placeholder="Write your message here..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary px-4 w-100 w-md-auto" id="submitBtn">
+                                    <i class="bi bi-send-fill me-2"></i>
+                                    <span id="btnText">Send Message</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 mt-md-5">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary px-4">
+                <i class="bi bi-arrow-left me-2"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('contactForm')?.addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        btn.disabled = true;
+        btnText.innerHTML = 'Sending...';
+        btn.classList.add('opacity-75');
+    });
+</script>
+{% endblock %}

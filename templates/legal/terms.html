@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms of Service - AuraLearn{% endblock %}
+
+{% block content %}
+<div class="container-premium py-5 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+                <!-- Header Background -->
+                <div class="bg-primary text-white p-5 position-relative">
+                    <div class="position-relative z-index-1">
+                        <h1 class="fw-bold mb-2">Terms of Service</h1>
+                        <p class="mb-0 opacity-75">Last Updated: August 10, 2026</p>
+                    </div>
+                    <!-- Decorative shapes -->
+                    <div class="position-absolute top-0 end-0 h-100 w-50 overflow-hidden" style="opacity: 0.1;">
+                        <div class="bg-white rounded-circle position-absolute" style="width: 300px; height: 300px; top: -100px; right: -100px;"></div>
+                        <div class="bg-white rounded-circle position-absolute" style="width: 150px; height: 150px; bottom: -50px; right: 150px;"></div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-column gap-4">
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">1. Introduction</h3>
+                            <p class="text-muted">Welcome to AuraLearn. These Terms of Service ("Terms") govern your access to and use of the AuraLearn website, services, and applications (collectively, the "Service"). Please read these Terms carefully before using our platform.</p>
+                            <p class="text-muted">By accessing or using the Service, you agree to be bound by these Terms and our Privacy Policy. If you disagree with any part of the terms, then you may not access the Service.</p>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">2. User Accounts</h3>
+                            <p class="text-muted">When you create an account with us, you must provide information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.</p>
+                            <p class="text-muted">You are responsible for safeguarding the password that you use to access the Service and for any activities or actions under your password, whether your password is with our Service or a third-party service.</p>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">3. Course Access and Usage</h3>
+                            <p class="text-muted">As a student, when you enroll in a course, whether it's a free or paid course, you are getting a license from AuraLearn to view the course via the AuraLearn platform and Services, and AuraLearn is the licensor of record. Courses are licensed, and not sold, to you. This license does not give you any right to resell the course in any manner.</p>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">4. Instructor Responsibilities</h3>
+                            <p class="text-muted">If you are an Instructor publishing a course on AuraLearn, you represent and warrant that:</p>
+                            <ul class="text-muted">
+                                <li>You own or have the necessary licenses, rights, consents, and permissions to use and authorize AuraLearn to use all intellectual property in your submitted content.</li>
+                                <li>You will not upload, post or otherwise transmit any unsolicited or unauthorized advertising, promotional materials, junk mail, spam, or any other form of solicitation.</li>
+                                <li>You will not introduce any virus, worm, spyware or any other computer code, file or program that may or is intended to damage or hijack the operation of any hardware, software or telecommunications equipment.</li>
+                            </ul>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">5. Payments and Purchases</h3>
+                            <p class="text-muted">If you wish to purchase any product or service made available through the Service ("Purchase"), you may be asked to supply certain information relevant to your Purchase including, without limitation, your credit card number, the expiration date of your credit card, and your billing address.</p>
+                            <p class="text-muted">You represent and warrant that: (i) you have the legal right to use any credit card(s) or other payment method(s) in connection with any Purchase; and that (ii) the information you supply to us is true, correct and complete.</p>
+                        </section>
+
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">6. Refund Policy</h3>
+                            <p class="text-muted">While we want you to be satisfied with your courses, all course purchases on AuraLearn are final unless specifically stated otherwise on the course purchase page or in the case of platform errors during transaction processing.</p>
+                        </section>
+                        
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">7. Prohibited Activities</h3>
+                            <p class="text-muted">You may not access or use the Service for any purpose other than that for which we make the Service available. The Service may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us.</p>
+                        </section>
+
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">8. Limitation of Liability</h3>
+                            <p class="text-muted">In no event shall AuraLearn, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
+                        </section>
+
+                        <section>
+                            <h3 class="fw-bold text-dark mb-3">9. Contact Information</h3>
+                            <p class="text-muted">If you have any questions about these Terms, please contact us at:</p>
+                            <p class="text-muted fw-medium"><i class="bi bi-envelope-fill me-2 text-primary"></i> legal@auralearn.com</p>
+                        </section>
+                    </div>
+                    
+                    <div class="mt-5 text-center">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary px-4 rounded-pill">
+                            <i class="bi bi-arrow-left me-2"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

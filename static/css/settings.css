@@ -1,0 +1,95 @@
+/* Settings and Admin CSS */
+.admin-header {
+    background: linear-gradient(135deg, var(--text-main), var(--primary));
+    color: white;
+    padding: 3rem 5%;
+    margin-top: 60px;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+.admin-header h1 {
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.admin-container {
+    padding: 2rem 5%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-top: 2rem;
+}
+
+.data-table th, .data-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+    background: var(--bg-main);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
+
+.data-table tr:hover {
+    background: var(--bg-main);
+}
+
+/* Notifications */
+.notification-item {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.notification-item.unread {
+    border-left: 4px solid var(--primary);
+    background: var(--primary-light);
+}
+
+/* Discussions */
+.discussion-board {
+    max-width: 1000px;
+    margin: 2rem auto;
+}
+
+.discussion-post {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.discussion-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+}

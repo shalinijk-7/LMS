@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <div class="mb-4">
+                <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="text-decoration-none text-muted small">
+                    ← Back to course
+                </a>
+                <h2 class="fw-bold mt-2">Checkout</h2>
+            </div>
+
+            <div class="row g-4">
+                <!-- Order Summary -->
+                <div class="col-md-5">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3">Order Summary</h5>
+
+                            <div class="d-flex gap-3 mb-4">
+                                {% if course.thumbnail %}
+                                <img src="{{ url_for('static', filename='uploads/thumbnails/' + course.thumbnail) }}"
+                                     class="rounded-3 object-fit-cover" width="80" height="55" alt="">
+                                {% else %}
+                                <div class="rounded-3 bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                                     style="width:80px;height:55px;">
+                                    <i class="bi bi-camera-video text-primary"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-semibold">{{ course.title }}</div>
+                                    <div class="text-muted small">{{ course.instructor.name if course.instructor else 'Instructor' }}</div>
+                                </div>
+                            </div>
+
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Course Price</span>
+                                <span>₹{{ '%.2f'|format(course.price) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Tax (5%)</span>
+                                <span>₹{{ '%.2f'|format(tax) }}</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>Total</span>
+                                <span class="text-primary">₹{{ '%.2f'|format(total_amount) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Form -->
+                <div class="col-md-7">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-4">Select Payment Method</h5>
+
+                            <form method="POST">
+                                <div class="mb-3">
+                                    <div class="form-check border rounded-3 p-3 mb-2">
+                                        <input class="form-check-input ms-1" type="radio" name="payment_method" id="card" value="Credit/Debit Card" required>
+                                        <label class="form-check-label ms-2 fw-medium" for="card">
+                                            <i class="bi bi-credit-card me-2 text-primary"></i> Credit / Debit Card
+                                        </label>
+                                    </div>
+                                    <div class="form-check border rounded-3 p-3 mb-2">
+                                        <input class="form-check-input ms-1" type="radio" name="payment_method" id="upi" value="UPI">
+                                        <label class="form-check-label ms-2 fw-medium" for="upi">
+                                            <i class="bi bi-phone me-2 text-success"></i> UPI
+                                        </label>
+                                    </div>
+                                    <div class="form-check border rounded-3 p-3 mb-2">
+                                        <input class="form-check-input ms-1" type="radio" name="payment_method" id="netbanking" value="Net Banking">
+                                        <label class="form-check-label ms-2 fw-medium" for="netbanking">
+                                            <i class="bi bi-bank me-2 text-info"></i> Net Banking
+                                        </label>
+                                    </div>
+                                    <div class="form-check border rounded-3 p-3">
+                                        <input class="form-check-input ms-1" type="radio" name="payment_method" id="wallet" value="Wallet">
+                                        <label class="form-check-label ms-2 fw-medium" for="wallet">
+                                            <i class="bi bi-wallet2 me-2 text-warning"></i> Wallet
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold mt-3">
+                                    Pay ₹{{ '%.2f'|format(total_amount) }}
+                                </button>
+                            </form>
+
+                            <p class="text-muted small text-center mt-3 mb-0">
+                                <i class="bi bi-shield-check me-1"></i> Secure payment • Simulated for demo
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

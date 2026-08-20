@@ -1,0 +1,228 @@
+<!-- Template for admin courses view. -->
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-4" data-aos="fade-down">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h2 class="fw-bold mb-1">Platform Courses</h2>
+            <p class="text-muted mb-0">Oversee all courses, enrollments, and revenue across the platform.</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4" data-aos="fade-up" data-aos-delay="50">
+    <div class="col-6 col-md-4 col-lg">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:#e0e7ff;color:#6366f1;">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5">{{ stats.total }}</div>
+                    <div class="text-muted small">Total Courses</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:#dcfce7;color:#22c55e;">
+                    <i class="bi bi-gift-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5">{{ stats.free }}</div>
+                    <div class="text-muted small">Free Courses</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:#fef3c7;color:#f59e0b;">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5">{{ stats.paid }}</div>
+                    <div class="text-muted small">Paid Courses</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:#fce7f3;color:#ec4899;">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5">{{ stats.total_enrollments }}</div>
+                    <div class="text-muted small">Enrollments</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:#dbeafe;color:#2563eb;">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5">${{ '%.0f'|format(stats.total_revenue) }}</div>
+                    <div class="text-muted small">Course Revenue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm rounded-4 mb-4" data-aos="fade-up" data-aos-delay="80">
+    <div class="card-body p-3">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="courseSearch" class="form-control border-start-0" placeholder="Search course or instructor...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="typeFilter" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="Free">Free</option>
+                    <option value="Paid">Paid</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select id="diffFilter" class="form-select">
+                    <option value="">All Levels</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button id="resetCourseFilters" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Courses Table -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="coursesTable">
+            <thead class="bg-light">
+                <tr>
+                    <th class="border-0 ps-4 py-3 text-muted small fw-bold text-uppercase">Course</th>
+                    <th class="border-0 py-3 text-muted small fw-bold text-uppercase">Instructor</th>
+                    <th class="border-0 py-3 text-muted small fw-bold text-uppercase">Type / Price</th>
+                    <th class="border-0 py-3 text-muted small fw-bold text-uppercase text-center">Lessons</th>
+                    <th class="border-0 py-3 text-muted small fw-bold text-uppercase text-center">Enrollments</th>
+                    <th class="border-0 pe-4 py-3 text-muted small fw-bold text-uppercase text-end">Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in courses %}
+                {% set c = item.course %}
+                {% set ctype = 'Paid' if (c.price or 0)|float > 0 else 'Free' %}
+                <tr data-type="{{ ctype }}"
+                    data-diff="{{ c.difficulty or '' }}"
+                    data-search="{{ (c.title ~ ' ' ~ item.instructor_name)|lower }}">
+                    <td class="ps-4 py-3">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if c.thumbnail %}
+                            <img src="{{ url_for('static', filename='uploads/thumbnails/' + c.thumbnail) }}"
+                                 class="rounded-3 object-fit-cover" width="56" height="36" alt="">
+                            {% else %}
+                            <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
+                                 style="width:56px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+                                <i class="bi bi-camera-video" style="font-size:0.85rem;"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="fw-semibold">{{ c.title }}</div>
+                                {% if c.difficulty %}
+                                <span class="badge rounded-pill bg-light text-muted" style="font-size:0.65rem;">{{ c.difficulty }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 small text-muted">{{ item.instructor_name }}</td>
+                    <td class="py-3">
+                        {% if ctype == 'Paid' %}
+                        <span class="badge rounded-pill" style="background:#fef3c7;color:#b45309;">
+                            ${{ '%.2f'|format(c.price or 0) }}
+                        </span>
+                        {% else %}
+                        <span class="badge rounded-pill" style="background:#dcfce7;color:#15803d;">Free</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 text-center fw-semibold">{{ item.lesson_count }}</td>
+                    <td class="py-3 text-center">
+                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary">{{ item.enroll_count }}</span>
+                    </td>
+                    <td class="pe-4 py-3 text-end small text-muted">
+                        {{ c.created_at.strftime('%b %d, %Y') if c.created_at else '—' }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-5">No courses on the platform yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 py-3 border-top">
+        <span class="text-muted small" id="courseCountLabel">Showing {{ courses|length }} courses</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('courseSearch');
+    const typeFilter = document.getElementById('typeFilter');
+    const diffFilter = document.getElementById('diffFilter');
+    const rows = document.querySelectorAll('#coursesTable tbody tr[data-type]');
+    const countLabel = document.getElementById('courseCountLabel');
+
+    function applyFilters() {
+        const q = (searchInput.value || '').toLowerCase().trim();
+        const type = typeFilter.value;
+        const diff = diffFilter.value;
+        let visible = 0;
+        rows.forEach(row => {
+            const matchSearch = !q || (row.dataset.search || '').includes(q);
+            const matchType = !type || row.dataset.type === type;
+            const matchDiff = !diff || row.dataset.diff === diff;
+            const show = matchSearch && matchType && matchDiff;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        countLabel.textContent = 'Showing ' + visible + ' of ' + rows.length + ' courses';
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    typeFilter.addEventListener('change', applyFilters);
+    diffFilter.addEventListener('change', applyFilters);
+    document.getElementById('resetCourseFilters').addEventListener('click', function () {
+        searchInput.value = '';
+        typeFilter.value = '';
+        diffFilter.value = '';
+        applyFilters();
+    });
+});
+</script>
+{% endblock %}
