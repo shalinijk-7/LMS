@@ -103,6 +103,11 @@
             </div>
             <!-- Course Info -->
             <div class="course-content">
+                {% if course.is_trial_eligible %}
+                <div class="mb-2">
+                    <span class="badge bg-info text-dark" style="background-color: #dbeafe !important; color: #1e40af !important; border: 1px solid #bfdbfe;"><i class="bi bi-gift-fill me-1"></i> 5-Day Free Trial</span>
+                </div>
+                {% endif %}
                 <div class="instructor-row">
                     <div class="instructor-avatar">{{ course.instructor.name[0] if course.instructor.name else 'U' }}</div>
                     <span>{{ course.instructor.name }}</span>
@@ -113,6 +118,9 @@
                     <div class="course-meta-tags">
                         <span class="tag">📚 Self-paced</span>
                         <span class="tag">🏆 Certificate</span>
+                        {% if course.is_trial_eligible %}
+                        <span class="tag fw-bold" style="background-color: #d1e7dd; color: #0f5132; border-color: #badbcc;">🎁 5-Day Free Trial</span>
+                        {% endif %}
                     </div>
                     <div class="d-flex gap-2 w-100">
                         {% if course.demo_video_url or course.demo_video_file %}

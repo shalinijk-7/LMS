@@ -132,6 +132,7 @@ def create_app(config_class=Config):
     from routes.attendance import attendance_bp
     from routes.payment import payment_bp
     from routes.ai_routes import ai_bp
+    from routes.subscription import subscription_bp
 
     # Register all modular Blueprints with the main application
     app.register_blueprint(auth_bp)
@@ -152,6 +153,7 @@ def create_app(config_class=Config):
     app.register_blueprint(attendance_bp)
     app.register_blueprint(payment_bp)
     app.register_blueprint(ai_bp)
+    app.register_blueprint(subscription_bp)
 
     # Landing Page Route (since it's small, keeping it here for now)
     @app.route('/')
@@ -162,7 +164,10 @@ def create_app(config_class=Config):
         Returns:
             str: Rendered HTML template for the landing page.
         """
-        return render_template('landing/index.html')
+        from models import Course
+        trial_courses = Course.query.filter_by(is_trial_eligible=True, course_type='Paid').all()
+        has_trial_eligible_courses = len(trial_courses) > 0
+        return render_template('landing/index.html', trial_courses=trial_courses, has_trial_eligible_courses=has_trial_eligible_courses)
 
     @app.route('/logout')
     def logout():

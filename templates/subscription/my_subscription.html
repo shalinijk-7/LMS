@@ -1,0 +1,160 @@
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+<div class="dash-header mb-5">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-1 text-dark">My Subscription</h2>
+            <p class="text-muted mb-0 fw-medium">Manage your subscription and trial status.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('subscription.plans') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">
+                <i class="bi bi-arrow-up-circle"></i> Upgrade Plan
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Trial Status Card -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4"><i class="bi bi-gift text-primary me-2"></i> Free Trial Status</h5>
+                
+                {% if user.trial_status == 'Trial Active' %}
+                    <div class="alert alert-success d-flex align-items-center rounded-3">
+                        <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+                        <div>
+                            <strong>Trial Active</strong><br>
+                            <span class="small">{{ trial_days_remaining }} days remaining. Expires on {{ user.trial_ends_at.strftime('%d %b %Y') }}</span>
+                        </div>
+                    </div>
+                {% elif user.trial_status == 'Trial Expired' %}
+                    <div class="alert alert-warning d-flex flex-column rounded-3 p-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                            <div>
+                                <strong>Trial Expired</strong><br>
+                                <span class="small">Your free trial has ended.</span>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('subscription.plans') }}" class="btn btn-sm btn-outline-dark mt-2 w-100">View Plans</a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-secondary d-flex align-items-center rounded-3">
+                        <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                        <div>
+                            <strong>No Trial Started</strong><br>
+                            <span class="small">You haven't started your free trial yet.</span>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Subscription Card -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4"><i class="bi bi-star-fill text-warning me-2"></i> Current Subscription</h5>
+                
+                {% if active_sub %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold text-dark mb-0">{{ active_sub.plan.name }}</h4>
+                        <span class="badge bg-success px-3 py-2 rounded-pill">Active</span>
+                    </div>
+                    <p class="text-muted small mb-4">You have full access to all course features.</p>
+                    
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">Started:</span>
+                            <span class="fw-bold">{{ active_sub.start_date.strftime('%d %b %Y') }}</span>
+                        </li>
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">Expires:</span>
+                            <span class="fw-bold">{{ active_sub.end_date.strftime('%d %b %Y') }}</span>
+                        </li>
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">Price:</span>
+                            <span class="fw-bold">{% if active_sub.plan.currency == 'INR' %}₹{% elif active_sub.plan.currency == 'EUR' %}€{% else %}${% endif %}{{ active_sub.plan.price }}</span>
+                        </li>
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">Duration:</span>
+                            <span class="fw-bold">{{ active_sub.plan.duration_days }} Days</span>
+                        </li>
+                    </ul>
+                    
+                    <h6 class="fw-bold mb-3">Features:</h6>
+                    <ul class="list-unstyled text-start mb-4">
+                        {% for feature in active_sub.plan.features.split(',') %}
+                        <li class="mb-2"><i class="bi bi-check-circle text-primary me-2"></i> {{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{{ url_for('subscription.plans') }}" class="btn btn-outline-primary rounded-pill w-100">Manage Subscription</a>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-x-circle text-muted mb-3" style="font-size: 2rem;"></i>
+                        <h5 class="fw-bold text-dark">No Active Subscription</h5>
+                        <p class="text-muted small">You are currently not subscribed to any paid plan.</p>
+                        <a href="{{ url_for('subscription.plans') }}" class="btn btn-outline-primary rounded-pill px-4 mt-2">View Plans</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subscription History Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4"><i class="bi bi-clock-history text-secondary me-2"></i> Subscription History</h5>
+                
+                {% if sub_history %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Price</th>
+                                    <th>Duration</th>
+                                    <th>Period</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sub in sub_history %}
+                                <tr>
+                                    <td class="fw-bold">{{ sub.plan.name }}</td>
+                                    <td>{% if sub.plan.currency == 'INR' %}₹{% elif sub.plan.currency == 'EUR' %}€{% else %}${% endif %}{{ sub.plan.price }}</td>
+                                    <td>{{ sub.plan.duration_days }} Days</td>
+                                    <td>
+                                        <span class="small">{{ sub.start_date.strftime('%d %b %Y') }} – {{ sub.end_date.strftime('%d %b %Y') }}</span>
+                                    </td>
+                                    <td>
+                                        {% if sub.status == 'Active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif sub.status == 'Expired' %}
+                                            <span class="badge bg-secondary">Expired</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ sub.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted small">You have no subscription history.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

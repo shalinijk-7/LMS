@@ -38,6 +38,12 @@ def view_assignment(assignment_id):
     # Fetch the specified assignment or return a 404 error
     assignment = Assignment.query.get_or_404(assignment_id)
     
+    if current_user.role.name == 'student':
+        from services.subscription_service import check_feature_access
+        has_access, message = check_feature_access(current_user.id, 'Assignments')
+        if not has_access:
+            return render_template('components/feature_locked.html', message=message)
+    
     # Check if the current student has already submitted this assignment
     existing_submission = Submission.query.filter_by(assignment_id=assignment.id, student_id=current_user.id).first()
     

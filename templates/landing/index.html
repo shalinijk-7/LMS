@@ -4,6 +4,131 @@
 {% block title %}AuraLearn - Premium Learning Management System{% endblock %}
 
 {% block content %}
+<style>
+    .ticker-wrapper {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 10px 0;
+        z-index: 1020;
+    }
+    
+    .ticker-label {
+        background: linear-gradient(135deg, #0d6efd, #6610f2);
+        color: white;
+        font-weight: bold;
+        font-size: 0.85rem;
+        padding: 0 20px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ticker-content {
+        display: inline-block;
+        padding-left: 100%;
+        animation: ticker-scroll 45s linear infinite;
+    }
+    
+    .ticker-content:hover {
+        animation-play-state: paused;
+    }
+
+    @keyframes ticker-scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ticker-content {
+            animation: none;
+            padding-left: 200px;
+            white-space: normal;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .ticker-item {
+            margin-right: 0 !important;
+        }
+    }
+
+    .ticker-item {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 25px;
+        font-size: 0.9rem;
+        color: #495057;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    
+    .ticker-item:hover {
+        color: #0d6efd;
+    }
+    
+    .ticker-item i {
+        margin-right: 6px;
+        font-size: 1.1em;
+    }
+</style>
+
+<!-- Ticker Section -->
+<div class="ticker-wrapper" aria-label="Latest Updates">
+    <div class="ticker-label d-none d-md-flex">
+        <i class="bi bi-lightning-charge-fill text-warning"></i> Latest Updates
+    </div>
+    <div class="ticker-content">
+        {% if has_trial_eligible_courses %}
+        <a href="{{ url_for('subscription.plans') }}" class="ticker-item">
+            <i class="bi bi-gift-fill text-info"></i> <strong>5-Day Free Trial Available!</strong>
+        </a>
+        <span class="text-muted mx-2 d-inline-block" style="opacity: 0.3;">•</span>
+        {% endif %}
+        
+        <a href="{{ url_for('subscription.plans') }}" class="ticker-item">
+            <i class="bi bi-credit-card-fill text-primary"></i> <strong>Subscription Plans Available</strong> – Choose a plan that fits your learning goals!
+        </a>
+        <span class="text-muted mx-2 d-inline-block" style="opacity: 0.3;">•</span>
+        
+        <a href="{{ url_for('courses.list_courses') }}" class="ticker-item">
+            <i class="bi bi-journal-bookmark-fill text-success"></i> New Courses Added
+        </a>
+        <span class="text-muted mx-2 d-inline-block" style="opacity: 0.3;">•</span>
+        
+        <span class="ticker-item">
+            <i class="bi bi-patch-check-fill text-warning"></i> Earn Certificates After Course Completion
+        </span>
+        <span class="text-muted mx-2 d-inline-block" style="opacity: 0.3;">•</span>
+        
+        <span class="ticker-item">
+            <i class="bi bi-robot" style="color: #6f42c1;"></i> AI Study Assistant Available
+        </span>
+        <span class="text-muted mx-2 d-inline-block" style="opacity: 0.3;">•</span>
+        
+        <span class="ticker-item">
+            <i class="bi bi-file-text-fill text-secondary"></i> Generate AI Summaries from Study Materials
+        </span>
+        <span class="text-muted mx-2 d-inline-block" style="opacity: 0.3;">•</span>
+        
+        <span class="ticker-item">
+            <i class="bi bi-question-circle-fill text-danger"></i> Ask AI for Course-Related Doubts
+        </span>
+    </div>
+</div>
+
 <!-- Hero Section -->
 <section class="hero-section position-relative overflow-hidden d-flex align-items-lg-center pt-5 pt-lg-0" style="background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 100%); min-height: 90vh;">
     <div class="container-fluid px-4 px-lg-5 position-relative z-index-2 w-100 py-5 mt-4 mt-lg-0">
@@ -336,6 +461,51 @@
     </div>
 </section>
 
+<!-- Trial Courses Section -->
+{% if has_trial_eligible_courses %}
+<section class="py-5 bg-white" data-aos="fade-up">
+    <div class="container-fluid px-4 px-lg-5 py-4">
+        <div class="text-center mb-5">
+            <h6 class="text-info fw-bold text-uppercase tracking-wide mb-2" style="letter-spacing: 1px; font-size: 0.85rem;"><i class="bi bi-gift-fill me-1"></i> TRY BEFORE YOU SUBSCRIBE</h6>
+            <h2 class="fw-bold display-6 mb-3">Courses with 5-Day Free Trial</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">Experience our premium learning environment for free before making a commitment.</p>
+        </div>
+        
+        <div class="row gy-4 justify-content-center mx-auto" style="max-width: 1600px;">
+            {% for course in trial_courses[:4] %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden card-hover">
+                    {% if course.thumbnail %}
+                    <img src="{{ url_for('static', filename='uploads/' + course.thumbnail) }}" class="card-img-top" alt="{{ course.title }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top d-flex align-items-center justify-content-center bg-primary text-white" style="height: 200px;">
+                        <i class="bi bi-camera-video fs-1"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="mb-2">
+                            <span class="badge bg-info-subtle text-info border border-info border-opacity-25 rounded-pill"><i class="bi bi-gift-fill me-1"></i> 5-Day Free Trial</span>
+                        </div>
+                        <h5 class="card-title fw-bold mb-3">{{ course.title }}</h5>
+                        <p class="card-text text-muted small mb-4 flex-grow-1">{{ course.description[:100] + '...' if course.description else 'Premium learning content.' }}</p>
+                        <hr class="text-muted mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="fw-bold text-dark">{% if course.currency == 'INR' %}₹{% elif course.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(course.price) }}</span>
+                            <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="btn btn-outline-info rounded-pill btn-sm fw-bold px-3">View Course</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{{ url_for('subscription.plans') }}" class="btn btn-info text-white btn-lg rounded-pill px-5 shadow-sm fw-bold">Explore Subscription Plans</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <!-- How It Works Section -->
 <section class="py-5 my-5 bg-white" data-aos="fade-up">
     <div class="container-fluid px-4 px-lg-5">
@@ -631,7 +801,7 @@
                         <li class="mb-3 d-flex align-items-center gap-2 text-muted"><i class="bi bi-dash-circle"></i> <span>No certificates</span></li>
                         <li class="mb-3 d-flex align-items-center gap-2 text-muted"><i class="bi bi-dash-circle"></i> <span>No mentor support</span></li>
                     </ul>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary w-100 py-3 fw-bold rounded-pill" style="border-color: #4f46e5; color: #4f46e5;">Get Started Free</a>
+                    <a href="{{ url_for('subscription.plans') }}" class="btn btn-outline-primary w-100 py-3 fw-bold rounded-pill" style="border-color: #4f46e5; color: #4f46e5;">Get Started Free</a>
                 </div>
             </div>
 
@@ -653,7 +823,7 @@
                         <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> <span>Downloadable resources</span></li>
                         <li class="mb-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> <span>Priority mentor support</span></li>
                     </ul>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-warning text-dark w-100 py-3 fw-bold rounded-pill shadow-sm">Upgrade to Pro</a>
+                    <a href="{{ url_for('subscription.plans') }}" class="btn btn-warning text-dark w-100 py-3 fw-bold rounded-pill shadow-sm">Upgrade to Pro</a>
                 </div>
             </div>
 

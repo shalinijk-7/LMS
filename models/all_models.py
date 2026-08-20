@@ -61,6 +61,12 @@ class User(UserMixin, db.Model):
     otp_attempts = db.Column(db.Integer, default=0)
     otp_last_sent_at = db.Column(db.DateTime, nullable=True)
     
+    # Trial status tracking
+    trial_started_at = db.Column(db.DateTime, nullable=True)
+    trial_ends_at = db.Column(db.DateTime, nullable=True)
+    trial_status = db.Column(db.String(20), default='No Subscription')
+    trial_used = db.Column(db.Boolean, default=False)
+    
     # Database relationships mapping user activities and records
     settings = db.relationship('Setting', backref='user', uselist=False, cascade='all, delete-orphan')
     enrollments = db.relationship('Enrollment', backref='student', lazy=True)
@@ -70,6 +76,7 @@ class User(UserMixin, db.Model):
     certificates = db.relationship('Certificate', backref='student', lazy=True)
     notifications = db.relationship('Notification', foreign_keys='Notification.user_id', backref='user', lazy=True)
     activity_logs = db.relationship('ActivityLog', backref='user', lazy=True)
+    subscriptions = db.relationship('Subscription', backref='subscriber', lazy=True)
 
     def set_password(self, password):
         """
@@ -171,6 +178,9 @@ class Course(db.Model):
     price = db.Column(db.Float, default=0.0)
     currency = db.Column(db.String(10), default='USD')
     
+    # Trial eligibility flag
+    is_trial_eligible = db.Column(db.Boolean, default=False)
+    
     # Optional introductory preview video configurations
     demo_video_title = db.Column(db.String(200), nullable=True)
     demo_video_url = db.Column(db.String(255), nullable=True)
@@ -237,6 +247,8 @@ class Lesson(db.Model):
     description = db.Column(db.Text)
     # Index to determine the order of the lesson within the course
     order_index = db.Column(db.Integer, default=0)
+    # Trial eligibility flag for specific lessons
+    is_trial_eligible = db.Column(db.Boolean, default=True)
     
     # Associated study resources and components
     video = db.relationship('Video', backref='lesson', uselist=False, cascade='all, delete-orphan')
@@ -716,7 +728,7 @@ class CourseCompletion(db.Model):
 
 class Payment(db.Model):
     """
-    Represents a payment transaction made by a student for a course.
+    Represents a payment transaction made by a student for a course or a subscription.
     Captures financial tokens, transactional identifiers, and payment states.
     """
     __tablename__ = 'payments'
@@ -726,7 +738,9 @@ class Payment(db.Model):
     # Foreign key referencing the student making the payment
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     # Foreign key referencing the course being purchased
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
+    # Foreign key referencing the subscription plan being purchased
+    plan_id = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=True)
     # The financial amount paid for the course
     amount = db.Column(db.Float, nullable=False)
     # The currency used for the payment (e.g., USD)
@@ -735,17 +749,51 @@ class Payment(db.Model):
     payment_method = db.Column(db.String(50), nullable=False)
     # Unique identifier provided by the payment gateway for the transaction
     transaction_id = db.Column(db.String(100), unique=True, nullable=False)
-    # Current status of the payment (e.g., Pending, Success, Failed)
-    status = db.Column(db.String(20), default='Pending') # Pending, Success, Failed
+    # Current status of the payment (e.g., Pending, Success, Failed, Refunded)
+    status = db.Column(db.String(20), default='Pending')
     # Timestamp of when the payment was processed
     payment_date = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Coupon & Discount Fields
+    coupon_code = db.Column(db.String(50), nullable=True)
+    discount_amount = db.Column(db.Float, default=0.0)
+    
+    # Refund Fields
+    refund_status = db.Column(db.String(20), default='None') # None, Requested, Completed
+    refund_date = db.Column(db.DateTime, nullable=True)
+    
     student = db.relationship('User', foreign_keys=[student_id])
+    course = db.relationship('Course', foreign_keys=[course_id])
+    plan = db.relationship('SubscriptionPlan', foreign_keys=[plan_id])
+
+class Coupon(db.Model):
+    """
+    Represents a discount code that can be applied during checkout.
+    """
+    __tablename__ = 'coupons'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(50), unique=True, nullable=False)
+    discount_percentage = db.Column(db.Float, nullable=True) # Used if type is percentage
+    discount_fixed_amount = db.Column(db.Float, nullable=True) # Used if type is fixed
+    discount_type = db.Column(db.String(20), default='percentage') # 'percentage' or 'fixed'
+    
+    min_purchase_amount = db.Column(db.Float, nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    expiry_date = db.Column(db.DateTime, nullable=True)
+    usage_limit = db.Column(db.Integer, nullable=True)
+    times_used = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    instructor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
+    
+    instructor = db.relationship('User', foreign_keys=[instructor_id])
     course = db.relationship('Course', foreign_keys=[course_id])
 
 class PurchaseHistory(db.Model):
     """
-    Links a payment to a student and course for record-keeping.
+    Links a payment to a student and course/plan for record-keeping.
     Provides audited verification lines mapping financial checkout receipts to users.
     """
     __tablename__ = 'purchase_history'
@@ -755,7 +803,9 @@ class PurchaseHistory(db.Model):
     # Foreign key referencing the student who made the purchase
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     # Foreign key referencing the purchased course
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
+    # Foreign key referencing the purchased plan
+    plan_id = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=True)
     # Foreign key referencing the associated payment transaction
     payment_id = db.Column(db.Integer, db.ForeignKey('payments.id'), nullable=False)
     # Timestamp of when the purchase was finalized
@@ -763,6 +813,7 @@ class PurchaseHistory(db.Model):
     
     student = db.relationship('User', foreign_keys=[student_id])
     course = db.relationship('Course', foreign_keys=[course_id])
+    plan = db.relationship('SubscriptionPlan', foreign_keys=[plan_id])
     payment = db.relationship('Payment', foreign_keys=[payment_id])
 
 # ==============================================================================
@@ -814,3 +865,48 @@ class AISummary(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     student = db.relationship('User', foreign_keys=[student_id])
+
+# ==============================================================================
+# SUBSCRIPTION & PLAN MODULE
+# ==============================================================================
+
+class SubscriptionPlan(db.Model):
+    """
+    Represents an available subscription plan for the platform.
+    Defines the duration, pricing, and features included in the plan.
+    """
+    __tablename__ = 'subscription_plans'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    price = db.Column(db.Float, nullable=False)
+    currency = db.Column(db.String(10), default='USD')
+    duration_days = db.Column(db.Integer, nullable=False, default=30)
+    features = db.Column(db.Text) # Stored as comma-separated string or JSON text
+    
+    # SaaS Limits
+    max_courses = db.Column(db.Integer, default=5)
+    max_students = db.Column(db.Integer, default=100)
+    storage_limit_mb = db.Column(db.Integer, default=2000)
+    has_advanced_analytics = db.Column(db.Boolean, default=False)
+    
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    subscriptions = db.relationship('Subscription', backref='plan', lazy=True)
+
+class Subscription(db.Model):
+    """
+    Represents a user's active or past subscription to a plan.
+    Tracks subscription start/end dates and current status.
+    """
+    __tablename__ = 'subscriptions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    plan_id = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=False)
+    start_date = db.Column(db.DateTime, default=datetime.utcnow)
+    end_date = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String(20), default='Active') # Active, Expired, Cancelled
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

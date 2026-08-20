@@ -18,6 +18,7 @@
                 <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('courses.list_courses') }}">Courses</a></li>
                 <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('index') }}#features">Features</a></li>
                 <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('index') }}#pricing">Pricing</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium {% if request.endpoint == 'subscription.plans' %}active text-primary border-bottom border-primary border-2{% endif %}" href="{{ url_for('subscription.plans') }}">Subscriptions</a></li>
             </ul>
             <form class="d-flex me-3 mb-2 mb-lg-0" action="{{ url_for('courses.list_courses') }}" method="GET" style="flex-grow: 1; max-width: 300px;">
                 <input class="form-control me-2" type="search" name="q" placeholder="Search courses..." aria-label="Search" style="border-radius: 20px; border-color: var(--border);">

@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 from utils.decorators import student_required
@@ -58,7 +59,6 @@ def dashboard():
         total_attended += course_attended
         
         # Upcoming assignments (just an example, fetching deadlines in future)
-        from datetime import datetime
         upcoming_assignments = Assignment.query.filter(Assignment.course_id == course_id, Assignment.deadline > datetime.utcnow()).all()
         
         dashboard_data.append({
@@ -74,13 +74,27 @@ def dashboard():
     if total_classes > 0:
         overall_attendance_pct = int((total_attended / total_classes) * 100)
         
+    from models import Subscription
+    active_sub = Subscription.query.filter_by(user_id=current_user.id, status='Active').order_by(Subscription.end_date.desc()).first()
+    
+    trial_days_remaining = 0
+    if current_user.trial_status == 'Trial Active' and current_user.trial_ends_at:
+        delta = current_user.trial_ends_at - datetime.utcnow()
+        if delta.days >= 0:
+            trial_days_remaining = delta.days + 1 # Include today
+        else:
+            current_user.trial_status = 'Trial Expired'
+            db.session.commit()
+            
     return render_template('dashboard/student_dashboard.html', 
                            enrollments=enrollments,
                            dashboard_data=dashboard_data,
                            total_learning_time_hrs=total_learning_time // 3600,
                            completed_courses_count=completed_courses_count,
                            in_progress_count=in_progress_count,
-                           overall_attendance_pct=overall_attendance_pct)
+                           overall_attendance_pct=overall_attendance_pct,
+                           active_sub=active_sub,
+                           trial_days_remaining=trial_days_remaining)
 
 @student_bp.route('/sessions')
 @login_required
@@ -97,7 +111,6 @@ def sessions():
     course_ids = [e.course_id for e in enrollments]
     
     # Get upcoming live sessions for those courses
-    from datetime import datetime
     live_sessions = LiveSession.query.filter(LiveSession.course_id.in_(course_ids), LiveSession.scheduled_date >= datetime.utcnow()).order_by(LiveSession.scheduled_date.asc()).all()
     
     return render_template('dashboard/student_sessions.html', live_sessions=live_sessions)

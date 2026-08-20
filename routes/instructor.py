@@ -40,6 +40,141 @@ def dashboard():
                            total_students=total_students, 
                            total_revenue=total_revenue)
 
+@instructor_bp.route('/sales')
+@login_required
+@instructor_required
+def sales():
+    """
+    Route to display the instructor's sales and process refunds.
+    """
+    from models import Payment, Course
+    # Get payments for courses owned by this instructor
+    courses = Course.query.filter_by(instructor_id=current_user.id).all()
+    course_ids = [c.id for c in courses]
+    
+    payments = Payment.query.filter(Payment.course_id.in_(course_ids)).order_by(Payment.payment_date.desc()).all()
+    
+    return render_template('dashboard/instructor_sales.html', payments=payments)
+
+@instructor_bp.route('/coupons')
+@login_required
+@instructor_required
+def coupons():
+    from flask import request, flash, redirect, url_for, jsonify
+    from models import Coupon
+    coupons = Coupon.query.filter_by(instructor_id=current_user.id).order_by(Coupon.created_at.desc()).all()
+    return render_template('dashboard/instructor_coupons.html', coupons=coupons)
+
+@instructor_bp.route('/coupons/create', methods=['GET', 'POST'])
+@login_required
+@instructor_required
+def create_coupon():
+    from flask import request, flash, redirect, url_for, jsonify
+    from models import Coupon, Course
+    courses = Course.query.filter_by(instructor_id=current_user.id).all()
+    
+    if request.method == 'POST':
+        code = request.form.get('code', '').strip().upper()
+        discount_type = request.form.get('discount_type', 'percentage')
+        discount_value = request.form.get('discount_value', type=float)
+        course_id = request.form.get('course_id')
+        usage_limit = request.form.get('usage_limit', type=int)
+        min_purchase = request.form.get('min_purchase_amount', type=float)
+        expiry_date_str = request.form.get('expiry_date')
+        
+        if not code or discount_value is None:
+            flash('Code and discount value are required.', 'error')
+            return redirect(request.url)
+            
+        existing = Coupon.query.filter_by(code=code).first()
+        if existing:
+            flash('Coupon code already exists.', 'error')
+            return redirect(request.url)
+            
+        from datetime import datetime
+        expiry_date = None
+        if expiry_date_str:
+            expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%dT%H:%M')
+            
+        coupon = Coupon(
+            code=code,
+            discount_type=discount_type,
+            discount_percentage=discount_value if discount_type == 'percentage' else None,
+            discount_fixed_amount=discount_value if discount_type == 'fixed' else None,
+            course_id=int(course_id) if course_id and course_id != 'all' else None,
+            instructor_id=current_user.id,
+            usage_limit=usage_limit if usage_limit else None,
+            min_purchase_amount=min_purchase if min_purchase else None,
+            expiry_date=expiry_date,
+            is_active=True
+        )
+        db.session.add(coupon)
+        db.session.commit()
+        flash('Coupon created successfully.', 'success')
+        return redirect(url_for('instructor.coupons'))
+        
+    return render_template('dashboard/instructor_coupon_form.html', courses=courses, coupon=None)
+
+@instructor_bp.route('/coupons/edit/<int:coupon_id>', methods=['GET', 'POST'])
+@login_required
+@instructor_required
+def edit_coupon(coupon_id):
+    from flask import request, flash, redirect, url_for, jsonify
+    from models import Coupon, Course
+    coupon = Coupon.query.get_or_404(coupon_id)
+    if coupon.instructor_id != current_user.id:
+        flash('Unauthorized access.', 'error')
+        return redirect(url_for('instructor.coupons'))
+        
+    courses = Course.query.filter_by(instructor_id=current_user.id).all()
+    
+    if request.method == 'POST':
+        coupon.discount_type = request.form.get('discount_type', 'percentage')
+        discount_value = request.form.get('discount_value', type=float)
+        if coupon.discount_type == 'percentage':
+            coupon.discount_percentage = discount_value
+            coupon.discount_fixed_amount = None
+        else:
+            coupon.discount_fixed_amount = discount_value
+            coupon.discount_percentage = None
+            
+        course_id = request.form.get('course_id')
+        coupon.course_id = int(course_id) if course_id and course_id != 'all' else None
+        
+        usage_limit = request.form.get('usage_limit', type=int)
+        coupon.usage_limit = usage_limit if usage_limit else None
+        
+        min_purchase = request.form.get('min_purchase_amount', type=float)
+        coupon.min_purchase_amount = min_purchase if min_purchase else None
+        
+        expiry_date_str = request.form.get('expiry_date')
+        from datetime import datetime
+        if expiry_date_str:
+            coupon.expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%dT%H:%M')
+        else:
+            coupon.expiry_date = None
+            
+        db.session.commit()
+        flash('Coupon updated successfully.', 'success')
+        return redirect(url_for('instructor.coupons'))
+        
+    return render_template('dashboard/instructor_coupon_form.html', courses=courses, coupon=coupon)
+
+@instructor_bp.route('/coupons/toggle/<int:coupon_id>', methods=['POST'])
+@login_required
+@instructor_required
+def toggle_coupon(coupon_id):
+    from flask import request, flash, redirect, url_for, jsonify
+    from models import Coupon
+    coupon = Coupon.query.get_or_404(coupon_id)
+    if coupon.instructor_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+        
+    coupon.is_active = not coupon.is_active
+    db.session.commit()
+    flash(f"Coupon {'activated' if coupon.is_active else 'deactivated'}.", 'success')
+    return redirect(url_for('instructor.coupons'))
+
 @instructor_bp.route('/students')
 @login_required
 @instructor_required
@@ -346,3 +481,25 @@ def quiz_results(course_id, quiz_id):
     results = Result.query.filter_by(quiz_id=quiz.id).order_by(Result.submitted_at.desc()).all()
     
     return render_template('quizzes/quiz_results.html', course=course, quiz=quiz, results=results)
+
+@instructor_bp.route('/subscription')
+@login_required
+@instructor_required
+def subscription_management():
+    from utils.helpers import get_instructor_usage
+    from models import SubscriptionPlan
+    usage = get_instructor_usage(current_user.id)
+    plans = SubscriptionPlan.query.filter_by(is_active=True).all()
+    return render_template('dashboard/instructor_subscription.html', usage=usage, plans=plans)
+
+@instructor_bp.route('/advanced-analytics')
+@login_required
+@instructor_required
+def advanced_analytics():
+    from utils.helpers import get_instructor_usage
+    usage = get_instructor_usage(current_user.id)
+    if not usage['has_advanced_analytics']:
+        from flask import flash, redirect, url_for
+        flash('Access denied. Your current plan does not support advanced analytics.', 'error')
+        return redirect(url_for('instructor.subscription_management'))
+    return render_template('dashboard/instructor_advanced_analytics.html')

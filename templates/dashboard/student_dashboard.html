@@ -9,13 +9,43 @@
             <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Study Workspace</h2>
             <p class="text-muted mb-0 fw-medium">Welcome back to your learning library, {{ current_user.name.split(' ')[0] }}!</p>
         </div>
-        <div>
+        <div class="d-flex align-items-center gap-2">
             <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold d-flex align-items-center gap-2 hover-lift">
                 <i class="bi bi-search"></i> Browse Courses
             </a>
         </div>
     </div>
 </div>
+
+<!-- Subscription & Trial Banner -->
+{% if active_sub %}
+<div class="alert alert-success d-flex justify-content-between align-items-center shadow-sm rounded-4 mb-5 border-0" style="background: linear-gradient(to right, #ecfdf5, #d1fae5);">
+    <div>
+        <h5 class="fw-bold mb-1" style="color: #065f46;"><i class="bi bi-star-fill text-warning me-2"></i> {{ active_sub.plan.name }} Plan Active</h5>
+        <p class="mb-0 text-success fw-medium">Valid until: {{ active_sub.end_date.strftime('%d %B %Y') }}</p>
+    </div>
+    <a href="{{ url_for('subscription.my_subscription') }}" class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm" style="background: #10b981; border: none;">Manage Subscription</a>
+</div>
+{% elif current_user.trial_status == 'Trial Active' %}
+<div class="alert alert-info d-flex justify-content-between align-items-center shadow-sm rounded-4 mb-5 border-0 flex-wrap gap-3" style="background: linear-gradient(to right, #eff6ff, #dbeafe);">
+    <div>
+        <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-gift-fill me-2 text-primary"></i> Your 5-Day Free Trial is Active</h5>
+        <p class="mb-1 text-primary fw-bold">{{ trial_days_remaining }} day{% if trial_days_remaining != 1 %}s{% endif %} remaining</p>
+        {% if current_user.trial_ends_at %}
+        <p class="mb-1 text-primary fw-medium">Expires on {{ current_user.trial_ends_at.strftime('%d %B %Y') }}</p>
+        {% endif %}
+        <p class="mb-0 text-primary small fw-medium">Access selected courses and trial-enabled lessons during your free trial.</p>
+    </div>
+</div>
+{% elif current_user.trial_status == 'Trial Expired' %}
+<div class="alert alert-danger d-flex justify-content-between align-items-center shadow-sm rounded-4 mb-5 border-0 flex-wrap gap-3" style="background: linear-gradient(to right, #fef2f2, #fee2e2);">
+    <div>
+        <h5 class="fw-bold mb-1 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Your 5-Day Free Trial Has Ended</h5>
+        <p class="mb-0 text-danger fw-medium">Subscribe to continue learning and unlock available content.</p>
+    </div>
+    <a href="{{ url_for('subscription.plans') }}" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm text-nowrap">View Subscription Plans</a>
+</div>
+{% endif %}
 
 <!-- Stats Section -->
 <div class="row g-4 mb-5" data-aos="fade-up" data-aos-delay="100">

@@ -145,7 +145,7 @@
                                 {% endwith %}
                                 
                                 <!-- Login Form -->
-                                <form id="login-form" method="POST" action="{{ url_for('auth.login') }}">
+                                <form id="login-form" method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
                                     <!-- Email -->
                                     <div class="mb-2">
                                         <label for="email" class="form-label small fw-bold text-dark mb-1">Email Address</label>

@@ -89,11 +89,66 @@
                     <h2 class="fw-bold text-dark mb-4">{% if course.currency == 'INR' %}₹{% elif course.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(course.price) }}</h2>
                 {% endif %}
                 
-                {% if is_enrolled %}
+                {% if is_enrolled or has_active_subscription %}
                     <a href="{{ url_for('courses.course_start', course_id=course.id) }}" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm">Start Learning</a>
                     <a href="{{ url_for('ai.chat', course_id=course.id) }}" class="btn btn-outline-info btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm"><i class="bi bi-robot me-2"></i>Ask AI about this Course</a>
+                    {% if is_enrolled %}
                     <p class="text-center text-success small fw-medium mb-0"><i class="bi bi-check-circle-fill me-1"></i> You are enrolled in this course.</p>
+                    {% else %}
+                    <p class="text-center text-success small fw-medium mb-0"><i class="bi bi-star-fill me-1"></i> Available via your Subscription.</p>
+                    {% endif %}
+                {% elif has_active_trial and course.is_trial_eligible and course.course_type != 'Free' %}
+                      <div class="alert alert-info border-0 rounded-4 p-3 mb-3 shadow-sm" style="background: linear-gradient(to right, #eff6ff, #dbeafe);">
+                          <div class="text-center mb-2">
+                              <h5 class="fw-bold text-primary mb-1"><i class="bi bi-gift-fill me-2"></i> 5-Day Free Trial Active</h5>
+                              <p class="text-primary small fw-medium mb-0">Trial expires on: {{ current_user.trial_ends_at.strftime('%d %B %Y') }}</p>
+                          </div>
+                          <hr class="border-primary opacity-25 my-2">
+                          <p class="small text-dark mb-2 fw-medium">During your free trial you can access selected lessons and learning materials.</p>
+                          <div class="row g-2 small text-dark">
+                              <div class="col-12"><strong class="text-success">Available during trial:</strong></div>
+                              <div class="col-12"><i class="bi bi-check me-1 text-success"></i>Trial-enabled lessons</div>
+                              <div class="col-12"><i class="bi bi-check me-1 text-success"></i>Study materials attached to trial lessons</div>
+                              <div class="col-12"><i class="bi bi-check me-1 text-success"></i>Basic progress tracking</div>
+                              <div class="col-12"><i class="bi bi-check me-1 text-success"></i>Trial-enabled quizzes</div>
+                              <div class="col-12 mt-2"><strong class="text-danger">Not available:</strong></div>
+                              <div class="col-12"><i class="bi bi-lock-fill me-1 text-danger"></i>Locked lessons</div>
+                              <div class="col-12"><i class="bi bi-lock-fill me-1 text-danger"></i>Premium-only features</div>
+                          </div>
+                      </div>
+                      <a href="{{ url_for('courses.course_start', course_id=course.id) }}" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm pulse-hover">Start Learning</a>
+                      
+                      <hr class="my-3">
+                      
+                      <form method="POST" action="{{ url_for('courses.enroll', course_id=course.id) }}" id="enrollForm">
+                          <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 mb-2 fw-bold shadow-sm" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">Buy Now (Keep Forever)</button>
+                      </form>
+                      <p class="text-center text-muted small mb-0"><i class="bi bi-shield-lock-fill me-1"></i> Secure Payment</p>
                 {% else %}
+                    {% if current_user.is_authenticated and not current_user.trial_used and course.is_trial_eligible and course.course_type != 'Free' %}
+                    <div class="alert alert-info border-0 rounded-4 p-3 mb-3 shadow-sm" style="background: linear-gradient(to right, #eff6ff, #dbeafe);">
+                        <div class="text-center mb-2">
+                            <h5 class="fw-bold text-primary mb-0"><i class="bi bi-gift-fill me-2"></i> 5-Day Free Trial Available</h5>
+                        </div>
+                        <hr class="border-primary opacity-25 my-2">
+                        <p class="small text-dark mb-2 fw-medium">During your free trial you can access selected lessons and learning materials.</p>
+                        <div class="row g-2 small text-dark">
+                            <div class="col-12"><strong class="text-success">Available during trial:</strong></div>
+                            <div class="col-12"><i class="bi bi-check me-1 text-success"></i>Trial-enabled lessons</div>
+                            <div class="col-12"><i class="bi bi-check me-1 text-success"></i>Study materials attached to trial lessons</div>
+                            <div class="col-12"><i class="bi bi-check me-1 text-success"></i>Basic progress tracking</div>
+                            <div class="col-12"><i class="bi bi-check me-1 text-success"></i>Trial-enabled quizzes</div>
+                            <div class="col-12 mt-2"><strong class="text-danger">Not available:</strong></div>
+                            <div class="col-12"><i class="bi bi-lock-fill me-1 text-danger"></i>Locked lessons</div>
+                            <div class="col-12"><i class="bi bi-lock-fill me-1 text-danger"></i>Premium-only features</div>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ url_for('subscription.start_trial') }}">
+                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                        <button type="submit" class="btn btn-info text-white btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm">Start 5-Day Free Trial</button>
+                    </form>
+                    {% endif %}
+                    
                     {% if course.demo_video_url or course.demo_video_file %}
                     <button type="button" class="btn btn-outline-primary btn-lg rounded-pill w-100 mb-3 fw-bold shadow-sm" onclick="openDemoModal('{{ course.demo_video_title or course.title ~ ' Preview' | escape }}', '{{ course.demo_video_url or '' }}', '{{ course.demo_video_file or '' }}')">
                         <i class="bi bi-play-circle-fill me-1"></i> Watch Demo
@@ -106,11 +161,28 @@
                             <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 mb-3 fw-bold pulse-hover shadow-sm" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">Buy Now</button>
                         {% endif %}
                     </form>
+                    {% if current_user.is_authenticated and current_user.trial_status == 'Trial Expired' %}
+                        <p class="text-center text-danger small fw-medium mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Your free trial has expired. Subscribe or purchase the course to continue learning.</p>
+                    {% endif %}
                     {% if course.course_type == 'Paid' %}
                         <p class="text-center text-muted small mb-0"><i class="bi bi-shield-lock-fill me-1"></i> Secure Payment</p>
                     {% else %}
                         <p class="text-center text-muted small mb-0">Start learning instantly</p>
                     {% endif %}
+                {% endif %}
+                
+                {% if active_coupons and course.course_type == 'Paid' and not is_enrolled %}
+                <div class="mt-4 p-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3">
+                    <h6 class="fw-bold text-primary mb-2"><i class="bi bi-tags-fill me-1"></i> Available Coupons</h6>
+                    {% for coupon in active_coupons %}
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="font-monospace fw-bold bg-white px-2 py-1 border rounded text-dark small">{{ coupon.code }}</span>
+                            <span class="badge bg-primary rounded-pill">
+                                {% if coupon.discount_type == 'percentage' %}{{ coupon.discount_percentage }}% OFF{% else %}{% if course.currency == 'INR' %}₹{% elif course.currency == 'EUR' %}€{% else %}${% endif %}{{ coupon.discount_fixed_amount }} OFF{% endif %}
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
                 {% endif %}
                 
                 <hr class="my-4">
@@ -122,6 +194,19 @@
                     <li class="mb-2"><i class="bi bi-file-earmark-text me-2 text-primary"></i> Assignments and resources</li>
                     <li><i class="bi bi-trophy me-2 text-primary"></i> Certificate of completion</li>
                 </ul>
+                
+                {% if course.is_trial_eligible and course.course_type != 'Free' and (not current_user.is_authenticated or not is_enrolled) %}
+                <hr class="my-4">
+                <h6 class="fw-bold mb-3 text-info"><i class="bi bi-gift-fill me-2"></i> 5-Day Free Trial Includes:</h6>
+                <ul class="list-unstyled text-muted small mb-0">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill me-2 text-success"></i> <strong>{{ trial_lessons_count }} of {{ total_lessons_count }} lessons</strong> available</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill me-2 text-success"></i> Basic progress tracking</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill me-2 text-success"></i> Limited quizzes (Max 2)</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill me-2 text-success"></i> Trial-enabled study materials</li>
+                    <li class="mb-2"><i class="bi bi-lock-fill me-2 text-danger"></i> Non-trial lessons remain locked</li>
+                    <li><i class="bi bi-lock-fill me-2 text-danger"></i> Paid-only features remain locked</li>
+                </ul>
+                {% endif %}
             </div>
         </div>
     </div>

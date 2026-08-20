@@ -4,6 +4,7 @@ from utils.decorators import instructor_required, student_required
 from models import Course
 from models import Enrollment
 from models import db
+from datetime import datetime
 
 # Define the blueprint for all course-related routes
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
@@ -27,16 +28,55 @@ def course_details(course_id):
     Route to display details for a specific course.
     Fetches details for a specific course and checks if the currently logged-in student is enrolled.
     """
+    from datetime import datetime
     course = Course.query.get_or_404(course_id)
     is_enrolled = False
+    has_active_trial = False
+    has_active_subscription = False
     
-    # Check enrollment status for logged-in students
+    # Check enrollment and trial status for logged-in students
     if current_user.is_authenticated and current_user.role.name == 'student':
         enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
         if enrollment:
             is_enrolled = True
             
-    return render_template('courses/course_details.html', course=course, is_enrolled=is_enrolled)
+        # Check trial status
+        from models import User, Subscription
+        user = User.query.get(current_user.id)
+        if user.trial_status == 'Trial Active' and user.trial_ends_at:
+            if datetime.utcnow() < user.trial_ends_at:
+                has_active_trial = True
+                
+        # Check paid subscription
+        active_sub = Subscription.query.filter_by(user_id=current_user.id, status='Active').first()
+        if active_sub and active_sub.end_date > datetime.utcnow():
+            has_active_subscription = True
+            
+    # Calculate lessons metrics
+    from models import Lesson
+    total_lessons_count = Lesson.query.filter_by(course_id=course.id).count()
+    trial_lessons_count = Lesson.query.filter_by(course_id=course.id, is_trial_eligible=True).count()
+    
+    # Fetch active coupons for this course to display to the user
+    from models import Coupon
+    from sqlalchemy import or_
+    
+    active_coupons = Coupon.query.filter(
+        Coupon.is_active == True,
+        Coupon.instructor_id == course.instructor_id,
+        or_(Coupon.course_id == course.id, Coupon.course_id == None),
+        or_(Coupon.expiry_date == None, Coupon.expiry_date > datetime.utcnow()),
+        or_(Coupon.usage_limit == None, Coupon.times_used < Coupon.usage_limit)
+    ).all()
+            
+    return render_template('courses/course_details.html', 
+                           course=course, 
+                           is_enrolled=is_enrolled, 
+                           has_active_trial=has_active_trial, 
+                           has_active_subscription=has_active_subscription, 
+                           total_lessons_count=total_lessons_count, 
+                           trial_lessons_count=trial_lessons_count,
+                           active_coupons=active_coupons)
 
 @courses_bp.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
@@ -50,6 +90,12 @@ def enroll(course_id):
     """
     course = Course.query.get_or_404(course_id)
     
+    from utils.helpers import get_instructor_usage
+    usage = get_instructor_usage(course.instructor_id)
+    if not usage['students_ok']:
+        flash('This course has reached its maximum student capacity.', 'error')
+        return redirect(url_for('courses.course_details', course_id=course.id))
+        
     # Prevent duplicate enrollments
     existing = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
     if existing:
@@ -97,6 +143,12 @@ def create_course():
     Allows authorized instructors to create a new course with optional demo video uploads.
     Handles file uploading and notifies administrators of the new course.
     """
+    from utils.helpers import get_instructor_usage
+    usage = get_instructor_usage(current_user.id)
+    if not usage['courses_ok']:
+        flash('You have reached the course limit for your current plan. Please upgrade your subscription to create more courses.', 'error')
+        return redirect(url_for('instructor.subscription_management'))
+        
     if request.method == 'POST':
         # Retrieve form parameters
         title = request.form.get('title')
@@ -108,6 +160,7 @@ def create_course():
         demo_video_title = request.form.get('demo_video_title')
         demo_video_url = request.form.get('demo_video_url')
         demo_video_file = request.files.get('demo_video_file')
+        is_trial_eligible = request.form.get('is_trial_eligible') == 'on'
         
         # Enforce zero price for free courses
         if course_type == 'Free':
@@ -116,6 +169,10 @@ def create_course():
         # Securely saveuploaded demo video file if present
         final_demo_video_file = None
         if demo_video_file and demo_video_file.filename != '':
+            from utils.helpers import get_instructor_usage
+            if not get_instructor_usage(current_user.id)['storage_ok']:
+                flash('Storage limit reached.', 'error')
+                return redirect(url_for('courses.manage_course', course_id=course.id))
             import os
             import time
             from werkzeug.utils import secure_filename
@@ -135,7 +192,8 @@ def create_course():
             instructor_id=current_user.id,
             demo_video_title=demo_video_title,
             demo_video_url=demo_video_url,
-            demo_video_file=final_demo_video_file
+            demo_video_file=final_demo_video_file,
+            is_trial_eligible=is_trial_eligible
         )
         db.session.add(new_course)
         db.session.commit()
@@ -186,6 +244,10 @@ def update_demo_video(course_id):
         
         # Save new upload if provided
         if demo_video_file and demo_video_file.filename != '':
+            from utils.helpers import get_instructor_usage
+            if not get_instructor_usage(current_user.id)['storage_ok']:
+                flash('Storage limit reached.', 'error')
+                return redirect(url_for('courses.manage_course', course_id=course.id))
             import os
             import time
             from werkzeug.utils import secure_filename
@@ -246,11 +308,20 @@ def add_lesson(course_id):
     max_order_lesson = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index.desc()).first()
     new_order = (max_order_lesson.order_index + 1) if max_order_lesson else 1
     
+    is_trial_eligible = request.form.get('is_trial_eligible') == 'on'
+    
+    from utils.helpers import get_instructor_usage
+    if video_file and video_file.filename != '':
+        if not get_instructor_usage(current_user.id)['storage_ok']:
+            flash('Storage limit reached. Cannot upload video.', 'error')
+            return redirect(url_for('courses.manage_course', course_id=course.id))
+            
     new_lesson = Lesson(
         course_id=course.id,
         title=title,
         description=content,
-        order_index=new_order
+        order_index=new_order,
+        is_trial_eligible=is_trial_eligible
     )
     db.session.add(new_lesson)
     db.session.flush() # Flush to populate ID for video association
@@ -258,6 +329,10 @@ def add_lesson(course_id):
     # Process video asset priority (uploaded file overrides raw URL)
     final_video_url = None
     if video_file and video_file.filename != '':
+        from utils.helpers import get_instructor_usage
+        if not get_instructor_usage(current_user.id)['storage_ok']:
+            flash('Storage limit reached.', 'error')
+            return redirect(url_for('courses.manage_course', course_id=course.id))
         import os
         import time
         from werkzeug.utils import secure_filename
@@ -299,21 +374,26 @@ def add_lesson(course_id):
 @instructor_required
 def upload_material(course_id, lesson_id):
     """
-    Route to upload supplementary study materials for a lesson.
-    Processes supplemental study resource attachments for a specific lesson and updates students.
+    Route to upload a study material for a lesson.
+    Stores the file on the server and links it to the specific lesson.
     """
     course = Course.query.get_or_404(course_id)
     if course.instructor_id != current_user.id:
         flash('You can only manage your own courses.', 'error')
         return redirect(url_for('instructor.dashboard'))
         
+    from utils.helpers import get_instructor_usage
+    usage = get_instructor_usage(current_user.id)
+    
     from models import Lesson, StudyMaterial
     lesson = Lesson.query.filter_by(id=lesson_id, course_id=course.id).first_or_404()
-    
-    file = request.files.get('material_file')
     title = request.form.get('title')
     
+    file = request.files.get('material_file')
     if file and file.filename != '':
+        if not usage['storage_ok']:
+            flash('Storage limit reached. Please upgrade your plan to upload more files.', 'error')
+            return redirect(url_for('courses.manage_course', course_id=course.id))
         import os
         import time
         from werkzeug.utils import secure_filename
@@ -428,6 +508,10 @@ def add_lesson_video(course_id, lesson_id):
     # Process the provided video input method
     final_video_url = None
     if video_file and video_file.filename != '':
+        from utils.helpers import get_instructor_usage
+        if not get_instructor_usage(current_user.id)['storage_ok']:
+            flash('Storage limit reached.', 'error')
+            return redirect(url_for('courses.manage_course', course_id=course.id))
         import os
         import time
         from werkzeug.utils import secure_filename
@@ -477,18 +561,50 @@ def lesson_view(course_id, lesson_id):
     
     # Access security check
     has_access = False
+    is_enrolled = False
+    has_active_sub = False
+    has_active_trial = False
+    
     if current_user.role.name == 'instructor' and course.instructor_id == current_user.id:
         has_access = True
     elif current_user.role.name == 'student':
-        from models import Enrollment
+        from models import Enrollment, Subscription, User
+        # 1. Explicit Enrollment
         enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
         if enrollment:
             has_access = True
-            
-    if not has_access:
-        flash('You must be enrolled in this course to view its lessons.', 'error')
-        return redirect(url_for('courses.course_details', course_id=course.id))
+            is_enrolled = True
         
+        # 2. Active Subscription
+        if not has_access:
+            active_sub = Subscription.query.filter_by(user_id=current_user.id, status='Active').first()
+            if active_sub and active_sub.end_date >= datetime.utcnow():
+                has_access = True
+                has_active_sub = True
+
+        # 3. Active Free Trial (Limited Access: only eligible lessons)
+        user = User.query.get(current_user.id)
+        if user.trial_status == 'Trial Active' and user.trial_ends_at:
+            if user.trial_ends_at >= datetime.utcnow():
+                has_active_trial = True
+            else:
+                user.trial_status = 'Trial Expired'
+                db.session.commit()
+                
+        if not has_access and has_active_trial:
+            if course.is_trial_eligible:
+                from models import Lesson
+                lesson = Lesson.query.get_or_404(lesson_id)
+                if lesson.is_trial_eligible:
+                    has_access = True
+                else:
+                    return render_template('components/feature_locked.html', message='This lesson is not included in the free trial. Subscribe now to unlock it.')
+            else:
+                return render_template('components/feature_locked.html', message='This course is not available in the free trial.')
+                
+    if not has_access:
+        return render_template('components/feature_locked.html', message='Your free trial has expired or you do not have an active subscription.')
+
     from models import Lesson, Result
     lesson = Lesson.query.filter_by(id=lesson_id, course_id=course.id).first_or_404()
     
@@ -503,7 +619,7 @@ def lesson_view(course_id, lesson_id):
     # Get all course lessons for sequential navigation index
     all_lessons = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).all()
     
-    return render_template('courses/lesson.html', course=course, lesson=lesson, all_lessons=all_lessons, user_results=user_results)
+    return render_template('courses/lesson.html', course=course, lesson=lesson, all_lessons=all_lessons, user_results=user_results, has_active_trial=has_active_trial, is_enrolled=is_enrolled, has_active_sub=has_active_sub)
 
 @courses_bp.route('/material/<int:material_id>/preview')
 @login_required
@@ -522,14 +638,29 @@ def preview_material(material_id):
     if current_user.role.name == 'instructor' and course.instructor_id == current_user.id:
         has_access = True
     elif current_user.role.name == 'student':
-        from models import Enrollment
+        from models import Enrollment, Subscription, User
         enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
         if enrollment:
             has_access = True
             
+        if not has_access:
+            active_sub = Subscription.query.filter_by(user_id=current_user.id, status='Active').first()
+            if active_sub and active_sub.end_date >= datetime.utcnow():
+                has_access = True
+                
+        if not has_access:
+            user = User.query.get(current_user.id)
+            if user.trial_status == 'Trial Active' and user.trial_ends_at and user.trial_ends_at >= datetime.utcnow():
+                if course.is_trial_eligible and material.lesson.is_trial_eligible:
+                    has_access = True
+                else:
+                    return render_template('components/feature_locked.html', message='This material is not included in the free trial.')
+            elif user.trial_status == 'Trial Active' and user.trial_ends_at and user.trial_ends_at < datetime.utcnow():
+                user.trial_status = 'Trial Expired'
+                db.session.commit()
+            
     if not has_access:
-        flash('You do not have access to this material.', 'error')
-        return redirect(url_for('main.index'))
+        return render_template('components/feature_locked.html', message='You do not have access to this material. Please subscribe or enroll.')
         
     return render_template('courses/preview.html', material=material, course=course)
 
@@ -547,14 +678,27 @@ def course_start(course_id):
     if current_user.role.name == 'instructor' and course.instructor_id == current_user.id:
         has_access = True
     elif current_user.role.name == 'student':
-        from models import Enrollment
+        from models import Enrollment, Subscription, User
         enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
         if enrollment:
             has_access = True
             
+        if not has_access:
+            active_sub = Subscription.query.filter_by(user_id=current_user.id, status='Active').first()
+            if active_sub and active_sub.end_date >= datetime.utcnow():
+                has_access = True
+
+        if not has_access:
+            user = User.query.get(current_user.id)
+            if user.trial_status == 'Trial Active' and user.trial_ends_at and user.trial_ends_at >= datetime.utcnow():
+                if course.is_trial_eligible:
+                    has_access = True
+            elif user.trial_status == 'Trial Active' and user.trial_ends_at and user.trial_ends_at < datetime.utcnow():
+                user.trial_status = 'Trial Expired'
+                db.session.commit()
+                
     if not has_access:
-        flash('You must be enrolled to access this course.', 'error')
-        return redirect(url_for('courses.course_details', course_id=course.id))
+        return render_template('components/feature_locked.html', message='This course is locked. Your free trial has expired, or it is not included in the trial. Subscribe to unlock it.')
         
     from models import Lesson
     first_lesson = Lesson.query.filter_by(course_id=course.id).order_by(Lesson.order_index).first()

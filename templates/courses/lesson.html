@@ -128,7 +128,15 @@
                                     <h6 class="fw-bold mb-1 {% if l.id == lesson.id %}text-primary{% else %}text-dark{% endif %}">
                                         {{ l.order_index }}. {{ l.title }}
                                     </h6>
-                                    <small class="text-muted"><i class="bi bi-play-circle me-1"></i> Video Lesson</small>
+                                    {% if has_active_trial and not is_enrolled and not has_active_sub %}
+                                        {% if l.is_trial_eligible %}
+                                            <small class="text-success fw-medium"><i class="bi bi-check-circle me-1"></i> Available during trial</small>
+                                        {% else %}
+                                            <small class="text-danger fw-medium"><i class="bi bi-lock-fill me-1"></i> Paid access only</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="text-muted"><i class="bi bi-play-circle me-1"></i> Video Lesson</small>
+                                    {% endif %}
                                 </div>
                                 {% if l.id == lesson.id %}
                                     <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-play-fill text-white"></i></span>

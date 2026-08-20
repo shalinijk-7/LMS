@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice - {{ payment.transaction_id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .invoice-card { max-width: 800px; margin: 2rem auto; }
+        @media print {
+            body { background: #fff; }
+            .no-print { display: none !important; }
+            .invoice-card { margin: 0; border: none; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card invoice-card shadow-sm border-0 rounded-4 p-5">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-4 mb-4">
+                <div>
+                    <h2 class="fw-bold text-primary mb-0">AuraLearn LMS</h2>
+                    <p class="text-muted mb-0">Receipt of Payment</p>
+                </div>
+                <div class="text-end">
+                    <h4 class="fw-bold mb-1">INVOICE</h4>
+                    <p class="text-muted mb-0">#{{ payment.transaction_id }}</p>
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="row mb-5">
+                <div class="col-sm-6">
+                    <h6 class="text-muted fw-bold small text-uppercase mb-2">Billed To:</h6>
+                    <h5 class="fw-bold mb-1">{{ payment.student.name }}</h5>
+                    <p class="text-muted mb-0">{{ payment.student.email }}</p>
+                </div>
+                <div class="col-sm-6 text-sm-end">
+                    <h6 class="text-muted fw-bold small text-uppercase mb-2">Payment Info:</h6>
+                    <p class="mb-1"><span class="text-muted me-2">Date:</span> {{ payment.payment_date.strftime('%B %d, %Y') }}</p>
+                    <p class="mb-1"><span class="text-muted me-2">Method:</span> {{ payment.payment_method }}</p>
+                    <p class="mb-0"><span class="text-muted me-2">Status:</span> 
+                        {% if payment.status == 'Success' %}
+                        <span class="text-success fw-bold">Paid</span>
+                        {% elif payment.status == 'Refunded' %}
+                        <span class="text-danger fw-bold">Refunded</span>
+                        {% else %}
+                        <span>{{ payment.status }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            {% set discounted_price = payment.amount / 1.05 %}
+            {% set tax = payment.amount - discounted_price %}
+            {% set original_price = discounted_price + payment.discount_amount %}
+            
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered mb-0">
+                    <thead class="bg-light text-uppercase small fw-bold text-muted">
+                        <tr>
+                            <th class="py-3">Description</th>
+                            <th class="py-3 text-end" style="width: 150px;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="py-3">
+                                {% if payment.course %}
+                                    <span class="fw-bold">{{ payment.course.title }}</span><br>
+                                    <small class="text-muted">Lifetime Access</small>
+                                {% else %}
+                                    <span class="fw-bold">{{ payment.plan.name }} Subscription</span><br>
+                                    <small class="text-muted">Plan Access</small>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-end">
+                                {% if payment.currency == 'INR' %}₹{% elif payment.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(original_price) }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Totals -->
+            <div class="row justify-content-end mb-5">
+                <div class="col-sm-6 col-md-5">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subtotal</span>
+                        <span>
+                            {% if payment.currency == 'INR' %}₹{% elif payment.currency == 'EUR' %}€{% else %}${% endif %}
+                            {{ "%.2f"|format(original_price) }}
+                        </span>
+                    </div>
+                    {% if payment.discount_amount > 0 %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-success">Discount ({{ payment.coupon_code }})</span>
+                        <span class="text-success">-{% if payment.currency == 'INR' %}₹{% elif payment.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(payment.discount_amount) }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Tax (5%)</span>
+                        <span>
+                            {% if payment.currency == 'INR' %}₹{% elif payment.currency == 'EUR' %}€{% else %}${% endif %}
+                            {{ "%.2f"|format(tax) }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold fs-5">Total</span>
+                        <span class="fw-bold fs-3 text-dark">{% if payment.currency == 'INR' %}₹{% elif payment.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(payment.amount) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4 border-top pt-4 text-muted small">
+                <p class="mb-1">Thank you for learning with AuraLearn.</p>
+                <p class="mb-0">For support, contact billing@auralearn.example.com</p>
+            </div>
+            
+            <div class="text-center mt-5 no-print">
+                <button class="btn btn-primary rounded-pill px-4 me-2" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Print Invoice
+                </button>
+                <a href="{{ url_for('student.payment_history') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

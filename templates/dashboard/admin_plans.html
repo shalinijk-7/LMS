@@ -1,0 +1,246 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}SaaS Plans - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Manage Subscription Plans</h2>
+        <button class="btn btn-primary rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#planModal">
+            <i class="bi bi-plus-lg me-2"></i>Create Plan
+        </button>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-primary text-white">
+                <div class="card-body p-4 text-center">
+                    <h5 class="fw-bold opacity-75">Total Plans</h5>
+                    <h2 class="display-5 fw-bold mb-0">{{ total_plans }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-success text-white">
+                <div class="card-body p-4 text-center">
+                    <h5 class="fw-bold opacity-75">Active Plans</h5>
+                    <h2 class="display-5 fw-bold mb-0">{{ active_plans }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-info text-white">
+                <div class="card-body p-4 text-center">
+                    <h5 class="fw-bold opacity-75">Active Subscribers</h5>
+                    <h2 class="display-5 fw-bold mb-0">{{ total_active_subscribers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-warning text-dark">
+                <div class="card-body p-4 text-center">
+                    <h5 class="fw-bold opacity-75">5-Day Free Trials</h5>
+                    <h2 class="display-5 fw-bold mb-0">{{ active_trial_users }}</h2>
+                    <small class="opacity-75 d-block mt-2">{{ expired_trial_users }} expired trials</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4 py-3">Plan Name</th>
+                        <th class="py-3">Price</th>
+                        <th class="py-3">Duration</th>
+                        <th class="py-3">Limits</th>
+                        <th class="py-3" style="width: 25%;">Features</th>
+                        <th class="py-3">Analytics</th>
+                        <th class="py-3">Status</th>
+                        <th class="px-4 py-3 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plan in plans %}
+                    <tr>
+                        <td class="px-4 py-3 fw-bold">{{ plan.name }}</td>
+                        <td class="py-3">${{ plan.price }}</td>
+                        <td class="py-3">{{ plan.duration_days }} days</td>
+                        <td class="py-3">
+                            <small class="d-block text-muted mb-1"><strong class="text-dark">Courses:</strong> {{ plan.max_courses }}</small>
+                            <small class="d-block text-muted mb-1"><strong class="text-dark">Students:</strong> {{ plan.max_students }}</small>
+                            <small class="d-block text-muted"><strong class="text-dark">Storage:</strong> {{ plan.storage_limit_mb // 1000 }} GB</small>
+                        </td>
+                        <td class="py-3">
+                            <div class="d-flex flex-wrap gap-1">
+                                {% if plan.features %}
+                                    {% for feature in plan.features.split(',') %}
+                                    <span class="badge bg-light text-dark border">{{ feature.strip() }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted small">No features configured</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            {% if plan.has_advanced_analytics %}<span class="text-success"><i class="bi bi-check-circle-fill"></i></span>{% else %}<span class="text-danger"><i class="bi bi-x-circle-fill"></i></span>{% endif %}
+                        </td>
+                        <td class="py-3">
+                            {% if plan.is_active %}<span class="badge bg-success rounded-pill">Active</span>{% else %}<span class="badge bg-danger rounded-pill">Inactive</span>{% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('admin.view_plan_subscribers', plan_id=plan.id) }}" class="btn btn-sm btn-outline-info rounded-pill" title="View Subscribers">
+                                    <i class="bi bi-people"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#planModal" onclick="editPlan('{{ plan.id }}', '{{ plan.name }}', '{{ plan.price }}', '{{ plan.duration_days }}', '{{ plan.max_courses }}', '{{ plan.max_students }}', '{{ plan.storage_limit_mb }}', {% if plan.has_advanced_analytics %}true{% else %}false{% endif %}, {% if plan.is_active %}true{% else %}false{% endif %}, '{{ plan.features }}')" title="Edit Plan">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form method="POST" action="{{ url_for('admin.toggle_plan', plan_id=plan.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-{{ 'danger' if plan.is_active else 'success' }} rounded-pill" title="{{ 'Deactivate' if plan.is_active else 'Activate' }} Plan">
+                                        <i class="bi bi-{{ 'power' if plan.is_active else 'play-fill' }}"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Plan Modal -->
+<div class="modal fade" id="planModal" tabindex="-1" aria-labelledby="planModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content rounded-4">
+      <form method="POST" action="{{ url_for('admin.manage_plans') }}">
+      <div class="modal-header border-0 pt-4 px-4">
+        <h5 class="modal-title fw-bold" id="planModalLabel">Create/Edit Plan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body px-4">
+        <input type="hidden" name="plan_id" id="plan_id">
+        <div class="row mb-3">
+            <div class="col-md-12">
+              <label class="form-label fw-bold">Plan Name</label>
+              <input type="text" class="form-control" name="name" id="plan_name" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Price $</label>
+                <input type="number" step="0.01" min="0" class="form-control" name="price" id="plan_price" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Duration (Days)</label>
+                <input type="number" min="1" class="form-control" name="duration_days" id="plan_duration" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Max Courses</label>
+                <input type="number" min="-1" class="form-control" name="max_courses" id="plan_max_courses" required>
+                <small class="text-muted">-1 for unlimited</small>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Max Students</label>
+                <input type="number" min="-1" class="form-control" name="max_students" id="plan_max_students" required>
+                <small class="text-muted">-1 for unlimited</small>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Storage (MB)</label>
+                <input type="number" min="-1" class="form-control" name="storage_limit_mb" id="plan_storage" required>
+                <small class="text-muted">-1 for unlimited</small>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+        <h6 class="fw-bold mb-3">Plan Features</h6>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="form-check mb-2">
+                    <input class="form-check-input feature-checkbox" type="checkbox" name="features" value="Basic Quizzes" id="f_basic_quizzes">
+                    <label class="form-check-label" for="f_basic_quizzes">Basic Quizzes</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input feature-checkbox" type="checkbox" name="features" value="Advanced Quizzes" id="f_adv_quizzes">
+                    <label class="form-check-label" for="f_adv_quizzes">Advanced Quizzes</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input feature-checkbox" type="checkbox" name="features" value="Assignments" id="f_assignments">
+                    <label class="form-check-label" for="f_assignments">Assignments</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input feature-checkbox" type="checkbox" name="features" value="Attendance" id="f_attendance">
+                    <label class="form-check-label" for="f_attendance">Attendance</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check mb-2">
+                    <input class="form-check-input feature-checkbox" type="checkbox" name="features" value="Discussions" id="f_discussions">
+                    <label class="form-check-label" for="f_discussions">Discussions</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input feature-checkbox" type="checkbox" name="features" value="Analytics" id="f_analytics">
+                    <label class="form-check-label" for="f_analytics">Analytics</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input feature-checkbox" type="checkbox" name="features" value="AI Study Tools" id="f_ai_tools">
+                    <label class="form-check-label" for="f_ai_tools">AI Study Tools</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input feature-checkbox" type="checkbox" name="features" value="Custom Certificates" id="f_certificates">
+                    <label class="form-check-label" for="f_certificates">Custom Certificates</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" name="has_advanced_analytics" id="plan_analytics">
+          <label class="form-check-label fw-bold" for="plan_analytics">Enable Advanced Analytics Access</label>
+        </div>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" name="is_active" id="plan_active">
+          <label class="form-check-label fw-bold" for="plan_active">Plan Active (Available for Purchase)</label>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pb-4 px-4">
+        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Plan</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function editPlan(id, name, price, duration, maxCourses, maxStudents, storage, hasAnalytics, isActive, featuresString) {
+    document.getElementById('plan_id').value = id;
+    document.getElementById('plan_name').value = name;
+    document.getElementById('plan_price').value = price;
+    document.getElementById('plan_duration').value = duration;
+    document.getElementById('plan_max_courses').value = maxCourses;
+    document.getElementById('plan_max_students').value = maxStudents;
+    document.getElementById('plan_storage').value = storage;
+    document.getElementById('plan_analytics').checked = hasAnalytics;
+    document.getElementById('plan_active').checked = isActive;
+    
+    // Reset all checkboxes
+    document.querySelectorAll('.feature-checkbox').forEach(cb => cb.checked = false);
+    
+    // Check the ones in the features string
+    if (featuresString) {
+        const features = featuresString.split(',').map(f => f.trim());
+        document.querySelectorAll('.feature-checkbox').forEach(cb => {
+            if (features.includes(cb.value)) {
+                cb.checked = true;
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

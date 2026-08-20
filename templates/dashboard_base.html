@@ -113,6 +113,10 @@
                 {% elif current_user.role.name == 'instructor' %}
                 <li><a href="{{ url_for('courses.create_course') }}"><i class="bi bi-plus-circle-fill"></i> Create Course</a></li>
                 <li><a href="{{ url_for('instructor.students') }}"><i class="bi bi-people-fill"></i> My Students</a></li>
+                <li><a href="{{ url_for('instructor.sales') }}"><i class="bi bi-cash"></i> Sales & Payments</a></li>
+                <li><a href="{{ url_for('instructor.coupons') }}"><i class="bi bi-tags-fill"></i> Coupons</a></li>
+                <li><a href="{{ url_for('instructor.subscription_management') }}"><i class="bi bi-stars text-primary"></i> My Subscription</a></li>
+                <li><a href="{{ url_for('instructor.advanced_analytics') }}"><i class="bi bi-graph-up-arrow text-success"></i> Advanced Analytics</a></li>
                 
                 <!-- New Session Management Features -->
                 <li>
@@ -161,6 +165,7 @@
                 <li><a href="{{ url_for('admin.users') }}"><i class="bi bi-people-fill"></i> All Users</a></li>
                 <li><a href="{{ url_for('admin.courses') }}"><i class="bi bi-collection-play-fill"></i> All Courses</a></li>
                 <li><a href="{{ url_for('admin.reports') }}"><i class="bi bi-file-earmark-bar-graph-fill"></i> Reports</a></li>
+                <li><a href="{{ url_for('admin.manage_plans') }}"><i class="bi bi-star-fill text-warning"></i> SaaS Plans</a></li>
                 <li><a href="{{ url_for('analytics.index') }}"><i class="bi bi-pie-chart-fill"></i> Analytics</a></li>
                 {% endif %}
                 

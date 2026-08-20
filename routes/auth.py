@@ -110,10 +110,7 @@ def login():
             flash('Logged in successfully.', 'success')
             
             # Redirect to next page or default role dashboard
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            return redirect_user_by_role(user)
+            return handle_post_login(user, request.args.get('next'))
         else:
             flash('Invalid email or password.', 'danger')
             
@@ -267,10 +264,7 @@ def verify_2fa():
             session.pop('remember_me', None)
             
             flash('Two-Factor Authentication successful.', 'success')
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            return redirect_user_by_role(user)
+            return handle_post_login(user, request.args.get('next'))
         else:
             user.otp_attempts += 1
             db.session.commit()
@@ -393,17 +387,87 @@ def google_authorize():
     # Finalize login session
     login_user(user)
     flash('Logged in successfully via Google.', 'success')
-    return redirect_user_by_role(user)
+    return handle_post_login(user, None)
 
-def redirect_user_by_role(user):
-    """
-    Helper function to route authenticated users to their respective dashboards
-    based on their assigned role (Admin, Instructor, or Student).
-    """
-    # Check identity privileges to resolve destination page
+
+def handle_post_login(user, next_page=None):
+    from datetime import datetime, timedelta
+    from models import db, Payment, PurchaseHistory, Subscription
+    
+    # Auto-start free trial for new eligible students
+    if user.role.name == 'student' and not user.trial_used:
+        user.trial_started_at = datetime.utcnow()
+        user.trial_ends_at = datetime.utcnow() + timedelta(days=5)
+        user.trial_status = 'Trial Active'
+        user.trial_used = True
+        db.session.commit()
+        
+    # Process Guest Payment if present in session
+    guest_payment = session.get('guest_payment')
+    if guest_payment and user.role.name == 'student':
+        new_payment = Payment(
+            student_id=user.id,
+            plan_id=guest_payment['plan_id'],
+            amount=guest_payment['amount'],
+            currency=guest_payment['currency'],
+            payment_method=guest_payment['payment_method'],
+            transaction_id=guest_payment['transaction_id'],
+            status='Success',
+            coupon_code=guest_payment.get('coupon_code'),
+            discount_amount=guest_payment.get('discount_amount', 0)
+        )
+        db.session.add(new_payment)
+        db.session.flush()
+        
+        new_purchase = PurchaseHistory(
+            student_id=user.id,
+            plan_id=guest_payment['plan_id'],
+            payment_id=new_payment.id
+        )
+        db.session.add(new_purchase)
+        
+        active_subs = Subscription.query.filter_by(user_id=user.id, status='Active').all()
+        start_date = datetime.utcnow()
+        end_date = start_date + timedelta(days=guest_payment['duration_days'])
+        
+        for sub in active_subs:
+            if sub.plan_id == guest_payment['plan_id']:
+                if sub.end_date > datetime.utcnow():
+                    start_date = sub.end_date
+                    end_date = start_date + timedelta(days=guest_payment['duration_days'])
+            sub.status = 'Cancelled'
+            sub.end_date = datetime.utcnow()
+            
+        new_sub = Subscription(
+            user_id=user.id,
+            plan_id=guest_payment['plan_id'],
+            start_date=start_date,
+            end_date=end_date,
+            status='Active'
+        )
+        db.session.add(new_sub)
+        
+        if user.trial_status == 'Trial Active':
+            user.trial_status = 'Trial Expired'
+            user.trial_ends_at = datetime.utcnow()
+            
+        db.session.commit()
+        
+        # Clear the guest session
+        session.pop('guest_payment', None)
+        
+        flash(f"Your {guest_payment['plan_name']} subscription has been successfully attached to your account!", 'success')
+
+    if next_page:
+        return redirect(next_page)
+        
     if user.role.name == 'admin':
         return redirect(url_for('admin.dashboard'))
     elif user.role.name == 'instructor':
         return redirect(url_for('instructor.dashboard'))
     else:
         return redirect(url_for('student.dashboard'))
+
+
+# Alias for legacy imports
+redirect_user_by_role = lambda user: handle_post_login(user, None)

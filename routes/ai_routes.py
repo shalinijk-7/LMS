@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from utils.decorators import student_required
 from models import db, AIChatMessage, AISummary, Course, Enrollment, Lesson, StudyMaterial
 from services.ai_service import generate_chat_response, explain_topic, summarize_document, generate_practice_quiz
+from services.subscription_service import check_feature_access
 from werkzeug.utils import secure_filename
 import os
 
@@ -21,6 +22,11 @@ def chat():
     Route to render the AI chatbot interface for students.
     Fetches the student's chat history to display in the UI.
     """
+    has_access, message = check_feature_access(current_user.id, 'AI Chatbot')
+    if not has_access:
+        from flask import render_template
+        return render_template('components/feature_locked.html', message=message)
+        
     course_id = request.args.get('course_id', type=int)
     
     # Retrieve chronologically ordered chat messages associated with the current student
@@ -46,6 +52,11 @@ def api_chat():
     API endpoint to handle incoming chat messages from the student.
     Delegates the processing to the AI service and returns the generated response.
     """
+    from services.subscription_service import check_feature_access
+    has_access, message = check_feature_access(current_user.id, 'AI Chatbot')
+    if not has_access:
+        return jsonify({"success": False, "error": "This feature is locked. " + message}), 403
+
     # Retrieve JSON payload from the request
     data = request.get_json()
     message = data.get('message')
@@ -75,6 +86,11 @@ def api_explain():
     API endpoint to request an AI explanation of a difficult topic.
     Passes the topic title, description, and desired detail level to the AI service.
     """
+    from services.subscription_service import check_feature_access
+    has_access, message = check_feature_access(current_user.id, 'AI Chatbot')
+    if not has_access:
+        return jsonify({"success": False, "error": "This feature is locked. " + message}), 403
+
     # Extract the topic metadata and configuration settings from the request body
     data = request.get_json()
     topic_title = data.get('topic_title')
@@ -104,6 +120,11 @@ def practice_form():
     """
     Route to render the AI practice quiz generator interface.
     """
+    has_access, message = check_feature_access(current_user.id, 'AI Practice Questions')
+    if not has_access:
+        from flask import render_template
+        return render_template('components/feature_locked.html', message=message)
+        
     # Fetch courses the student is enrolled in
     enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
     courses = [e.course for e in enrollments]
@@ -136,6 +157,10 @@ def api_practice_generate():
     """
     API endpoint to generate AI practice questions.
     """
+    has_access, message = check_feature_access(current_user.id, 'AI Practice Questions')
+    if not has_access:
+        return jsonify({"success": False, "error": message}), 403
+        
     data = request.get_json()
     course_id = data.get('course_id')
     lesson_id = data.get('lesson_id')
@@ -182,6 +207,10 @@ def summary():
     Accepts document uploads via POST, validates file types, saves the file, 
     and generates a summary using the AI service.
     """
+    has_access, message = check_feature_access(current_user.id, 'AI Summaries')
+    if not has_access:
+        return render_template('components/feature_locked.html', message=message)
+        
     if request.method == 'POST':
         # Validate that the file field exists in the multipart/form-data payload
         if 'file' not in request.files:

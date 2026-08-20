@@ -1,72 +1,98 @@
-<!-- Template for success view. -->
-{% extends 'dashboard_base.html' %}
+{% extends 'dashboard_base.html' if current_user.is_authenticated else 'base.html' %}
 
 {% block extra_css %}
 <style>
     .success-icon-wrapper {
-        width: 100px;
-        height: 100px;
-        background: rgba(40, 167, 69, 0.1);
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #10b981, #059669);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 2rem;
-    }
-    
-    .success-icon {
-        font-size: 4rem;
-        color: #28a745;
-    }
-    
-    .transaction-card {
-        background: #f8f9fa;
-        border: 1px dashed #ced4da;
-        border-radius: 0.5rem;
+        margin: 0 auto;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container-fluid py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6 text-center" data-aos="zoom-in">
-            <div class="card shadow-lg border-0 rounded-4 p-5">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 overflow-hidden position-relative">
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(16,185,129,0.05) 0%, rgba(16,185,129,0) 100%); z-index: 0; pointer-events: none;"></div>
                 
-                <div class="success-icon-wrapper">
-                    <i class="bi bi-check-circle-fill success-icon"></i>
+                <div class="text-center mb-5 position-relative" style="z-index: 1;">
+                    <div class="success-icon-wrapper mb-4 animate__animated animate__zoomIn">
+                        <i class="bi bi-check-lg text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h2 class="fw-bold mb-2 animate__animated animate__fadeInUp">Payment Successful!</h2>
+                    <p class="text-muted animate__animated animate__fadeInUp animate__delay-1s">Thank you for your purchase. Your transaction has been completed successfully.</p>
                 </div>
                 
-                <h2 class="fw-bold text-dark mb-2">Payment Successful!</h2>
-                <p class="text-muted mb-4">Thank you for your purchase. You are now enrolled in the course.</p>
-                
-                <div class="transaction-card p-4 mb-4 text-start">
-                    <div class="row mb-3">
-                        <div class="col-5 text-muted small">Transaction ID</div>
-                        <div class="col-7 fw-bold text-end font-monospace">{{ payment.transaction_id }}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-5 text-muted small">Date</div>
-                        <div class="col-7 fw-bold text-end">{{ payment.payment_date.strftime('%d %b %Y, %I:%M %p') }}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-5 text-muted small">Payment Method</div>
-                        <div class="col-7 fw-bold text-end">{{ payment.payment_method }}</div>
-                    </div>
-                    <hr>
-                    <div class="row align-items-center">
-                        <div class="col-5 text-muted small">Amount Paid</div>
-                        <div class="col-7 fw-bold fs-4 text-end text-success">{% if payment.currency == 'INR' %}₹{% elif payment.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(payment.amount) }}</div>
+                {% if payment %}
+                <div class="bg-light rounded-4 p-4 mb-5 position-relative animate__animated animate__fadeInUp animate__delay-1s" style="z-index: 1;">
+                    <h5 class="fw-bold mb-4 border-bottom pb-3">Transaction Details</h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <p class="text-muted small mb-1">Transaction ID</p>
+                            <p class="fw-bold mb-0 text-break">{{ payment.transaction_id }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-muted small mb-1">Date & Time</p>
+                            <p class="fw-bold mb-0">{{ payment.payment_date.strftime('%B %d, %Y - %I:%M %p') }}</p>
+                        </div>
+                        
+                        <div class="col-sm-6">
+                            <p class="text-muted small mb-1">Payment Method</p>
+                            <p class="fw-bold mb-0 d-flex align-items-center gap-2">
+                                {% if payment.payment_method == 'Card' %}
+                                <i class="bi bi-credit-card text-primary"></i>
+                                {% elif payment.payment_method == 'UPI' %}
+                                <i class="bi bi-qr-code-scan text-success"></i>
+                                {% else %}
+                                <i class="bi bi-wallet2 text-warning"></i>
+                                {% endif %}
+                                {{ payment.payment_method }}
+                            </p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-muted small mb-1">Amount Paid</p>
+                            <p class="fw-bold text-success mb-0 fs-5">
+                                {% if payment.currency == 'INR' %}₹{% elif payment.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(payment.amount) }}
+                            </p>
+                        </div>
                     </div>
                 </div>
+                {% else %}
+                <div class="bg-light rounded-4 p-4 mb-5 position-relative animate__animated animate__fadeInUp animate__delay-1s" style="z-index: 1;">
+                    <h5 class="fw-bold mb-4 border-bottom pb-3">Transaction Details</h5>
+                    
+                    {% if session.get('guest_payment') and not current_user.is_authenticated %}
+                    <div class="row mb-4">
+                        <div class="col-12 text-center">
+                            <p class="text-muted small mb-1">Receipt sent to</p>
+                            <p class="fw-bold mb-0">{{ session.get('guest_payment').get('billing_email', 'Your Email') }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <p class="text-muted text-center">Payment processed successfully. Please log in to complete your account setup and claim your subscription.</p>
+                </div>
+                {% endif %}
                 
                 <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
-                    <button class="btn btn-outline-secondary rounded-pill px-4 fw-bold" onclick="window.print()">
-                        <i class="bi bi-download me-2"></i> Download Invoice
-                    </button>
-                    <a href="{{ url_for('courses.course_start', course_id=payment.course_id) }}" class="btn btn-primary rounded-pill px-4 fw-bold" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">
-                        Go To Course <i class="bi bi-arrow-right ms-2"></i>
-                    </a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary rounded-pill px-5 py-2 fw-bold" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">
+                            Go to Dashboard <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary rounded-pill px-5 py-2 fw-bold" style="background: linear-gradient(135deg, #6f42c1, #007bff); border: none;">
+                            Login Now <i class="bi bi-box-arrow-in-right ms-2"></i>
+                        </a>
+                    {% endif %}
                 </div>
                 
             </div>

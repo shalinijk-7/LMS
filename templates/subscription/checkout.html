@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-5">
+                    <h3 class="fw-bold text-center mb-4">Complete Your Subscription</h3>
+                    
+                    <div class="bg-light p-4 rounded-3 mb-4 text-center">
+                        <h4 class="fw-bold">{{ plan.name }}</h4>
+                        <h2 class="text-primary my-2">{{ plan.currency }} {{ plan.price }}</h2>
+                        <p class="text-muted mb-0">For {{ plan.duration_days }} Days Access</p>
+                    </div>
+
+                    <form action="{{ url_for('subscription.process_subscription', plan_id=plan.id) }}" method="POST">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Select Payment Method</label>
+                            <select name="payment_method" class="form-select rounded-pill py-2">
+                                <option value="Card">Credit/Debit Card</option>
+                                <option value="PayPal">PayPal</option>
+                                <option value="UPI">UPI</option>
+                            </select>
+                        </div>
+                        
+                        <div class="alert alert-info small rounded-3">
+                            <i class="bi bi-info-circle me-2"></i> This is a simulated checkout. No real payment will be processed.
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm hover-lift">
+                            Pay Securely
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

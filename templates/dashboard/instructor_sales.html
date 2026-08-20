@@ -1,11 +1,11 @@
-<!-- Template for student payment history view. -->
+<!-- Template for instructor sales and refund management. -->
 {% extends 'dashboard_base.html' %}
 
 {% block content %}
 <div class="dash-header mb-4" data-aos="fade-down">
     <div>
-        <h2 class="fw-bold mb-1">Payment History</h2>
-        <p class="text-muted mb-0">View all your course purchases and receipts.</p>
+        <h2 class="fw-bold mb-1">Sales & Payments</h2>
+        <p class="text-muted mb-0">Manage course sales, track revenue, and process refunds.</p>
     </div>
 </div>
 
@@ -15,10 +15,10 @@
             <table class="table table-hover align-middle mb-0 text-nowrap">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4 py-3 text-muted fw-bold small text-uppercase">Course</th>
+                        <th class="ps-4 py-3 text-muted fw-bold small text-uppercase">Student</th>
+                        <th class="py-3 text-muted fw-bold small text-uppercase">Course</th>
                         <th class="py-3 text-muted fw-bold small text-uppercase">Transaction ID</th>
                         <th class="py-3 text-muted fw-bold small text-uppercase">Date</th>
-                        <th class="py-3 text-muted fw-bold small text-uppercase">Method</th>
                         <th class="py-3 text-muted fw-bold small text-uppercase">Amount</th>
                         <th class="py-3 text-muted fw-bold small text-uppercase">Status</th>
                         <th class="pe-4 py-3 text-muted fw-bold small text-uppercase text-end">Action</th>
@@ -29,30 +29,28 @@
                     <tr>
                         <td class="ps-4 py-3">
                             <div class="d-flex align-items-center gap-3">
-                                {% if payment.course %}
-                                    {% if payment.course.thumbnail %}
-                                        <img src="{{ url_for('static', filename='uploads/' + payment.course.thumbnail) }}" alt="{{ payment.course.title }}" width="48" height="48" class="rounded object-fit-cover">
-                                    {% else %}
-                                        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                            <i class="bi bi-journal-code"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div>
-                                        <a href="{{ url_for('courses.course_details', course_id=payment.course_id) }}" class="fw-bold text-dark text-decoration-none">{{ payment.course.title }}</a>
-                                    </div>
-                                {% elif payment.plan %}
-                                    <div class="bg-info text-white rounded d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                        <i class="bi bi-star-fill"></i>
-                                    </div>
-                                    <div>
-                                        <span class="fw-bold text-dark">{{ payment.plan.name }} Subscription</span>
+                                {% if payment.student.profile_image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + payment.student.profile_image) }}" alt="User" width="40" height="40" class="rounded-circle object-fit-cover">
+                                {% else %}
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        {{ payment.student.name[:1]|upper }}
                                     </div>
                                 {% endif %}
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ payment.student.name }}</h6>
+                                    <small class="text-muted">{{ payment.student.email }}</small>
+                                </div>
                             </div>
+                        </td>
+                        <td class="py-3">
+                            {% if payment.course %}
+                                <a href="{{ url_for('courses.course_details', course_id=payment.course_id) }}" class="fw-bold text-dark text-decoration-none">{{ payment.course.title }}</a>
+                            {% else %}
+                                <span class="text-muted">Subscription</span>
+                            {% endif %}
                         </td>
                         <td class="py-3 font-monospace small">{{ payment.transaction_id }}</td>
                         <td class="py-3">{{ payment.payment_date.strftime('%d %b %Y') }}</td>
-                        <td class="py-3">{{ payment.payment_method }}</td>
                         <td class="py-3 fw-bold">{% if payment.currency == 'INR' %}₹{% elif payment.currency == 'EUR' %}€{% else %}${% endif %}{{ "%.2f"|format(payment.amount) }}</td>
                         <td class="py-3">
                             {% if payment.status == 'Success' %}
@@ -66,16 +64,21 @@
                             {% endif %}
                         </td>
                         <td class="pe-4 py-3 text-end">
-                            <a href="{{ url_for('payment.invoice', transaction_id=payment.transaction_id) }}" class="btn btn-sm btn-outline-secondary rounded-pill"><i class="bi bi-file-earmark-text"></i> Invoice</a>
+                            {% if payment.status == 'Success' %}
+                                <form method="POST" action="{{ url_for('payment.process_refund', transaction_id=payment.transaction_id) }}" onsubmit="return confirm('Are you sure you want to refund this payment? This will revoke access.');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-arrow-counterclockwise"></i> Refund</button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted small">N/A</span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% else %}
                     <tr>
                         <td colspan="7" class="text-center py-5">
-                            <div class="text-muted mb-3"><i class="bi bi-receipt fs-1"></i></div>
-                            <h5 class="fw-bold">No payments yet</h5>
-                            <p class="text-muted small">When you purchase a course, the receipt will appear here.</p>
-                            <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4">Browse Courses</a>
+                            <div class="text-muted mb-3"><i class="bi bi-cash fs-1"></i></div>
+                            <h5 class="fw-bold">No sales yet</h5>
+                            <p class="text-muted small">Your course sales will appear here.</p>
                         </td>
                     </tr>
                     {% endfor %}

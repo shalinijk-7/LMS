@@ -1,0 +1,132 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}My Subscription - AuraLearn{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Subscription & Usage</h2>
+    </div>
+
+    <!-- Usage Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h6 class="text-muted fw-bold mb-3"><i class="bi bi-journal-text me-2"></i> Courses</h6>
+                    <h3 class="fw-bold mb-1">{{ usage.courses_used }} <span class="text-muted fs-5 fw-normal">/ {{ usage.max_courses }}</span></h3>
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar {% if not usage.courses_ok %}bg-danger{% else %}bg-primary{% endif %}" role="progressbar" style="width: {{ (usage.courses_used / usage.max_courses * 100) if usage.max_courses else 100 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h6 class="text-muted fw-bold mb-3"><i class="bi bi-people me-2"></i> Students</h6>
+                    <h3 class="fw-bold mb-1">{{ usage.students_used }} <span class="text-muted fs-5 fw-normal">/ {{ usage.max_students }}</span></h3>
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar {% if not usage.stVEnts_ok %}bg-danger{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ (usage.students_used / usage.max_students * 100) if usage.max_students else 100 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h6 class="text-muted fw-bold mb-3"><i class="bi bi-hdd me-2"></i> Storage</h6>
+                    <h3 class="fw-bold mb-1">{{ '%.2f'|format(usage.storage_used_mb) }} MB <span class="text-muted fs-5 fw-normal">/ {{ usage.storage_limit_mb }} MB</span></h3>
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar {% if not usage.storage_ok %}bg-danger{% else %}bg-info{% endif %}" role="progressbar" style="width: {{ (usage.storage_used_mb / usage.storage_limit_mb * 100) if usage.storage_limit_mb else 100 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Current Subscription Details -->
+    <div class="card border-0 shadow-sm rounded-4 mb-5">
+        <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
+            <h5 class="fw-bold">Current Plan Details</h5>
+        </div>
+        <div class="card-body p-4">
+            {% if usage.subscription %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2 text-muted">Plan Name</p>
+                        <h5 class="fw-bold">{{ usage.plan.name }}</h5>
+                        <p class="mb-2 mt-4 text-muted">Status</p>
+                        <h5><span class="badge {% if usage.subscription.status == 'Active' %}bg-success{% elif usage.subscription.status == 'Cancelled' %}bg-warning{% else %}bg-danger{% endif %}">{{ usage.subscription.status }}</span></h5>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2 text-muted">Expiry Date</p>
+                        <h5 class="fw-bold">{{ usage.subscription.end_date.strftime('%B %d, %Y') }}</h5>
+                        <p class="mb-2 mt-4 text-muted">Advanced Analytics</p>
+                        <h5>{% if usage.has_advanced_analytics %}<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Enabled</span>{% else %}<span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i> Disabled</span>{% endif %}</h5>
+                    </div>
+                </div>
+                {% if usage.subscription.status == 'Active' %}
+                <div class="mt-4 pt-3 border-top d-flex gap-3">
+                    <form action="{{ url_for('subscription.cancel_sub') }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel your subscription? You will retain access until the end of your billing cycle.');">
+                        <button type="submit" class="btn btn-outline-danger px-4 rounded-pill fw-bold">Cancel Subscription</button>
+                    </form>
+                    <form action="{{ url_for('payment.checkout_plan', plan_id=usage.plan.id) }}" method="GET">
+                        <button type="submit" class="btn btn-outline-primary px-4 rounded-pill fw-bold">Renew / Extend</button>
+                    </form>
+                </div>
+                {% endif %}
+            {% elif usage.is_trial %}
+                <div class="text-center py-4">
+                    <div class="text-success mb-3"><i class="bi bi-gift fs-1"></i></div>
+                    <h5 class="fw-bold text-success">5-Day Free Trial Active</h5>
+                    <p class="text-muted">You are currently enjoying a free trial with Basic plan limits. Please upgrade to a paid plan before your trial expires to retain access to your courses.</p>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <div class="text-muted mb-3"><i class="bi bi-emoji-frown fs-1"></i></div>
+                    <h5>No Active Subscription</h5>
+                    <p class="text-muted">You do not have an active SaaS subscription. You must subscribe to a plan to manage courses.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Available Plans -->
+    <h4 class="fw-bold mb-4">Available Plans</h4>
+    <div class="row g-4">
+        {% for plan in plans %}
+        <div class="col-md-4">
+            <div class="card h-100 border-{% if usage.plan and usage.plan.id == plan.id %}primary{% else %}0 shadow-sm{% endif %} rounded-4">
+                <div class="card-body p-4 d-flex flex-column">
+                    {% if usage.plan and usage.plan.id == plan.id %}
+                    <div class="position-absolute top-0 end-0 mt-3 me-3">
+                        <span class="badge bg-primary rounded-pill">Current</span>
+                    </div>
+                    {% endif %}
+                    
+                    <h5 class="fw-bold mb-1">{{ plan.name }}</h5>
+                    <h3 class="fw-bold text-primary mb-3">{% if plan.currency == 'INR' %}₹{% elif plan.currency == 'EUR' %}€{% else %}${% endif %}{{ plan.price }}<span class="fs-6 text-muted fw-normal">/ {{ plan.duration_days }} days</span></h3>
+                    
+                    <ul class="list-unstyled mt-3 mb-4 flex-grow-1">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> {{ plan.max_courses }} Courses Limit</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> {{ plan.max_students }} Students Limit</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> {{ plan.storage_limit_mb }} MB Storage</li>
+                        <li class="mb-2">{% if plan.has_advanced_analytics %}<i class="bi bi-check-circle-fill text-success me-2"></i> Advanced Analytics{% else %}<i class="bi bi-x-circle text-muted me-2"></i> No Advanced Analytics{% endif %}</li>
+                    </ul>
+                    
+                    {% if not usage.plan or usage.plan.price < plan.price %}
+                        <!-- Upgrade -->
+                        <a href="{{ url_for('payment.checkout_plan', plan_id=plan.id) }}" class="btn btn-primary rounded-pill w-100 fw-bold">Upgrade</a>
+                    {% elif usage.plan and usage.plan.price > plan.price %}
+                        <!-- Downgrade -->
+                        <a href="{{ url_for('subscription.downgrade_checkout', plan_id=plan.id) }}" class="btn btn-outline-secondary rounded-pillw-100 fw-bold">Downgrade</a>
+                    {% else %}
+                        <button disabled class="btn btn-light rounded-pill w-100 fw-bold">Current Plan</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

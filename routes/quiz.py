@@ -31,6 +31,12 @@ def take_quiz(quiz_id):
     """
     quiz = Quiz.query.get_or_404(quiz_id)
     
+    from services.subscription_service import check_feature_access
+    # For simplicity, treat regular quizzes as Basic Quizzes
+    has_access, message = check_feature_access(current_user.id, 'Basic Quizzes')
+    if not has_access:
+        return render_template('components/feature_locked.html', message=message)
+        
     # Check if already taken
     existing_result = Result.query.filter_by(quiz_id=quiz.id, student_id=current_user.id).first()
     if existing_result:

@@ -142,7 +142,7 @@
                                 {% endwith %}
                                 
                                 <!-- Signup Form -->
-                                <form id="register-form" method="POST" action="{{ url_for('auth.register') }}">
+                                <form id="register-form" method="POST" action="{{ url_for('auth.register', next=request.args.get('next')) }}">
                                     
                                     <div class="row g-2 mb-2">
                                         <!-- Full Name -->
